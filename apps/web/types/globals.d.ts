@@ -1,0 +1,29 @@
+import { Plan, UserPreferences } from "./types";
+
+export {};
+
+declare global {
+  interface CustomJwtSessionClaims {
+    metadata: {
+      onboardingComplete?: boolean;
+      userPreferences?: UserPreferences;
+    };
+  }
+
+  interface UserPrivateMetadata {
+    application_id: string;
+  }
+
+  interface UserPublicMetadata {
+    onboardingComplete?: boolean;
+    userPreferences?: UserPreferences;
+    subscriptionPlan?: Plan;
+    subscriptionStatus?: Stripe.Subscription.Status;
+    subscriptionId?: string;
+    subscriptionEndDate?: number; // Unix timestamp for when the subscription ends
+  }
+  interface OrganizationMembershipPublicMetadata {
+    onboardingComplete?: boolean;
+    userPreferences?: UserPreferences;
+  }
+}

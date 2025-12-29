@@ -1,0 +1,293 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum StrategyType {
+  CASH_FLOW
+  CAPITAL_GROWTH
+  RENOVATION_FLIP
+  DEVELOPMENT
+  SMSF
+  COMMERCIAL
+}
+
+enum StrategyStatus {
+  DISCOVERY
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+enum PropertyType {
+  HOUSE
+  APARTMENT
+  TOWNHOUSE
+  VILLA
+  UNIT
+  LAND
+  RURAL
+  COMMERCIAL
+  INDUSTRIAL
+}
+
+enum ListingType {
+  SALE
+  RENT
+  SOLD
+  LEASED
+}
+
+// ============================================================================
+// USER & AUTH MODELS
+// ============================================================================
+
+model User {
+  id          String   @id @default(cuid())
+  clerkUserId String   @unique
+  email       String   @unique
+  name        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  accounts     Account[]
+  sessions     Session[]
+  strategies   Strategy[]
+  chatSessions ChatSession[]
+  savedSearches SavedSearch[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// ============================================================================
+// STRATEGY & CHAT MODELS
+// ============================================================================
+
+model Strategy {
+  id              String         @id @default(cuid())
+  userId          String
+  type            StrategyType
+  status          StrategyStatus @default(DISCOVERY)
+  params          Json?          // Flexible JSON for strategy-specific parameters
+  budget          Float?
+  deposit         Float?
+  income          Float?
+  riskTolerance   String?        // low, medium, high
+  timeline        String?        // short, medium, long
+  managementStyle String?        // hands-on, passive, mixed
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatSessions ChatSession[]
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@map("strategies")
+}
+
+model ChatSession {
+  id         String   @id @default(cuid())
+  userId     String
+  strategyId String?
+  title      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  strategy Strategy?     @relation(fields: [strategyId], references: [id], onDelete: SetNull)
+  messages ChatMessage[]
+
+  @@index([userId])
+  @@index([strategyId])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id            String   @id @default(cuid())
+  chatSessionId String
+  role          String   // user, assistant, system, tool
+  content       String   @db.Text
+  toolCalls     Json?    // Array of tool call objects
+  toolResults   Json?    // Array of tool result objects
+  createdAt     DateTime @default(now())
+
+  // Relations
+  chatSession ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+
+  @@index([chatSessionId])
+  @@index([createdAt])
+  @@map("chat_messages")
+}
+
+model SavedSearch {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String?
+  filters   Json     // Search filter criteria
+  results   Json?    // Cached search results
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("saved_searches")
+}
+
+// ============================================================================
+// LOCATION MODELS
+// ============================================================================
+
+model State {
+  id        String   @id @default(cuid())
+  name      String   @unique // e.g., "New South Wales"
+  code      String   @unique // e.g., "NSW"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  cities City[]
+
+  @@map("states")
+}
+
+model City {
+  id        String   @id @default(cuid())
+  stateId   String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  state   State    @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  suburbs Suburb[]
+
+  @@unique([stateId, name])
+  @@index([stateId])
+  @@map("cities")
+}
+
+model Suburb {
+  id        String   @id @default(cuid())
+  cityId    String
+  name      String
+  postcode  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  city       City           @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  properties Property[]
+  metrics    SuburbMetric[]
+
+  @@unique([cityId, name, postcode])
+  @@index([cityId])
+  @@index([postcode])
+  @@map("suburbs")
+}
+
+// ============================================================================
+// PROPERTY MODELS
+// ============================================================================
+
+model Property {
+  id           String       @id @default(cuid())
+  externalId   String?      @unique // ID from external data source (e.g., Domain)
+  suburbId     String
+  address      String
+  latitude     Float?
+  longitude    Float?
+  propertyType PropertyType
+  listingType  ListingType
+  price        Float?
+  rentWeekly   Float?
+  bedrooms     Int?
+  bathrooms    Int?
+  carSpaces    Int?
+  landSize     Float?       // in square meters
+  buildingSize Float?       // in square meters
+  description  String?      @db.Text
+  features     Json?        // Array of feature strings
+  images       Json?        // Array of image URLs
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  // Relations
+  suburb Suburb @relation(fields: [suburbId], references: [id], onDelete: Cascade)
+
+  @@index([suburbId])
+  @@index([propertyType])
+  @@index([listingType])
+  @@index([price])
+  @@index([bedrooms])
+  @@index([latitude, longitude])
+  @@map("properties")
+}
+
+model SuburbMetric {
+  id         String   @id @default(cuid())
+  suburbId   String
+  metricType String   // e.g., "median_price", "rental_yield", "vacancy_rate", "growth_rate"
+  value      Float
+  source     String?  // e.g., "domain", "corelogic", "abs"
+  recordedAt DateTime
+  createdAt  DateTime @default(now())
+
+  // Relations
+  suburb Suburb @relation(fields: [suburbId], references: [id], onDelete: Cascade)
+
+  @@index([suburbId])
+  @@index([metricType])
+  @@index([recordedAt])
+  @@unique([suburbId, metricType, recordedAt])
+  @@map("suburb_metrics")
+}
