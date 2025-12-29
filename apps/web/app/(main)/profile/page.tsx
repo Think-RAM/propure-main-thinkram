@@ -6,6 +6,31 @@ import { ArrowLeft } from "lucide-react";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+  if (!clerkPublishableKey) {
+    return (
+      <main className="min-h-min bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-xl mx-auto bg-white rounded-2xl shadow-md p-8 space-y-4">
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Clerk isn’t configured
+          </h1>
+          <p className="text-gray-600">
+            Set <code className="font-mono">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</code>{" "}
+            (and <code className="font-mono">CLERK_SECRET_KEY</code>) in your env to
+            enable authentication and the profile page.
+          </p>
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-min bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">

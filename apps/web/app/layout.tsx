@@ -32,26 +32,50 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <head />
-        <body
-          className={`${poppins.variable} ${lato.variable} ${inter.className}`}
+  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+  const appShell = (content: React.ReactNode) => (
+    <html lang="en" suppressHydrationWarning>
+      <head />
+      <body className={`${poppins.variable} ${lato.variable} ${inter.className}`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+          storageKey="propure-theme"
         >
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem
-            disableTransitionOnChange
-            storageKey="propure-theme"
-          >
-            {children}
-          </ThemeProvider>
-        </body>
-      </html>
+          {content}
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+
+  if (!clerkPublishableKey) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[propure/web] NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is missing; rendering without ClerkProvider."
+    );
+    return appShell(
+      <main className="min-h-screen bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-xl rounded-2xl bg-white p-8 shadow-md space-y-3">
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Missing Clerk configuration
+          </h1>
+          <p className="text-gray-600">
+            Add{" "}
+            <code className="font-mono">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</code>{" "}
+            (and <code className="font-mono">CLERK_SECRET_KEY</code>) to your env
+            to enable authentication and run/build the app.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <ClerkProvider publishableKey={clerkPublishableKey}>
+      {appShell(children)}
     </ClerkProvider>
   );
 }
-
-import "./globals.css";
