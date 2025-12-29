@@ -5,16 +5,15 @@ import updateUserMetadata from "../clerk/updateMetadata";
 export async function verifyAndCreateUser(user: UserJSON) {
   try {
     const newUser = await prisma.user.upsert({
-      where: { email: user.email_addresses[0].email_address },
+      where: { clerkUserId: user.id },
       update: {
         name: `${user.first_name ?? "John"} ${user.last_name ?? "Doe"}`,
         updatedAt: new Date(),
       },
       create: {
+        clerkUserId: user.id,
         email: user.email_addresses[0].email_address,
         name: `${user.first_name ?? "John"} ${user.last_name ?? "Doe"}`,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       },
     });
     await updateUserMetadata(

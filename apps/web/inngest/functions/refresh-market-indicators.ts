@@ -1,4 +1,14 @@
+import { z } from "zod";
 import { inngest } from "../client";
+import { prisma } from "@propure/db";
+
+// Zod schema for event data validation
+const MarketIndicatorsEventSchema = z.object({
+  indicators: z
+    .array(z.enum(["rba", "abs", "demographic", "all"]))
+    .optional()
+    .default(["all"]),
+});
 
 /**
  * Refresh national/city-level market indicators
@@ -18,37 +28,82 @@ export const refreshMarketIndicators = inngest.createFunction(
     name: "Refresh Market Indicators",
     retries: 3,
   },
-  // Can be triggered by cron or manual event
   { event: "market/indicators.refresh" },
   async ({ event, step }) => {
+    // Validate event data with Zod
+    const parseResult = MarketIndicatorsEventSchema.safeParse(event.data);
+    if (!parseResult.success) {
+      console.error("Invalid event data:", parseResult.error.flatten());
+      return {
+        error: "Invalid event data",
+        details: parseResult.error.flatten(),
+      };
+    }
+    const { indicators } = parseResult.data;
+    const fetchAll = indicators.includes("all");
+
     // Step 1: Fetch RBA data
     const rbaData = await step.run("fetch-rba-data", async () => {
-      // TODO: Fetch from RBA API or data source
-      console.log("Fetching RBA interest rate data...");
-      return { cashRate: null };
+      if (!fetchAll && !indicators.includes("rba")) {
+        return { skipped: true, cashRate: null };
+      }
+      try {
+        // TODO: Fetch from RBA API or data source
+        console.log("Fetching RBA interest rate data...");
+        return { skipped: false, cashRate: 4.35 }; // Placeholder
+      } catch (error) {
+        console.error("Failed to fetch RBA data:", error);
+        throw error;
+      }
     });
 
     // Step 2: Fetch ABS building approvals
     const absData = await step.run("fetch-abs-data", async () => {
-      // TODO: Fetch from ABS API
-      console.log("Fetching ABS building approvals...");
-      return { buildingApprovals: null };
+      if (!fetchAll && !indicators.includes("abs")) {
+        return { skipped: true, buildingApprovals: null };
+      }
+      try {
+        // TODO: Fetch from ABS API
+        console.log("Fetching ABS building approvals...");
+        return { skipped: false, buildingApprovals: null };
+      } catch (error) {
+        console.error("Failed to fetch ABS data:", error);
+        throw error;
+      }
     });
 
     // Step 3: Fetch employment/population data
     const demographicData = await step.run(
       "fetch-demographic-data",
       async () => {
-        // TODO: Fetch demographic indicators
-        console.log("Fetching demographic data...");
-        return { employment: null, population: null };
+        if (!fetchAll && !indicators.includes("demographic")) {
+          return { skipped: true, employment: null, population: null };
+        }
+        try {
+          // TODO: Fetch demographic indicators
+          console.log("Fetching demographic data...");
+          return { skipped: false, employment: null, population: null };
+        } catch (error) {
+          console.error("Failed to fetch demographic data:", error);
+          throw error;
+        }
       },
     );
 
     // Step 4: Store all indicators
     await step.run("store-indicators", async () => {
-      // TODO: Store in NationalMetric or CityMetric tables
-      console.log("Storing market indicators...");
+      try {
+        // TODO: Store in a NationalMetric or CityMetric table
+        // For now, log what would be stored
+        console.log("Storing market indicators:", {
+          rba: rbaData,
+          abs: absData,
+          demographic: demographicData,
+        });
+      } catch (error) {
+        console.error("Failed to store indicators:", error);
+        throw error;
+      }
     });
 
     return {

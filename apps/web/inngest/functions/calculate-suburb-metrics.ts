@@ -1,4 +1,20 @@
+import { z } from "zod";
 import { inngest } from "../client";
+import { prisma } from "@propure/db";
+
+// Zod schema for event data validation
+const SuburbMetricsEventSchema = z.object({
+  suburbIds: z.array(z.string()).optional(),
+});
+
+// Type for serialized property from step.run
+type PropertyWithSuburb = {
+  id: string;
+  suburbId: string;
+  price: number | null;
+  rentWeekly: number | null;
+  suburb: { id: string; name: string };
+};
 
 /**
  * Calculate suburb-level metrics
@@ -18,37 +34,153 @@ export const calculateSuburbMetrics = inngest.createFunction(
   },
   { event: "suburb/metrics.update" },
   async ({ event, step }) => {
-    const { suburbIds } = event.data as { suburbIds?: string[] };
+    // Validate event data with Zod
+    const parseResult = SuburbMetricsEventSchema.safeParse(event.data);
+    if (!parseResult.success) {
+      console.error("Invalid event data:", parseResult.error.flatten());
+      return {
+        error: "Invalid event data",
+        details: parseResult.error.flatten(),
+      };
+    }
+    const { suburbIds } = parseResult.data;
 
     // Step 1: Fetch properties for calculation
-    const properties = await step.run("fetch-properties", async () => {
-      // TODO: Query properties from database
-      // If suburbIds provided, filter by those suburbs
-      // Otherwise, calculate for all suburbs with recent changes
-      console.log("Fetching properties for metric calculation...");
-      return [];
-    });
+    const properties = await step.run(
+      "fetch-properties",
+      async (): Promise<PropertyWithSuburb[]> => {
+        try {
+          const whereClause = suburbIds?.length
+            ? { suburbId: { in: suburbIds } }
+            : {};
+
+          const props = await prisma.property.findMany({
+            where: whereClause,
+            include: { suburb: true },
+            select: {
+              id: true,
+              suburbId: true,
+              price: true,
+              rentWeekly: true,
+              suburb: { select: { id: true, name: true } },
+            },
+          });
+          console.log(
+            `Fetched ${props.length} properties for metric calculation`,
+          );
+          return props;
+        } catch (error) {
+          console.error("Failed to fetch properties:", error);
+          throw error;
+        }
+      },
+    );
 
     // Step 2: Calculate metrics
     const metrics = await step.run("calculate-metrics", async () => {
-      // TODO: Calculate aggregated metrics
-      // - Median price: sort prices, take middle value
-      // - Gross yield: (median weekly rent * 52) / median price * 100
-      // - Vacancy rate: vacant listings / total listings
-      // - Growth rate: compare to historical data
-      console.log("Calculating suburb metrics...");
-      return {
-        suburbsProcessed: 0,
-        metricsCalculated: 0,
-      };
+      try {
+        // Group properties by suburb
+        const suburbGroups = properties.reduce<
+          Record<string, PropertyWithSuburb[]>
+        >((acc, prop) => {
+          const key = prop.suburbId;
+          if (!acc[key]) acc[key] = [];
+          acc[key].push(prop);
+          return acc;
+        }, {});
+
+        const calculatedMetrics: {
+          suburbId: string;
+          medianPrice: number | null;
+          grossYield: number | null;
+        }[] = [];
+
+        for (const [suburbId, props] of Object.entries(suburbGroups)) {
+          // Calculate median price
+          const prices = props
+            .map((p: PropertyWithSuburb) => p.price)
+            .filter((p): p is number => p !== null)
+            .sort((a: number, b: number) => a - b);
+          const medianPrice =
+            prices.length > 0 ? prices[Math.floor(prices.length / 2)] : null;
+
+          // Calculate gross yield: (median weekly rent * 52) / median price * 100
+          const rents = props
+            .map((p: PropertyWithSuburb) => p.rentWeekly)
+            .filter((r): r is number => r !== null);
+          const medianRent =
+            rents.length > 0
+              ? rents.sort((a: number, b: number) => a - b)[
+                  Math.floor(rents.length / 2)
+                ]
+              : null;
+          const grossYield =
+            medianPrice && medianRent
+              ? ((medianRent * 52) / medianPrice) * 100
+              : null;
+
+          calculatedMetrics.push({ suburbId, medianPrice, grossYield });
+        }
+
+        console.log(
+          `Calculated metrics for ${calculatedMetrics.length} suburbs`,
+        );
+        return {
+          suburbsProcessed: calculatedMetrics.length,
+          metricsCalculated: calculatedMetrics.length * 2,
+          metrics: calculatedMetrics,
+        };
+      } catch (error) {
+        console.error("Failed to calculate metrics:", error);
+        throw error;
+      }
     });
 
-    // Step 3: Store metrics in TimescaleDB
+    // Step 3: Store metrics in database
     await step.run("store-metrics", async () => {
-      // TODO: Insert metrics into SuburbMetric table
-      console.log("Storing calculated metrics...");
+      try {
+        const now = new Date();
+        const metricRecords = metrics.metrics.flatMap((m) => [
+          ...(m.medianPrice !== null
+            ? [
+                {
+                  suburbId: m.suburbId,
+                  metricType: "median_price",
+                  value: m.medianPrice,
+                  source: "calculated",
+                  recordedAt: now,
+                },
+              ]
+            : []),
+          ...(m.grossYield !== null
+            ? [
+                {
+                  suburbId: m.suburbId,
+                  metricType: "rental_yield",
+                  value: m.grossYield,
+                  source: "calculated",
+                  recordedAt: now,
+                },
+              ]
+            : []),
+        ]);
+
+        if (metricRecords.length > 0) {
+          await prisma.suburbMetric.createMany({
+            data: metricRecords,
+            skipDuplicates: true,
+          });
+        }
+        console.log(`Stored ${metricRecords.length} metric records`);
+      } catch (error) {
+        console.error("Failed to store metrics:", error);
+        throw error;
+      }
     });
 
-    return metrics;
+    return {
+      suburbsProcessed: metrics.suburbsProcessed,
+      metricsCalculated: metrics.metricsCalculated,
+    };
   },
 );

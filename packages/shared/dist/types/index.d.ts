@@ -34,13 +34,38 @@ export declare const ProductPlanPriceId: Record<Plan, string>;
  */
 export declare const PlanToPrice: Record<string, Plan>;
 /**
- * Investment Strategy Types
+ * Investment Strategy Types (API/Frontend format - kebab-case)
  */
 export type StrategyType = "cash-flow" | "capital-growth" | "renovation-flip" | "development" | "smsf" | "commercial";
 /**
- * Property Types
+ * Investment Strategy Types (Prisma format - SCREAMING_SNAKE_CASE)
+ * These match the Prisma enum values exactly
+ */
+export type PrismaStrategyType = "CASH_FLOW" | "CAPITAL_GROWTH" | "RENOVATION_FLIP" | "DEVELOPMENT" | "SMSF" | "COMMERCIAL";
+/**
+ * Map API strategy type to Prisma enum value
+ */
+export declare const strategyTypeToPrisma: Record<StrategyType, PrismaStrategyType>;
+/**
+ * Map Prisma enum value to API strategy type
+ */
+export declare const prismaToStrategyType: Record<PrismaStrategyType, StrategyType>;
+/**
+ * Property Types (API/Frontend format - lowercase)
  */
 export type PropertyType = "house" | "apartment" | "townhouse" | "unit" | "land" | "commercial";
+/**
+ * Property Types (Prisma format - SCREAMING_SNAKE_CASE)
+ */
+export type PrismaPropertyType = "HOUSE" | "APARTMENT" | "TOWNHOUSE" | "VILLA" | "UNIT" | "LAND" | "RURAL" | "COMMERCIAL" | "INDUSTRIAL";
+/**
+ * Map API property type to Prisma enum value
+ */
+export declare const propertyTypeToPrisma: Record<PropertyType, PrismaPropertyType>;
+/**
+ * Map Prisma enum value to API property type (subset that maps to frontend types)
+ */
+export declare const prismaToPropertyType: Partial<Record<PrismaPropertyType, PropertyType>>;
 /**
  * Search Result from property search
  */

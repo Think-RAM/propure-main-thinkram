@@ -53,7 +53,7 @@ export const PlanToPrice: Record<string, Plan> = {
 };
 
 /**
- * Investment Strategy Types
+ * Investment Strategy Types (API/Frontend format - kebab-case)
  */
 export type StrategyType =
   | "cash-flow"
@@ -64,7 +64,43 @@ export type StrategyType =
   | "commercial";
 
 /**
- * Property Types
+ * Investment Strategy Types (Prisma format - SCREAMING_SNAKE_CASE)
+ * These match the Prisma enum values exactly
+ */
+export type PrismaStrategyType =
+  | "CASH_FLOW"
+  | "CAPITAL_GROWTH"
+  | "RENOVATION_FLIP"
+  | "DEVELOPMENT"
+  | "SMSF"
+  | "COMMERCIAL";
+
+/**
+ * Map API strategy type to Prisma enum value
+ */
+export const strategyTypeToPrisma: Record<StrategyType, PrismaStrategyType> = {
+  "cash-flow": "CASH_FLOW",
+  "capital-growth": "CAPITAL_GROWTH",
+  "renovation-flip": "RENOVATION_FLIP",
+  development: "DEVELOPMENT",
+  smsf: "SMSF",
+  commercial: "COMMERCIAL",
+};
+
+/**
+ * Map Prisma enum value to API strategy type
+ */
+export const prismaToStrategyType: Record<PrismaStrategyType, StrategyType> = {
+  CASH_FLOW: "cash-flow",
+  CAPITAL_GROWTH: "capital-growth",
+  RENOVATION_FLIP: "renovation-flip",
+  DEVELOPMENT: "development",
+  SMSF: "smsf",
+  COMMERCIAL: "commercial",
+};
+
+/**
+ * Property Types (API/Frontend format - lowercase)
  */
 export type PropertyType =
   | "house"
@@ -73,6 +109,46 @@ export type PropertyType =
   | "unit"
   | "land"
   | "commercial";
+
+/**
+ * Property Types (Prisma format - SCREAMING_SNAKE_CASE)
+ */
+export type PrismaPropertyType =
+  | "HOUSE"
+  | "APARTMENT"
+  | "TOWNHOUSE"
+  | "VILLA"
+  | "UNIT"
+  | "LAND"
+  | "RURAL"
+  | "COMMERCIAL"
+  | "INDUSTRIAL";
+
+/**
+ * Map API property type to Prisma enum value
+ */
+export const propertyTypeToPrisma: Record<PropertyType, PrismaPropertyType> = {
+  house: "HOUSE",
+  apartment: "APARTMENT",
+  townhouse: "TOWNHOUSE",
+  unit: "UNIT",
+  land: "LAND",
+  commercial: "COMMERCIAL",
+};
+
+/**
+ * Map Prisma enum value to API property type (subset that maps to frontend types)
+ */
+export const prismaToPropertyType: Partial<
+  Record<PrismaPropertyType, PropertyType>
+> = {
+  HOUSE: "house",
+  APARTMENT: "apartment",
+  TOWNHOUSE: "townhouse",
+  UNIT: "unit",
+  LAND: "land",
+  COMMERCIAL: "commercial",
+};
 
 /**
  * Search Result from property search
