@@ -1,26 +1,30 @@
 import { z } from "zod";
 import { inngest } from "../client";
 import { prisma } from "@propure/db";
+import { marketTools } from "@/lib/mcp/client";
 
 // Zod schema for event data validation
 const MarketIndicatorsEventSchema = z.object({
   indicators: z
-    .array(z.enum(["rba", "abs", "demographic", "all"]))
+    .array(z.enum(["rba", "abs", "demographic", "building", "population"]))
     .optional()
-    .default(["all"]),
+    .default(["rba", "abs", "demographic", "building", "population"]),
+  state: z
+    .enum(["NSW", "VIC", "QLD", "WA", "SA", "TAS", "NT", "ACT"])
+    .optional(),
 });
 
 /**
- * Refresh national/city-level market indicators
+ * Refresh national/city-level market indicators via MCP
  *
  * This function updates macro-level market data:
  * - Interest rates (RBA)
  * - Building approvals (ABS)
- * - Employment data
- * - Population growth
- * - Infrastructure spending
+ * - Economic indicators (GDP, inflation, unemployment)
+ * - Population projections
+ * - Demographics
  *
- * Typically runs on a schedule (daily/weekly).
+ * Typically runs on a schedule (daily).
  */
 export const refreshMarketIndicators = inngest.createFunction(
   {
@@ -28,10 +32,14 @@ export const refreshMarketIndicators = inngest.createFunction(
     name: "Refresh Market Indicators",
     retries: 3,
   },
-  { event: "market/indicators.refresh" },
+  [
+    { event: "market/indicators.refresh" },
+    { cron: "0 4 * * *" }, // Daily at 4 AM AEST
+  ],
   async ({ event, step }) => {
     // Validate event data with Zod
-    const parseResult = MarketIndicatorsEventSchema.safeParse(event.data);
+    const eventData = event?.data || {};
+    const parseResult = MarketIndicatorsEventSchema.safeParse(eventData);
     if (!parseResult.success) {
       console.error("Invalid event data:", parseResult.error.flatten());
       return {
@@ -39,80 +47,293 @@ export const refreshMarketIndicators = inngest.createFunction(
         details: parseResult.error.flatten(),
       };
     }
-    const { indicators } = parseResult.data;
-    const fetchAll = indicators.includes("all");
+    const { indicators, state } = parseResult.data;
+
+    const results: Record<string, unknown> = {};
+    const now = new Date();
 
     // Step 1: Fetch RBA data
-    const rbaData = await step.run("fetch-rba-data", async () => {
-      if (!fetchAll && !indicators.includes("rba")) {
-        return { skipped: true, cashRate: null };
-      }
-      try {
-        // TODO: Fetch from RBA API or data source
-        console.log("Fetching RBA interest rate data...");
-        return { skipped: false, cashRate: 4.35 }; // Placeholder
-      } catch (error) {
-        console.error("Failed to fetch RBA data:", error);
-        throw error;
-      }
-    });
-
-    // Step 2: Fetch ABS building approvals
-    const absData = await step.run("fetch-abs-data", async () => {
-      if (!fetchAll && !indicators.includes("abs")) {
-        return { skipped: true, buildingApprovals: null };
-      }
-      try {
-        // TODO: Fetch from ABS API
-        console.log("Fetching ABS building approvals...");
-        return { skipped: false, buildingApprovals: null };
-      } catch (error) {
-        console.error("Failed to fetch ABS data:", error);
-        throw error;
-      }
-    });
-
-    // Step 3: Fetch employment/population data
-    const demographicData = await step.run(
-      "fetch-demographic-data",
-      async () => {
-        if (!fetchAll && !indicators.includes("demographic")) {
-          return { skipped: true, employment: null, population: null };
-        }
+    if (indicators.includes("rba")) {
+      const rbaData = await step.run("fetch-rba-data", async () => {
         try {
-          // TODO: Fetch demographic indicators
-          console.log("Fetching demographic data...");
-          return { skipped: false, employment: null, population: null };
+          return await marketTools.getRbaRates(true, true);
         } catch (error) {
-          console.error("Failed to fetch demographic data:", error);
-          throw error;
+          console.error("Failed to fetch RBA data:", error);
+          return null;
         }
-      },
-    );
+      });
 
-    // Step 4: Store all indicators
-    await step.run("store-indicators", async () => {
-      try {
-        // TODO: Store in a NationalMetric or CityMetric table
-        // For now, log what would be stored
-        console.log("Storing market indicators:", {
-          rba: rbaData,
-          abs: absData,
-          demographic: demographicData,
+      if (rbaData) {
+        // Store cash rate
+        await step.run("store-rba-rates", async () => {
+          await prisma.marketIndicator.upsert({
+            where: {
+              indicatorType_scope_recordedAt: {
+                indicatorType: "cash_rate",
+                scope: "national",
+                recordedAt: now,
+              },
+            },
+            update: { value: rbaData.cashRate.current },
+            create: {
+              indicatorType: "cash_rate",
+              scope: "national",
+              value: rbaData.cashRate.current,
+              unit: "percent",
+              recordedAt: now,
+              source: "RBA",
+            },
+          });
         });
-      } catch (error) {
-        console.error("Failed to store indicators:", error);
-        throw error;
+
+        results.rba = rbaData;
       }
-    });
+    }
+
+    // Step 2: Fetch economic indicators
+    if (indicators.includes("abs")) {
+      const economicData = await step.run(
+        "fetch-economic-indicators",
+        async () => {
+          try {
+            return await marketTools.getEconomicIndicators();
+          } catch (error) {
+            console.error("Failed to fetch economic indicators:", error);
+            return null;
+          }
+        },
+      );
+
+      if (economicData) {
+        await step.run("store-economic-indicators", async () => {
+          const indicatorOps = [
+            {
+              type: "gdp_growth",
+              value: economicData.gdpGrowth,
+              unit: "percent",
+            },
+            {
+              type: "inflation",
+              value: economicData.inflation,
+              unit: "percent",
+            },
+            {
+              type: "unemployment",
+              value: economicData.unemployment,
+              unit: "percent",
+            },
+            {
+              type: "wage_growth",
+              value: economicData.wageGrowth,
+              unit: "percent",
+            },
+          ];
+
+          await prisma.$transaction(
+            indicatorOps.map((ind) =>
+              prisma.marketIndicator.upsert({
+                where: {
+                  indicatorType_scope_recordedAt: {
+                    indicatorType: ind.type,
+                    scope: "national",
+                    recordedAt: now,
+                  },
+                },
+                update: { value: ind.value },
+                create: {
+                  indicatorType: ind.type,
+                  scope: "national",
+                  value: ind.value,
+                  unit: ind.unit,
+                  recordedAt: now,
+                  source: "ABS",
+                },
+              }),
+            ),
+          );
+        });
+
+        results.economic = economicData;
+      }
+    }
+
+    // Step 3: Fetch building approvals
+    if (indicators.includes("building")) {
+      const buildingData = await step.run(
+        "fetch-building-approvals",
+        async () => {
+          try {
+            return await marketTools.getBuildingApprovals(state, 12);
+          } catch (error) {
+            console.error("Failed to fetch building approvals:", error);
+            return null;
+          }
+        },
+      );
+
+      if (buildingData && buildingData.length > 0) {
+        await step.run("store-building-approvals", async () => {
+          // Sort by period descending to ensure we get the latest data
+          const sorted = [...buildingData].sort((a, b) =>
+            b.period.localeCompare(a.period),
+          );
+          const latest = sorted[0];
+          await prisma.marketIndicator.upsert({
+            where: {
+              indicatorType_scope_recordedAt: {
+                indicatorType: "building_approvals",
+                scope: state || "national",
+                recordedAt: now,
+              },
+            },
+            update: { value: latest.totalDwellings },
+            create: {
+              indicatorType: "building_approvals",
+              scope: state || "national",
+              value: latest.totalDwellings,
+              unit: "dwellings",
+              recordedAt: now,
+              source: "ABS",
+            },
+          });
+        });
+
+        results.building = buildingData;
+      }
+    }
+
+    // Step 4: Fetch population projections
+    if (indicators.includes("population")) {
+      const populationData = await step.run(
+        "fetch-population-projections",
+        async () => {
+          try {
+            return await marketTools.getPopulationProjections(state);
+          } catch (error) {
+            console.error("Failed to fetch population projections:", error);
+            return null;
+          }
+        },
+      );
+
+      if (populationData) {
+        await step.run("store-population-projections", async () => {
+          await prisma.$transaction([
+            prisma.marketIndicator.upsert({
+              where: {
+                indicatorType_scope_recordedAt: {
+                  indicatorType: "population_current",
+                  scope: state || "national",
+                  recordedAt: now,
+                },
+              },
+              update: { value: populationData.current },
+              create: {
+                indicatorType: "population_current",
+                scope: state || "national",
+                value: populationData.current,
+                unit: "people",
+                recordedAt: now,
+                source: "ABS",
+              },
+            }),
+            prisma.marketIndicator.upsert({
+              where: {
+                indicatorType_scope_recordedAt: {
+                  indicatorType: "population_growth_rate",
+                  scope: state || "national",
+                  recordedAt: now,
+                },
+              },
+              update: { value: populationData.growthRate },
+              create: {
+                indicatorType: "population_growth_rate",
+                scope: state || "national",
+                value: populationData.growthRate,
+                unit: "percent",
+                recordedAt: now,
+                source: "ABS",
+              },
+            }),
+          ]);
+        });
+
+        results.population = populationData;
+      }
+    }
+
+    // Step 5: Fetch demographics for a specific area
+    if (indicators.includes("demographic") && state) {
+      const demographicData = await step.run("fetch-demographics", async () => {
+        try {
+          return await marketTools.getAbsDemographics(
+            undefined,
+            undefined,
+            state,
+          );
+        } catch (error) {
+          console.error("Failed to fetch demographics:", error);
+          return null;
+        }
+      });
+
+      if (demographicData) {
+        await step.run("store-demographics", async () => {
+          const demoIndicators = [
+            {
+              type: "median_age",
+              value: demographicData.medianAge,
+              unit: "years",
+            },
+            {
+              type: "median_income",
+              value: demographicData.medianIncome,
+              unit: "dollars",
+            },
+            {
+              type: "owner_occupied_rate",
+              value: demographicData.ownerOccupied,
+              unit: "percent",
+            },
+            {
+              type: "rented_rate",
+              value: demographicData.rented,
+              unit: "percent",
+            },
+          ];
+
+          await prisma.$transaction(
+            demoIndicators.map((ind) =>
+              prisma.marketIndicator.upsert({
+                where: {
+                  indicatorType_scope_recordedAt: {
+                    indicatorType: ind.type,
+                    scope: state,
+                    recordedAt: now,
+                  },
+                },
+                update: { value: ind.value },
+                create: {
+                  indicatorType: ind.type,
+                  scope: state,
+                  value: ind.value,
+                  unit: ind.unit,
+                  recordedAt: now,
+                  source: "ABS",
+                },
+              }),
+            ),
+          );
+        });
+
+        results.demographics = demographicData;
+      }
+    }
 
     return {
       updated: true,
-      indicators: {
-        rba: rbaData,
-        abs: absData,
-        demographic: demographicData,
-      },
+      timestamp: now.toISOString(),
+      indicators: results,
     };
   },
 );

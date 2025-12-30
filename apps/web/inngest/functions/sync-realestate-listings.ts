@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { inngest } from "../client";
 import { prisma } from "@propure/db";
-import { domainTools } from "@/lib/mcp/client";
+import { realestateTools } from "@/lib/mcp/client";
 import type { PropertyListing } from "@propure/mcp-shared";
 
 // Zod schema for event data validation
-const SyncListingsEventSchema = z.object({
+const SyncReaListingsEventSchema = z.object({
   suburbIds: z.array(z.string()).optional(),
   suburbs: z.array(z.string()).optional(),
   state: z
@@ -17,7 +17,7 @@ const SyncListingsEventSchema = z.object({
 });
 
 /**
- * Transform a Domain API property listing to Prisma Property model
+ * Transform a RealEstate.com.au property listing to Prisma Property model
  */
 function transformListing(listing: PropertyListing, suburbId: string) {
   // Extract address as string from the address object
@@ -39,7 +39,7 @@ function transformListing(listing: PropertyListing, suburbId: string) {
     propertyType: mapPropertyType(features?.propertyType),
     listingType: mapListingType(listing.listingType),
     listingStatus: "ACTIVE" as const,
-    source: "DOMAIN" as const,
+    source: "REALESTATE" as const,
     sourceUrl: listing.sourceUrl,
     price: listing.priceValue,
     rentWeekly: rentWeekly,
@@ -95,29 +95,27 @@ function mapListingType(type: string | undefined) {
 }
 
 /**
- * Sync property listings from Domain via MCP
+ * Sync property listings from RealEstate.com.au via MCP
  *
- * This function fetches property listings from Domain.com.au via our MCP server
- * and stores them in the database. It can be triggered:
- * - On a schedule (cron)
- * - Manually via event
- * - When a user requests fresh data for a suburb
+ * This function fetches property listings from RealEstate.com.au via our MCP server
+ * and stores them in the database. REA has stricter rate limits so we process
+ * fewer suburbs per run.
  */
-export const syncDomainListings = inngest.createFunction(
+export const syncRealestateListings = inngest.createFunction(
   {
-    id: "sync-domain-listings",
-    name: "Sync Domain Listings",
+    id: "sync-realestate-listings",
+    name: "Sync RealEstate.com.au Listings",
     retries: 3,
-    concurrency: { limit: 5 },
+    concurrency: { limit: 3 }, // Lower than Domain due to stricter rate limits
   },
   [
-    { event: "property/sync.requested" },
-    { cron: "0 3 * * *" }, // Daily at 3 AM AEST
+    { event: "property/sync-rea.requested" },
+    { cron: "0 4 * * *" }, // Daily at 4 AM AEST (staggered from Domain)
   ],
   async ({ event, step }) => {
     // Validate event data with Zod (cron trigger may not have event.data)
     const eventData = event?.data || {};
-    const parseResult = SyncListingsEventSchema.safeParse(eventData);
+    const parseResult = SyncReaListingsEventSchema.safeParse(eventData);
     if (!parseResult.success) {
       console.error("Invalid event data:", parseResult.error.flatten());
       return {
@@ -131,7 +129,6 @@ export const syncDomainListings = inngest.createFunction(
     // Step 1: Get suburbs to sync
     const suburbsToSync = await step.run("get-suburbs-to-sync", async () => {
       if (suburbs && suburbs.length > 0) {
-        // If specific suburb names provided, look them up
         return prisma.suburb.findMany({
           where: { name: { in: suburbs } },
           include: { city: { include: { state: true } } },
@@ -143,15 +140,15 @@ export const syncDomainListings = inngest.createFunction(
           include: { city: { include: { state: true } } },
         });
       }
-      // Otherwise, get stale suburbs (not updated in 24 hours)
+      // Get stale suburbs (not updated in 48 hours - less aggressive than Domain)
       const staleDate = forceRefresh
-        ? new Date() // All suburbs if force refresh
-        : new Date(Date.now() - 24 * 60 * 60 * 1000);
+        ? new Date()
+        : new Date(Date.now() - 48 * 60 * 60 * 1000);
 
       return prisma.suburb.findMany({
         where: { updatedAt: { lt: staleDate } },
         include: { city: { include: { state: true } } },
-        take: 50,
+        take: 25, // Fewer suburbs due to rate limits
       });
     });
 
@@ -176,7 +173,7 @@ export const syncDomainListings = inngest.createFunction(
       // Fetch listings via MCP
       const result = await step.run(`fetch-${suburb.id}`, async () => {
         try {
-          return await domainTools.searchProperties({
+          return await realestateTools.searchProperties({
             suburbs: [suburb.name],
             state: state || suburbState,
             listingType: listingType,
@@ -184,7 +181,10 @@ export const syncDomainListings = inngest.createFunction(
             page: 1,
           });
         } catch (error) {
-          console.error(`Failed to fetch listings for ${suburb.name}:`, error);
+          console.error(
+            `Failed to fetch REA listings for ${suburb.name}:`,
+            error,
+          );
           return { listings: [], totalCount: 0, hasMore: false };
         }
       });
@@ -196,7 +196,7 @@ export const syncDomainListings = inngest.createFunction(
       }
 
       // Store listings
-      // Note: listing.externalId already includes the 'domain-' prefix from the parser
+      // Note: listing.externalId already includes the 'rea-' prefix from the parser
       const storedCount = await step.run(`store-${suburb.id}`, async () => {
         const operations = listings.map((listing) =>
           prisma.property.upsert({
@@ -226,11 +226,11 @@ export const syncDomainListings = inngest.createFunction(
         });
       });
 
-      // Add a small delay between suburbs to respect rate limits
-      await step.sleep(`rate-limit-delay-${suburb.id}`, "1s");
+      // Add a small delay between suburbs to respect rate limits (longer for REA)
+      await step.sleep(`rate-limit-delay-${suburb.id}`, "2s");
     }
 
-    // Step 3: Trigger metrics recalculation if we synced any listings
+    // Step 3: Trigger metrics recalculation
     if (totalSynced > 0) {
       await step.sendEvent("trigger-metrics-update", {
         name: "suburb/metrics.update",

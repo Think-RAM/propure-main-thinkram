@@ -1,0 +1,27 @@
+{
+  "name": "@propure/mcp-shared",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./oxylabs": "./src/oxylabs/index.ts",
+    "./schemas": "./src/schemas/index.ts",
+    "./parsers": "./src/parsers/index.ts",
+    "./rate-limiter": "./src/rate-limiter.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist .turbo",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.24.1",
+    "limiter": "^2.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5"
+  }
+}

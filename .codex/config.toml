@@ -1,0 +1,17 @@
+model = "gpt-5.2"
+model_reasoning_effort = "high"
+# Streamable HTTP requires the experimental rmcp client
+experimental_use_rmcp_client = true
+approval_policy = "untrusted"
+
+[mcp_servers.azure]
+command = "npx"
+args = ["-y", "@azure/mcp@latest", "server", "start"]
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp"]
+
+[mcp_servers."paper-search"]
+command = "docker"
+args = ["run", "-i", "--rm", "mcp/paper-search"]
