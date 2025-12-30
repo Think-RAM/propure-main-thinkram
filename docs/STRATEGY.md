@@ -198,6 +198,18 @@ The specific factors are both **quantitative and qualitative** and should be int
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+### Data Delivery Layer
+
+External data sources are accessed through **Model Context Protocol (MCP) servers**, providing a unified tool interface for both AI agents and background jobs.
+
+| MCP Server | Data Domain | Tools Provided |
+|------------|-------------|----------------|
+| `mcp-domain` | Domain.com.au | Property search, suburb stats, sales history, auctions |
+| `mcp-realestate` | RealEstate.com.au | Property search, suburb profile, sold properties |
+| `mcp-market-data` | RBA, ABS | Cash rate, economic indicators, demographics, building approvals |
+
+> **Technical Reference**: See [MCP-ARCHITECTURE.md](./MCP-ARCHITECTURE.md) for implementation details.
+
 ### Data Indicators Summary by Level
 
 > **Full detailed indicator reference**: See [DATA-INDICATORS.md](./DATA-INDICATORS.md)
@@ -374,12 +386,19 @@ The specific factors are both **quantitative and qualitative** and should be int
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
-│  │   API Layer  │  │  AI Service  │  │   Data Aggregation   │   │
-│  │  (Next.js    │  │  (LangChain/ │  │      Service         │   │
-│  │   API Routes)│  │   Claude)    │  │                      │   │
+│  │   API Layer  │  │  AI Service  │  │   Background Jobs    │   │
+│  │  (Next.js    │  │ (Vercel AI   │  │     (Inngest)        │   │
+│  │   API Routes)│  │  SDK+Gemini) │  │                      │   │
 │  └──────────────┘  └──────────────┘  └──────────────────────┘   │
 │         │                 │                    │                 │
 │         └─────────────────┼────────────────────┘                 │
+│                           │                                      │
+│  ┌────────────────────────▼────────────────────────────────────┐│
+│  │                   MCP SERVER LAYER                          ││
+│  ├─────────────────┬─────────────────┬─────────────────────────┤│
+│  │   MCP-DOMAIN    │  MCP-REALESTATE │    MCP-MARKET-DATA     ││
+│  │   (Domain.com)  │  (REA.com.au)   │    (RBA, ABS)          ││
+│  └─────────────────┴─────────────────┴─────────────────────────┘│
 │                           │                                      │
 │                  ┌────────▼────────┐                            │
 │                  │    DATABASE     │                            │
@@ -391,11 +410,11 @@ The specific factors are both **quantitative and qualitative** and should be int
 │  ┌─────────────────────────────────────────────────────────────┐│
 │  │              EXTERNAL DATA INTEGRATIONS                      ││
 │  ├─────────────────────────────────────────────────────────────┤│
-│  │ • Property data APIs (Domain, REA, CoreLogic, PropTrack)    ││
-│  │ • ABS Census data                                           ││
-│  │ • Government open data (crime, schools, zoning)             ││
-│  │ • Mapping services (Mapbox, Google Maps)                    ││
-│  │ • Financial calculators (mortgage APIs)                     ││
+│  │ • Property data APIs (Domain, REA) via MCP servers          ││
+│  │ • ABS Census data via MCP-MARKET-DATA                       ││
+│  │ • RBA rates & economic indicators via MCP-MARKET-DATA       ││
+│  │ • Mapping services (MapLibre + deck.gl)                     ││
+│  │ • Financial calculators (built-in AI tools)                 ││
 │  └─────────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -467,13 +486,13 @@ The specific factors are both **quantitative and qualitative** and should be int
 ## Appendix A: Data Sources (Australia)
 
 ### Property Data
-| Source | Data Provided | Access |
-|--------|---------------|--------|
-| **Domain API** | Listings, price estimates, rental data | API (paid tiers) |
-| **REA Group** | Listings, auction results, search interest | API/Partnership |
-| **CoreLogic** | Comprehensive property data, valuations | Paid subscription |
-| **PropTrack** | Property valuations, market trends | Paid subscription |
-| **Pricefinder** | Sales history, comparable sales | Paid subscription |
+| Source | Data Provided | Access | MCP Server |
+|--------|---------------|--------|------------|
+| **Domain API** | Listings, price estimates, rental data | API (paid tiers) | `mcp-domain` |
+| **REA Group** | Listings, auction results, search interest | API/Partnership | `mcp-realestate` |
+| **CoreLogic** | Comprehensive property data, valuations | Paid subscription | *Planned* |
+| **PropTrack** | Property valuations, market trends | Paid subscription | *Planned* |
+| **Pricefinder** | Sales history, comparable sales | Paid subscription | *Planned* |
 
 ### Government & Policy
 | Source | Data Provided | URL |
@@ -485,13 +504,13 @@ The specific factors are both **quantitative and qualitative** and should be int
 | **Infrastructure Australia** | Major project pipeline | infrastructureaustralia.gov.au |
 
 ### Economic & Demographic
-| Source | Data Provided | URL |
-|--------|---------------|-----|
-| **RBA** | Cash rate, lending data, economic reports | rba.gov.au |
-| **ABS** | Census, GDP, labour force, building approvals | abs.gov.au |
-| **Westpac-Melbourne Institute** | Consumer confidence index | westpac.com.au |
-| **OECD** | Political stability, governance indicators | oecd.org/australia |
-| **Jobs & Skills Australia** | Labour market insights, occupation profiles | jobsandskills.gov.au |
+| Source | Data Provided | URL | MCP Server |
+|--------|---------------|-----|------------|
+| **RBA** | Cash rate, lending data, economic reports | rba.gov.au | `mcp-market-data` |
+| **ABS** | Census, GDP, labour force, building approvals | abs.gov.au | `mcp-market-data` |
+| **Westpac-Melbourne Institute** | Consumer confidence index | westpac.com.au | *Planned* |
+| **OECD** | Political stability, governance indicators | oecd.org/australia | *Planned* |
+| **Jobs & Skills Australia** | Labour market insights, occupation profiles | jobsandskills.gov.au | *Planned* |
 
 ### Employment & Jobs
 | Source | Data Provided | URL |
