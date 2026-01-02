@@ -22,13 +22,13 @@ This document outlines a **Python-first, data-driven approach** to ingest this g
 
 ### Current State (from STRATEGY.md)
 
-| Data Layer | Current Coverage | Planning Gap |
-|------------|-----------------|--------------|
-| **National** | RBA rates, ABS demographics | None |
-| **State/City** | Building approvals, job ads | State planning policies, urban growth boundaries |
-| **Suburb** | Yield, vacancy, median values | Zoning mix, heritage areas, overlay counts |
-| **Street** | Flood zones (partial), school catchments | Council-specific planning controls, hazard overlays |
-| **Property** | Address, price, beds, land size | Zoning classification, development potential, overlay constraints |
+| Data Layer     | Current Coverage                         | Planning Gap                                                      |
+| -------------- | ---------------------------------------- | ----------------------------------------------------------------- |
+| **National**   | RBA rates, ABS demographics              | None                                                              |
+| **State/City** | Building approvals, job ads              | State planning policies, urban growth boundaries                  |
+| **Suburb**     | Yield, vacancy, median values            | Zoning mix, heritage areas, overlay counts                        |
+| **Street**     | Flood zones (partial), school catchments | Council-specific planning controls, hazard overlays               |
+| **Property**   | Address, price, beds, land size          | Zoning classification, development potential, overlay constraints |
 
 ### Missing Data Categories
 
@@ -64,53 +64,53 @@ This document outlines a **Python-first, data-driven approach** to ingest this g
 
 ### 2.1 State Planning Portals
 
-| State | Portal | Data Formats | API/Download |
-|-------|--------|--------------|--------------|
-| **NSW** | [NSW Planning Portal](https://www.planningportal.nsw.gov.au/spatialviewer/) | WMS, WFS, ArcGIS REST, Shapefile | WMS/WFS + bulk download via data.nsw.gov.au |
-| **VIC** | [VicPlan](https://www.planning.vic.gov.au/planning-schemes/using-vicplan) | WMS, ArcGIS REST, GeoJSON | Vicmap Planning REST API |
-| **QLD** | [QLD Planning Mapping](https://www.planning.qld.gov.au/planning-framework/mapping) | WMS, WFS, Shapefile | QSpatial catalogue + Open Data Portal |
-| **WA** | [PlanWA](https://www.planning.wa.gov.au/mapping-and-data/planwa) | WMS, Shapefile | data.wa.gov.au |
-| **SA** | [PlanSA](https://plan.sa.gov.au/) | WMS, Shapefile | data.sa.gov.au |
-| **TAS** | [LIST Tasmania](https://www.thelist.tas.gov.au/) | WMS, Shapefile | theList Data Services |
-| **NT** | [NT Planning](https://nt.gov.au/property/land-planning-and-development) | Shapefile, PDF | Limited digital availability |
-| **ACT** | [ACTmapi](https://app.actmapi.act.gov.au/) | WMS, ArcGIS REST | data.act.gov.au |
+| State   | Portal                                                                             | Data Formats                     | API/Download                                |
+| ------- | ---------------------------------------------------------------------------------- | -------------------------------- | ------------------------------------------- |
+| **NSW** | [NSW Planning Portal](https://www.planningportal.nsw.gov.au/spatialviewer/)        | WMS, WFS, ArcGIS REST, Shapefile | WMS/WFS + bulk download via data.nsw.gov.au |
+| **VIC** | [VicPlan](https://www.planning.vic.gov.au/planning-schemes/using-vicplan)          | WMS, ArcGIS REST, GeoJSON        | Vicmap Planning REST API                    |
+| **QLD** | [QLD Planning Mapping](https://www.planning.qld.gov.au/planning-framework/mapping) | WMS, WFS, Shapefile              | QSpatial catalogue + Open Data Portal       |
+| **WA**  | [PlanWA](https://www.planning.wa.gov.au/mapping-and-data/planwa)                   | WMS, Shapefile                   | data.wa.gov.au                              |
+| **SA**  | [PlanSA](https://plan.sa.gov.au/)                                                  | WMS, Shapefile                   | data.sa.gov.au                              |
+| **TAS** | [LIST Tasmania](https://www.thelist.tas.gov.au/)                                   | WMS, Shapefile                   | theList Data Services                       |
+| **NT**  | [NT Planning](https://nt.gov.au/property/land-planning-and-development)            | Shapefile, PDF                   | Limited digital availability                |
+| **ACT** | [ACTmapi](https://app.actmapi.act.gov.au/)                                         | WMS, ArcGIS REST                 | data.act.gov.au                             |
 
 ### 2.2 Key NSW Data Endpoints
 
-| Dataset | Endpoint | Format |
-|---------|----------|--------|
-| Land Zoning | `https://mapprod3.environment.nsw.gov.au/arcgis/services/Planning/EPI_Primary_Planning_Layers/MapServer/WMSServer` | WMS |
-| Flood Planning | [SEED NSW](https://datasets.seed.nsw.gov.au/dataset/epi-flood) | Shapefile, WFS |
-| Bushfire Prone Land | [SEED NSW](https://datasets.seed.nsw.gov.au/dataset/bush-fire-prone-land) | Shapefile |
-| Heritage | [NSW Heritage Inventory](https://www.heritage.nsw.gov.au/search-for-heritage/heritage-search/) | API + Shapefile |
-| Height of Buildings | NSW Planning Portal Open Data | WMS, Shapefile |
-| Minimum Lot Size | NSW Planning Portal Open Data | WMS, Shapefile |
+| Dataset             | Endpoint                                                                                                           | Format          |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------ | --------------- |
+| Land Zoning         | `https://mapprod3.environment.nsw.gov.au/arcgis/services/Planning/EPI_Primary_Planning_Layers/MapServer/WMSServer` | WMS             |
+| Flood Planning      | [SEED NSW](https://datasets.seed.nsw.gov.au/dataset/epi-flood)                                                     | Shapefile, WFS  |
+| Bushfire Prone Land | [SEED NSW](https://datasets.seed.nsw.gov.au/dataset/bush-fire-prone-land)                                          | Shapefile       |
+| Heritage            | [NSW Heritage Inventory](https://www.heritage.nsw.gov.au/search-for-heritage/heritage-search/)                     | API + Shapefile |
+| Height of Buildings | NSW Planning Portal Open Data                                                                                      | WMS, Shapefile  |
+| Minimum Lot Size    | NSW Planning Portal Open Data                                                                                      | WMS, Shapefile  |
 
 ### 2.3 Key Victoria Data Endpoints
 
-| Dataset | Endpoint | Format |
-|---------|----------|--------|
-| Planning Zones | `https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/Vicplan_PlanningSchemeZones/MapServer` | ArcGIS REST |
-| Planning Overlays | `https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/Vicplan_PlanningSchemeOverlays/MapServer` | ArcGIS REST |
-| Bushfire Management | Vicmap Planning | Shapefile |
-| Heritage | Victorian Heritage Database | API |
+| Dataset             | Endpoint                                                                                                      | Format      |
+| ------------------- | ------------------------------------------------------------------------------------------------------------- | ----------- |
+| Planning Zones      | `https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/Vicplan_PlanningSchemeZones/MapServer`    | ArcGIS REST |
+| Planning Overlays   | `https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/Vicplan_PlanningSchemeOverlays/MapServer` | ArcGIS REST |
+| Bushfire Management | Vicmap Planning                                                                                               | Shapefile   |
+| Heritage            | Victorian Heritage Database                                                                                   | API         |
 
 ### 2.4 Key Queensland Data Endpoints
 
-| Dataset | Endpoint | Format |
-|---------|----------|--------|
-| SPP Interactive Mapping | [SPP IMS](https://planning.dsdmip.qld.gov.au/maps?type=spp) | WMS |
-| SARA Mapping | [DAMS](https://www.planning.qld.gov.au/planning-framework/mapping) | WMS |
-| Bushfire Prone Area | [data.qld.gov.au](https://www.data.qld.gov.au/dataset/bushfire-prone-area-queensland-series) | Shapefile |
-| Cadastral Data | [QSpatial](https://www.business.qld.gov.au/running-business/support-services/mapping-data-imagery/data/qspatial) | GPKG, SHP |
+| Dataset                 | Endpoint                                                                                                         | Format    |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------- | --------- |
+| SPP Interactive Mapping | [SPP IMS](https://planning.dsdmip.qld.gov.au/maps?type=spp)                                                      | WMS       |
+| SARA Mapping            | [DAMS](https://www.planning.qld.gov.au/planning-framework/mapping)                                               | WMS       |
+| Bushfire Prone Area     | [data.qld.gov.au](https://www.data.qld.gov.au/dataset/bushfire-prone-area-queensland-series)                     | Shapefile |
+| Cadastral Data          | [QSpatial](https://www.business.qld.gov.au/running-business/support-services/mapping-data-imagery/data/qspatial) | GPKG, SHP |
 
 ### 2.5 National Administrative Boundaries
 
-| Dataset | Source | URL |
-|---------|--------|-----|
-| LGA Boundaries | ABS ASGS | [ABS Digital Boundary Files](https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files) |
-| Geoscape Admin Boundaries | Data.gov.au | [Geoscape Administrative Boundaries](https://data.gov.au/data/dataset/geoscape-administrative-boundaries) |
-| Land Use | ABARES | [ACLUMP Data Download](https://www.agriculture.gov.au/abares/aclump/land-use/data-download) |
+| Dataset                   | Source      | URL                                                                                                                                                                                            |
+| ------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LGA Boundaries            | ABS ASGS    | [ABS Digital Boundary Files](https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files) |
+| Geoscape Admin Boundaries | Data.gov.au | [Geoscape Administrative Boundaries](https://data.gov.au/data/dataset/geoscape-administrative-boundaries)                                                                                      |
+| Land Use                  | ABARES      | [ACLUMP Data Download](https://www.agriculture.gov.au/abares/aclump/land-use/data-download)                                                                                                    |
 
 ---
 
@@ -166,10 +166,10 @@ dependencies:
   - psycopg2=2.9
   - rtree=1.2
   - pip:
-    - dagster
-    - dagster-postgres
-    - httpx
-    - aiofiles
+      - dagster
+      - dagster-postgres
+      - httpx
+      - aiofiles
 ```
 
 ### 3.3 Alternative: DuckDB Spatial
@@ -339,14 +339,14 @@ def nsw_land_zoning_loaded(transformed: gpd.GeoDataFrame):
 
 ### 4.3 Scheduled Refresh Strategy
 
-| Dataset Type | Refresh Frequency | Trigger |
-|--------------|-------------------|---------|
-| Zoning Maps | Quarterly | Council planning scheme amendments |
-| Overlays | Monthly | State government gazette updates |
-| Flood Zones | Annually | Flood study updates |
-| Bushfire Prone | Annually | Pre-summer season update |
-| LGA Boundaries | Annually | ABS ASGS release |
-| Heritage | Monthly | Heritage register updates |
+| Dataset Type   | Refresh Frequency | Trigger                            |
+| -------------- | ----------------- | ---------------------------------- |
+| Zoning Maps    | Quarterly         | Council planning scheme amendments |
+| Overlays       | Monthly           | State government gazette updates   |
+| Flood Zones    | Annually          | Flood study updates                |
+| Bushfire Prone | Annually          | Pre-summer season update           |
+| LGA Boundaries | Annually          | ABS ASGS release                   |
+| Heritage       | Monthly           | Heritage register updates          |
 
 ---
 
@@ -605,14 +605,14 @@ model HazardZone {
 ```typescript
 // apps/web/app/api/planning/property/[propertyId]/route.ts
 
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@propure/db'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@propure/db";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { propertyId: string } }
 ) {
-  const { propertyId } = params
+  const { propertyId } = params;
 
   // Use raw query for PostGIS spatial lookup
   const planningContext = await prisma.$queryRaw`
@@ -638,9 +638,9 @@ export async function GET(
     LEFT JOIN planning.hazard_zones h ON ST_Intersects(p.location, h.geometry)
     WHERE p.id = ${propertyId}
     GROUP BY z.zone_code, z.zone_name, z.zone_category, l.lga_name
-  `
+  `;
 
-  return NextResponse.json(planningContext[0] || null)
+  return NextResponse.json(planningContext[0] || null);
 }
 ```
 
@@ -649,27 +649,28 @@ export async function GET(
 ```typescript
 // packages/ai/src/tools/get-planning-info.ts
 
-import { tool } from 'ai'
-import { z } from 'zod'
-import { prisma } from '@propure/db'
+import { tool } from "ai";
+import { z } from "zod";
+import { prisma } from "@propure/db";
 
 export const getPlanningInfo = tool({
-  description: 'Get planning zone, overlays, and hazard information for a property or location',
+  description:
+    "Get planning zone, overlays, and hazard information for a property or location",
   parameters: z.object({
     propertyId: z.string().optional(),
     latitude: z.number().optional(),
     longitude: z.number().optional(),
   }),
   execute: async ({ propertyId, latitude, longitude }) => {
-    let query: string
-    let params: any[]
+    let query: string;
+    let params: any[];
 
     if (propertyId) {
       query = `
         SELECT * FROM planning.property_planning_context
         WHERE property_id = $1
-      `
-      params = [propertyId]
+      `;
+      params = [propertyId];
     } else if (latitude && longitude) {
       query = `
         SELECT
@@ -683,16 +684,16 @@ export const getPlanningInfo = tool({
         LEFT JOIN planning.hazard_zones h ON ST_Intersects(ST_SetSRID(ST_Point($1, $2), 7844), h.geometry)
         WHERE ST_Within(ST_SetSRID(ST_Point($1, $2), 7844), z.geometry)
         GROUP BY z.zone_code, z.zone_name, z.zone_category, l.lga_name, l.state
-      `
-      params = [longitude, latitude]
+      `;
+      params = [longitude, latitude];
     } else {
-      throw new Error('Either propertyId or latitude/longitude required')
+      throw new Error("Either propertyId or latitude/longitude required");
     }
 
-    const result = await prisma.$queryRawUnsafe(query, ...params)
-    return result[0] || null
-  }
-})
+    const result = await prisma.$queryRawUnsafe(query, ...params);
+    return result[0] || null;
+  },
+});
 ```
 
 ---
@@ -701,39 +702,39 @@ export const getPlanningInfo = tool({
 
 ### Phase 1: Foundation (Weeks 1-4)
 
-| Task | Description | Output |
-|------|-------------|--------|
-| Set up Python environment | Conda env with geospatial stack | `environment.yml` |
-| Create PostGIS schema | Planning tables, indexes, functions | SQL migrations |
-| Load LGA boundaries | ABS ASGS boundaries for all states | `planning.lgas` populated |
-| NSW pilot | Zones + overlays for Greater Sydney | ~400k polygons |
+| Task                      | Description                         | Output                    |
+| ------------------------- | ----------------------------------- | ------------------------- |
+| Set up Python environment | Conda env with geospatial stack     | `environment.yml`         |
+| Create PostGIS schema     | Planning tables, indexes, functions | SQL migrations            |
+| Load LGA boundaries       | ABS ASGS boundaries for all states  | `planning.lgas` populated |
+| NSW pilot                 | Zones + overlays for Greater Sydney | ~400k polygons            |
 
 ### Phase 2: State Expansion (Weeks 5-8)
 
-| Task | Description | Output |
-|------|-------------|--------|
-| Victoria data | VicPlan zones + overlays | ~300k polygons |
-| Queensland data | SPP + DAMS mapping layers | ~350k polygons |
-| Hazard layers | Flood + bushfire for NSW/VIC/QLD | ~200k polygons |
-| Dagster pipeline | Automated ETL with scheduling | Production-ready pipeline |
+| Task             | Description                      | Output                    |
+| ---------------- | -------------------------------- | ------------------------- |
+| Victoria data    | VicPlan zones + overlays         | ~300k polygons            |
+| Queensland data  | SPP + DAMS mapping layers        | ~350k polygons            |
+| Hazard layers    | Flood + bushfire for NSW/VIC/QLD | ~200k polygons            |
+| Dagster pipeline | Automated ETL with scheduling    | Production-ready pipeline |
 
 ### Phase 3: Integration (Weeks 9-12)
 
-| Task | Description | Output |
-|------|-------------|--------|
-| Prisma integration | Schema extension + raw queries | API routes working |
-| AI tool | `getPlanningInfo` tool for agents | AI can query planning |
-| MapLibre layers | Zoning choropleth + overlay toggle | Visual planning on map |
-| Materialized views | Property planning context cache | <100ms lookups |
+| Task               | Description                        | Output                 |
+| ------------------ | ---------------------------------- | ---------------------- |
+| Prisma integration | Schema extension + raw queries     | API routes working     |
+| AI tool            | `getPlanningInfo` tool for agents  | AI can query planning  |
+| MapLibre layers    | Zoning choropleth + overlay toggle | Visual planning on map |
+| Materialized views | Property planning context cache    | <100ms lookups         |
 
 ### Phase 4: Remaining States + Maintenance (Ongoing)
 
-| Task | Description | Output |
-|------|-------------|--------|
-| SA, WA, TAS, NT, ACT | Complete national coverage | All ~570 LGAs |
-| Refresh automation | Quarterly/monthly sync jobs | Inngest triggers |
-| Heritage data | State heritage registers | Additional overlay |
-| Data quality monitoring | Dagster freshness checks | Observability |
+| Task                    | Description                 | Output             |
+| ----------------------- | --------------------------- | ------------------ |
+| SA, WA, TAS, NT, ACT    | Complete national coverage  | All ~570 LGAs      |
+| Refresh automation      | Quarterly/monthly sync jobs | Inngest triggers   |
+| Heritage data           | State heritage registers    | Additional overlay |
+| Data quality monitoring | Dagster freshness checks    | Observability      |
 
 ---
 
@@ -741,36 +742,36 @@ export const getPlanningInfo = tool({
 
 ### 8.1 Why Python (Not Node.js)?
 
-| Factor | Python | Node.js |
-|--------|--------|---------|
+| Factor                   | Python                                    | Node.js                           |
+| ------------------------ | ----------------------------------------- | --------------------------------- |
 | **Geospatial libraries** | Mature ecosystem (GDAL, GeoPandas, Fiona) | Limited (turf.js for basics only) |
-| **WFS/WMS clients** | OWSLib with full OGC support | No maintained equivalent |
-| **Shapefile support** | Native via Fiona/pyshp | Requires external tools |
-| **CRS transformations** | pyproj (PROJ bindings) | proj4js (less complete) |
-| **PostGIS integration** | GeoAlchemy2 + psycopg | Raw SQL only |
-| **Community** | GIS professionals use Python | Web developers use Node |
+| **WFS/WMS clients**      | OWSLib with full OGC support              | No maintained equivalent          |
+| **Shapefile support**    | Native via Fiona/pyshp                    | Requires external tools           |
+| **CRS transformations**  | pyproj (PROJ bindings)                    | proj4js (less complete)           |
+| **PostGIS integration**  | GeoAlchemy2 + psycopg                     | Raw SQL only                      |
+| **Community**            | GIS professionals use Python              | Web developers use Node           |
 
 ### 8.2 Why Data-Driven (Not API-Driven)?
 
-| Approach | Data-Driven | API-Driven (FastAPI) |
-|----------|-------------|----------------------|
-| **Architecture** | Python ETL → PostGIS → Next.js | Python API ↔ Next.js |
-| **Performance** | Pre-computed, cached queries | Real-time processing |
-| **Complexity** | Single database source of truth | Two services to maintain |
-| **Latency** | <100ms (PostGIS index) | +50ms network hop |
-| **Scaling** | Scale PostgreSQL | Scale API + PostgreSQL |
-| **Recommended** | **Yes** | For real-time external APIs only |
+| Approach         | Data-Driven                     | API-Driven (FastAPI)             |
+| ---------------- | ------------------------------- | -------------------------------- |
+| **Architecture** | Python ETL → PostGIS → Next.js  | Python API ↔ Next.js             |
+| **Performance**  | Pre-computed, cached queries    | Real-time processing             |
+| **Complexity**   | Single database source of truth | Two services to maintain         |
+| **Latency**      | <100ms (PostGIS index)          | +50ms network hop                |
+| **Scaling**      | Scale PostgreSQL                | Scale API + PostgreSQL           |
+| **Recommended**  | **Yes**                         | For real-time external APIs only |
 
 ### 8.3 Why Dagster (Not Airflow/Prefect)?
 
-| Factor | Dagster | Airflow | Prefect |
-|--------|---------|---------|---------|
-| **Asset-centric** | First-class support | Task-focused | Task-focused |
-| **Data lineage** | Built-in | Plugin required | Limited |
-| **Testing** | Unit test assets | Integration tests | Unit tests |
-| **Local dev** | `dagster dev` | Docker compose | `prefect server` |
-| **Freshness** | Declarative SLAs | Manual monitoring | Manual |
-| **Learning curve** | Moderate | Steep | Shallow |
+| Factor             | Dagster             | Airflow           | Prefect          |
+| ------------------ | ------------------- | ----------------- | ---------------- |
+| **Asset-centric**  | First-class support | Task-focused      | Task-focused     |
+| **Data lineage**   | Built-in            | Plugin required   | Limited          |
+| **Testing**        | Unit test assets    | Integration tests | Unit tests       |
+| **Local dev**      | `dagster dev`       | Docker compose    | `prefect server` |
+| **Freshness**      | Declarative SLAs    | Manual monitoring | Manual           |
+| **Learning curve** | Moderate            | Steep             | Shallow          |
 
 ---
 
@@ -848,30 +849,31 @@ class MetricsResource(ConfigurableResource):
 
 ### 10.2 Data Freshness Dashboard
 
-| Dataset | Last Updated | Expected | Status |
-|---------|--------------|----------|--------|
-| NSW Zones | 2024-01-15 | Quarterly | ✅ Current |
-| NSW Flood | 2023-11-01 | Annually | ✅ Current |
-| VIC Zones | 2024-01-08 | Weekly | ⚠️ 7 days old |
-| QLD SARA | 2023-09-15 | Monthly | ❌ Stale |
+| Dataset   | Last Updated | Expected  | Status        |
+| --------- | ------------ | --------- | ------------- |
+| NSW Zones | 2024-01-15   | Quarterly | ✅ Current    |
+| NSW Flood | 2023-11-01   | Annually  | ✅ Current    |
+| VIC Zones | 2024-01-08   | Weekly    | ⚠️ 7 days old |
+| QLD SARA  | 2023-09-15   | Monthly   | ❌ Stale      |
 
 ---
 
 ## 11. Related Documents
 
-| Document | Purpose |
-|----------|---------|
-| [STRATEGY.md](./STRATEGY.md) | Product strategy (this fills the planning data gap) |
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | System architecture |
-| [MCP-ARCHITECTURE.md](./MCP-ARCHITECTURE.md) | MCP server patterns |
-| [DATA-INDICATORS.md](./DATA-INDICATORS.md) | Market data definitions |
-| [SCHEMA-MIGRATION-PLAN.md](./SCHEMA-MIGRATION-PLAN.md) | Database migration strategy |
+| Document                                               | Purpose                                             |
+| ------------------------------------------------------ | --------------------------------------------------- |
+| [STRATEGY.md](./STRATEGY.md)                           | Product strategy (this fills the planning data gap) |
+| [ARCHITECTURE.md](./ARCHITECTURE.md)                   | System architecture                                 |
+| [MCP-ARCHITECTURE.md](./MCP-ARCHITECTURE.md)           | MCP server patterns                                 |
+| [DATA-INDICATORS.md](./DATA-INDICATORS.md)             | Market data definitions                             |
+| [SCHEMA-MIGRATION-PLAN.md](./SCHEMA-MIGRATION-PLAN.md) | Database migration strategy                         |
 
 ---
 
 ## 12. References
 
 ### Data Sources
+
 - [ABS Digital Boundary Files](https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files)
 - [Geoscape Administrative Boundaries](https://data.gov.au/data/dataset/geoscape-administrative-boundaries)
 - [NSW Planning Portal](https://www.planningportal.nsw.gov.au/spatialviewer/)
@@ -879,6 +881,7 @@ class MetricsResource(ConfigurableResource):
 - [Queensland Planning Mapping](https://www.planning.qld.gov.au/planning-framework/mapping)
 
 ### Python Libraries
+
 - [GeoPandas Documentation](https://geopandas.org/en/stable/docs/user_guide/io.html)
 - [Fiona Documentation](https://pypi.org/project/fiona/)
 - [GeoPandas to PostGIS](https://geopandas.org/en/stable/docs/reference/api/geopandas.GeoDataFrame.to_postgis.html)
@@ -887,6 +890,222 @@ class MetricsResource(ConfigurableResource):
 
 ---
 
-*Document Version: 1.0*
-*Last Updated: December 2024*
-*Status: Draft - Ready for Review*
+_Document Version: 2.0_
+_Last Updated: January 2026_
+_Status: Validated - Ready for Implementation_
+
+---
+
+## Appendix A: Deep Research Findings
+
+### A.1 Australian Spatial Standards
+
+#### GDA2020 (Geocentric Datum of Australia 2020)
+
+**Critical Decision**: Use EPSG:7844 (GDA2020), NOT EPSG:4326 (WGS84)
+
+| Aspect              | EPSG:7844 (GDA2020)            | EPSG:4326 (WGS84)                      |
+| ------------------- | ------------------------------ | -------------------------------------- |
+| **Scope**           | Australia + territories        | Global                                 |
+| **Accuracy**        | cm-level                       | ~2 metres                              |
+| **Tectonic Motion** | Accounted for at epoch 2020.0  | Not consistently applied               |
+| **Practical Issue** | Precise Australian positioning | 1.8m misalignment with Australian data |
+
+**Rationale**: Australia has moved ~1.8m northeast since GDA94 was established. All government planning data is referenced to GDA2020. Using WGS84 creates systematic positional errors.
+
+Source: [ICSM GDA2020](https://www.icsm.gov.au/gda2020)
+
+#### FSDF (Foundation Spatial Data Framework)
+
+The 10 FSDF themes provide foundational spatial data:
+
+1. Administrative Boundaries
+2. Geocoded Addressing (G-NAF)
+3. Land Parcel and Property
+4. Transport
+5. Positioning
+6. Place Names
+7. Elevation and Depth
+8. Imagery
+9. Water
+10. Land Cover
+
+**Key Finding**: Planning/zoning is NOT an FSDF theme. Each state maintains separate systems with no national standard.
+
+#### State Zoning Terminology Differences
+
+| State   | System                         | Example Codes                      |
+| ------- | ------------------------------ | ---------------------------------- |
+| **NSW** | Standard Instrument LEP        | R1, R2, B1, B2, IN1, E1            |
+| **VIC** | Victoria Planning Provisions   | NRZ, GRZ, MUZ (descriptive names)  |
+| **QLD** | Queensland Planning Provisions | LDR, MDR (varies by council)       |
+| **WA**  | R-Codes                        | R20, R30, R40 (density-based)      |
+| **SA**  | Planning & Design Code         | Zone-based since 2016              |
+| **TAS** | State Planning Provisions      | 23 zones without code numbers      |
+| **ACT** | Territory Plan                 | RZ1-RZ5 (different from NSW R1-R5) |
+
+**Implication**: Zone mapping/translation tables required per state.
+
+---
+
+### A.2 Database Technology Validation
+
+#### PostGIS Performance Benchmarks
+
+| Operation                  | Performance       | Notes                    |
+| -------------------------- | ----------------- | ------------------------ |
+| Point-in-polygon (indexed) | **0.2ms average** | 10M polygon benchmark    |
+| Spatial join (9M x 150)    | **24 seconds**    | 4 parallel workers       |
+| Throughput                 | **290,000 TPS**   | Point-in-polygon queries |
+
+**For 1-3M polygons** (Propure's scale):
+
+- Expected point-in-polygon latency: <1ms
+- Memory recommendation: 8-16GB for full index caching
+
+#### Index Type Selection
+
+| Index       | Build Time (1M rows) | Size | Query Speed | Use Case                              |
+| ----------- | -------------------- | ---- | ----------- | ------------------------------------- |
+| **GiST**    | 15.0s                | 53MB | Fastest     | Planning zones (overlapping polygons) |
+| **SP-GiST** | 5.6s                 | 44MB | Fast        | Property points (non-overlapping)     |
+| **BRIN**    | 0.4s                 | 24KB | Moderate    | Time-series metrics                   |
+
+#### Cloud Alternatives Evaluation
+
+| Solution           | Scale Target | Propure's Scale (1-3M) | Verdict         |
+| ------------------ | ------------ | ---------------------- | --------------- |
+| **PostGIS (Neon)** | 1M - 100M    | Perfect fit            | **SELECTED**    |
+| BigQuery GIS       | 100M+        | Overkill               | Skip            |
+| Snowflake Geo      | 10M+         | Overkill               | Skip            |
+| Redshift Spatial   | 10M+         | Borderline             | Skip            |
+| **DuckDB Spatial** | ETL/Analysis | Complementary          | **Use for ETL** |
+
+**Decision**: PostGIS on Neon for production, DuckDB for ETL preprocessing.
+
+---
+
+### A.3 Python Stack Recommendations
+
+#### Recommended Library Versions (2026)
+
+```python
+# pyproject.toml
+[project]
+dependencies = [
+    "geopandas>=1.0.0",      # Pyogrio as default engine
+    "shapely>=2.0.6",        # Vectorized GEOS operations
+    "pyogrio>=0.9.0",        # 10-20x faster I/O
+    "pyproj>=3.6.0",         # CRS transformations
+    "owslib>=0.35.0",        # WFS/WMS client
+    "dagster>=1.6.0",        # Pipeline orchestration
+    "geoalchemy2>=0.18.0",   # PostGIS ORM
+    "pandera>=0.20.0",       # Schema validation
+]
+```
+
+#### Performance Improvements
+
+- **pyogrio with Arrow**: 10-20x faster file I/O
+- **Shapely 2.0**: Vectorized operations, no Python loops
+- **DuckDB preprocessing**: 5s to read 1M shapefile vs 30-60s with ogr2ogr
+
+#### Dagster Asset Pattern
+
+```python
+@asset(
+    metadata={
+        "state": "NSW",
+        "source": "NSW Planning Portal",
+        "refresh_frequency": "quarterly"
+    },
+    freshness_policy=FreshnessPolicy(maximum_lag_minutes=60*24*90)  # 90 days
+)
+def nsw_planning_zones():
+    """Fetch NSW planning zones from WFS."""
+    ...
+```
+
+---
+
+### A.4 Integration Architecture Validation
+
+#### Data-Driven vs API-Driven
+
+| Aspect       | Data-Driven (SELECTED)         | API-Driven (FastAPI)   |
+| ------------ | ------------------------------ | ---------------------- |
+| Architecture | Python ETL → PostGIS → Next.js | Python API ↔ Next.js   |
+| Latency      | <1ms (indexed query)           | +10-30ms network       |
+| Complexity   | Single database                | Two services           |
+| Scaling      | Scale PostgreSQL only          | Scale both             |
+| Best For     | Propure's use case             | Real-time ML inference |
+
+**Decision**: Data-driven architecture. Python writes to database, Next.js reads via Prisma.
+
+#### Prisma + PostGIS Integration
+
+```typescript
+// Use $queryRaw for spatial operations
+const planningContext = await prisma.$queryRaw`
+  SELECT z.zone_code, z.zone_name,
+         ST_AsGeoJSON(z.geometry)::text as geometry
+  FROM planning.zones z
+  WHERE ST_Within(
+    ST_SetSRID(ST_Point(${lng}, ${lat}), 7844),
+    z.geometry
+  )
+`;
+```
+
+#### GeoJSON Serving Strategy
+
+| Dataset Size | Strategy                   |
+| ------------ | -------------------------- |
+| <1MB         | GeoJSON API route          |
+| 1-10MB       | GeoJSON with CDN caching   |
+| 10-100MB     | PMTiles (static hosting)   |
+| >100MB       | PMTiles + Martin (dynamic) |
+
+---
+
+### A.5 Case Study Insights
+
+#### Landchecker Pattern
+
+- Cloud-based SaaS platform
+- Aggregates from **hundreds of sources**
+- Daily refresh cycles
+- Over 100,000 users
+
+#### Archistar Pattern
+
+- **100,000+ hours** researching planning documents
+- AI-powered compliance checking (eCheck)
+- 3D compliance envelope visualization
+- Integration with Domain, CoreLogic, Nearmap
+
+#### National Zoning Atlas Methodology
+
+- 200+ regulatory characteristics per district
+- Dropdown menus with prescribed options (prevents subjective entries)
+- Manual human review (algorithms can't yet parse nuanced zoning codes)
+- State-specific teams coordinate standardization
+
+#### UK Digital Land Pipeline
+
+- Python CLI tools for data transformation
+- Specification repo for field definitions (semantic versioning)
+- Collect → Transform → Harmonize → Publish pattern
+
+---
+
+### A.6 Risk Mitigation
+
+| Risk                          | Mitigation                                |
+| ----------------------------- | ----------------------------------------- |
+| **State data format changes** | Version-controlled transformation configs |
+| **WFS service outages**       | Local cache + retry logic in Dagster      |
+| **Geometry validity issues**  | `make_valid()` in preprocessing           |
+| **CRS mismatches**            | Enforce GDA2020 (EPSG:7844) throughout    |
+| **Stale data detection**      | Dagster freshness policies + alerts       |
+| **Large file processing**     | DuckDB for preprocessing before PostGIS   |
