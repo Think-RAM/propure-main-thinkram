@@ -3,7 +3,14 @@
 import type React from "react";
 
 import { useState, useRef } from "react";
-import { Search, SlidersHorizontal, User } from "lucide-react";
+import {
+  Search,
+  Send,
+  SendHorizonal,
+  SendHorizonalIcon,
+  SlidersHorizontal,
+  User,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GoogleMap } from "./google-map";
@@ -16,9 +23,18 @@ import { useRouter } from "next/navigation";
 import { useClerk, UserProfile } from "@clerk/nextjs";
 import { Dialog, DialogContent, DialogHeader } from "./ui/dialog";
 import UserProfileDialog from "./user-profile-dialog";
+import { Textarea } from "./ui/textarea";
+import { ChatSidebar } from "./ChatSideBar";
 
-export default function DashboardPage() {
-  const [isSearchActive, setIsSearchActive] = useState(false);
+const MAX_HEIGHT = 180; // px ~ ChatGPT clamp
+
+interface DashboardPageProps {
+  closeSidebar: () => void;
+}
+
+export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
+  // const [isSearchActive, setIsSearchActive] = useState(false);
+  const [isChatActive, setIsChatActive] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
@@ -27,18 +43,15 @@ export default function DashboardPage() {
   const router = useRouter();
   const { isSignedIn, user, loaded } = useClerk();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setSearchValue(value);
-
-    if (value.length > 0 && !isSearchActive) {
-      setIsSearchActive(true);
-    }
   };
 
-  const handleInputFocus = () => {
-    if (searchValue.length > 0 && !isSearchActive) {
-      setIsSearchActive(true);
+  const handleSubmit = () => {
+    if (searchValue.length > 0 && !isChatActive) {
+      closeSidebar(); 
+      setIsChatActive(true);
     }
   };
 
@@ -47,18 +60,19 @@ export default function DashboardPage() {
       {/* Google Map Background */}
       <GoogleMap
         className="absolute inset-0 w-full h-full"
-        isBlurred={!isSearchActive}
+        isBlurred={!isChatActive}
       />
 
-      {!isSearchActive && (
+      {!isChatActive && (
         <div className=" absolute z-50 top-4 right-4">
           <UserProfileDialog
             user={{
               name: user?.fullName || "Guest User",
-              email: user?.emailAddresses[0]?.emailAddress || "guest@example.com",
+              email:
+                user?.emailAddresses[0]?.emailAddress || "guest@example.com",
               avatar: user?.imageUrl || "/placeholder.svg",
             }}
-            open={showUserProfile && !isSearchActive}
+            open={showUserProfile && !isChatActive}
             setOpen={setShowUserProfile}
           />
         </div>
@@ -67,7 +81,7 @@ export default function DashboardPage() {
       {/* Search Header - appears when search is active */}
       <div
         className={`absolute top-0 left-0 right-0 z-20 border-cyan-200/50 transition-all duration-500 ${
-          isSearchActive ? "translate-y-0" : "-translate-y-full opacity-0"
+          isChatActive ? "translate-y-0" : "-translate-y-full opacity-0"
         }`}
       >
         <div className="flex flex-col p-4 max-w-4xl mx-auto">
@@ -75,22 +89,18 @@ export default function DashboardPage() {
           <div className="relative flex flex-col gap-2 bg-white/90 backdrop-blur-sm border-2 border-cyan-300 focus-within:border-cyan-500 rounded-2xl px-4 py-3">
             {/* Search Input */}
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-600 h-4 w-4" />
-              <Input
-                ref={inputRef}
-                value={searchValue}
-                onChange={handleInputChange}
-                onFocus={handleInputFocus}
-                placeholder="Search for properties, neighborhoods, or cities..."
-                className="pl-8 pr-12 py-2 text-base border-none shadow-none bg-transparent text-gray-800 placeholder:text-cyan-600/70 focus-visible:ring-0 focus-visible:ring-offset-0"
+              {/* City Filter Pills Inside White Box */}
+              <CityFilterPills
+                selected={selectedCity}
+                onSelect={(key) => setSelectedCity(key)}
               />
-              <div className="absolute right-14 top-1/2 transform -translate-y-1/2 cursor-pointer">
+              <div className="absolute right-10 top-1/2 transform -translate-y-1/2 cursor-pointer">
                 <SlidersHorizontal
                   className="h-4 w-4 text-cyan-600"
                   onClick={() => setShowFilters((prev) => !prev)}
                 />
               </div>
-              <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+              <div className="absolute -right-2 top-1/2 transform -translate-y-1/2">
                 {loaded && user ? (
                   <UserProfileDialog
                     user={{
@@ -100,7 +110,7 @@ export default function DashboardPage() {
                         "guest@example.com",
                       avatar: user?.imageUrl || "/placeholder.svg",
                     }}
-                    open={showUserProfile && isSearchActive}
+                    open={showUserProfile && isChatActive}
                     setOpen={setShowUserProfile}
                   />
                 ) : (
@@ -114,12 +124,6 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
-
-            {/* City Filter Pills Inside White Box */}
-            <CityFilterPills
-              selected={selectedCity}
-              onSelect={(key) => setSelectedCity(key)}
-            />
           </div>
         </div>
       </div>
@@ -127,7 +131,7 @@ export default function DashboardPage() {
       {/* Hero Section - centered initially */}
       <div
         className={`absolute inset-0 z-10 flex items-center justify-center transition-all duration-700 ${
-          isSearchActive ? "opacity-0 pointer-events-none" : "opacity-100"
+          isChatActive ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       >
         <div className="text-center max-w-2xl mx-auto px-6">
@@ -139,16 +143,59 @@ export default function DashboardPage() {
           </h1>
 
           <div className="relative max-w-lg mx-auto">
-            <Input
+            <Textarea
               value={searchValue}
-              onChange={handleInputChange}
-              onFocus={handleInputFocus}
-              placeholder="Search for properties, neighborhoods, or cities..."
-              className="pl-12 pr-16 py-4 text-lg border-2 border-cyan-300/50 bg-white/80 backdrop-blur-md text-gray-800 placeholder:text-cyan-700/80 focus:border-cyan-400 focus:bg-white/90 rounded-full shadow-xl"
+              placeholder="Ask about properties, locations, pricing, or investment insights…"
+              rows={1}
+              onChange={(e) => {
+                handleInputChange(e as any);
+
+                // Auto-grow with clamp (ChatGPT-style)
+                e.currentTarget.style.height = "auto";
+                e.currentTarget.style.height = `${Math.min(
+                  e.currentTarget.scrollHeight,
+                  MAX_HEIGHT
+                )}px`;
+              }}
+              onKeyDown={(e) => {
+                // Enter → submit
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (!searchValue.trim()) return;
+                  handleSubmit();
+                }
+
+                // Shift+Enter → newline (default behavior)
+              }}
+              className={cn(
+                "resize-none overflow-y-auto",
+                "min-h-[56px]",
+                "pl-4 pr-14 py-4",
+                "text-lg leading-relaxed",
+                "rounded-2xl",
+                "border-2 border-cyan-300/50",
+                "bg-white/80 backdrop-blur-md",
+                "text-gray-800 placeholder:text-cyan-700/80",
+                "focus:border-cyan-400 focus:bg-white/90 focus-visible:ring-0",
+                "shadow-xl"
+              )}
             />
-            <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-              <Search className="h-5 w-5 me-4 text-teal-500" />
-            </div>
+
+            {/* Send button */}
+            <button
+              disabled={!searchValue.trim()}
+              onClick={() => handleSubmit()}
+              className={cn(
+                "absolute bottom-2 right-2",
+                "flex h-9 w-9 items-center justify-center rounded-full",
+                "transition-all",
+                searchValue.trim()
+                  ? "bg-gradient-to-br from-cyan-400 to-teal-500 text-white shadow-md hover:from-cyan-500 hover:to-teal-600"
+                  : "bg-cyan-200/60 text-cyan-500 cursor-not-allowed"
+              )}
+            >
+              <SendHorizonalIcon className="h-4 w-4" />
+            </button>
           </div>
 
           <p className="text-cyan-100 text-lg mt-6 drop-shadow-lg">
@@ -159,10 +206,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Results Panel - appears when search is active */}
-      <SearchResultsSidebar
-        isSearchActive={isSearchActive}
-        searchValue={searchValue}
-        setIsSearchActive={setIsSearchActive}
+      <ChatSidebar 
+        open={isChatActive}
+        send={searchValue} 
       />
 
       <div

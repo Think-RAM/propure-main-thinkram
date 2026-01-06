@@ -56,7 +56,6 @@ export const calculateSuburbMetrics = inngest.createFunction(
 
           const props = await prisma.property.findMany({
             where: whereClause,
-            include: { suburb: true },
             select: {
               id: true,
               suburbId: true,

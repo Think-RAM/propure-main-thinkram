@@ -1,16 +1,18 @@
-import type { Metadata } from "next";
 import "@/app/globals.css";
 import { MapProvider } from "@/context/MapContext";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Dashboard - Propure",
-  description: "Pure Insights, Smart Investments",
+  title: "Propure - Pure Insights, Smart Investments",
+  description:
+    "AI-Powered Property Investment Insights for Smarter Australian Investors",
 };
+
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return <MapProvider>{children}</MapProvider>;
 }
