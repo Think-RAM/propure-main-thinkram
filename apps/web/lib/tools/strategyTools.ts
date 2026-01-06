@@ -1,11 +1,10 @@
 import { Strategy, User } from "@prisma/client";
-import { tool, UIMessageStreamWriter } from "ai";
+import { tool } from "ai";
 import z from "zod";
 import { prisma } from "@propure/db";
-import { ChatMessageAI } from "@/types/ai";
 
 type SaveStrategyProps = {
-  user: User & { strategies: Strategy[] } | null;
+  user: User & { strategies: Strategy[] };
   strategyId: string | null;
 };
 
@@ -34,8 +33,6 @@ export const saveStrategy = ({ user, strategyId }: SaveStrategyProps) => tool({
             .optional(),
     }),
     execute: async (params) => {
-        if (!user) throw new Error("Unauthorized");
-
         const strategy = await prisma.strategy.upsert({
             where: { id: strategyId ?? "new" },
             update: {

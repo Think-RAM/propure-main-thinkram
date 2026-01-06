@@ -2,7 +2,7 @@ import { calculateCashFlow, calculateROI } from "@/lib/tools/financialTools";
 import { getDemographics, getEconomicIndicators, getPopulationProjections, getRbaRates, getSuburbProfile, getSuburbStats } from "@/lib/tools/marketTools";
 import { searchDomainProperties, searchRealestateProperties } from "@/lib/tools/propertySearchTools";
 import { saveStrategy } from "@/lib/tools/strategyTools";
-import { InferUITool, UIMessage } from "ai";
+import { InferUITool, UIDataTypes, UIMessage } from "ai";
 import z from "zod";
 
 export const messageMetadataSchema = z.object({
@@ -47,6 +47,6 @@ export type ChatTools = {
 
 export type ChatMessageAI = UIMessage<
   MessageMetadata,
-  any,
+  UIDataTypes,
   ChatTools
 >;

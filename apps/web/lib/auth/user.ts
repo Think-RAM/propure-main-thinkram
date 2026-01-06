@@ -18,7 +18,7 @@ export async function verifyAndCreateUser(user: UserJSON) {
     });
     await updateUserMetadata(
       user.id,
-      {},
+      undefined,
       {
         application_id: newUser.id,
       },
