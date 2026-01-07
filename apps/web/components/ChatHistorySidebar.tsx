@@ -10,12 +10,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { MessageSquare, Plus, PanelLeft } from "lucide-react";
-
-export type ChatSession = {
-  id: string;
-  title: string | null;
-  createdAt: string;
-};
+import { ChatSession } from "@prisma/client";
 
 interface ChatSidebarProps {
   open: boolean;
@@ -24,6 +19,7 @@ interface ChatSidebarProps {
   onSelect: (id: string) => void;
   onNewChat: () => void;
   toggle: () => void;
+  loading: boolean;
 }
 
 export function ChatSidebar({
@@ -33,7 +29,36 @@ export function ChatSidebar({
   onSelect,
   onNewChat,
   toggle,
+  loading,
 }: ChatSidebarProps) {
+  if (loading) {
+    return (
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-20 w-72",
+          "bg-white/85 backdrop-blur-xl",
+          "border-r border-cyan-200/50",
+          "transition-transform duration-300 ease-in-out",
+          open ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="flex items-center justify-between px-4 py-3 border-b border-cyan-200/40">
+          <div className="h-4 w-16 bg-gray-300 rounded animate-pulse" />
+          <div className="h-8 w-8 bg-gray-300 rounded animate-pulse" />
+        </div>
+        <ScrollArea className="h-full px-2 py-3">
+          <div className="space-y-1">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex gap-3 rounded-lg px-3 py-2">
+                <div className="h-4 w-4 bg-gray-300 rounded animate-pulse shrink-0" />
+                <div className="h-4 flex-1 bg-gray-300 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </aside>
+    );
+  }
   return (
     <>
       {/* Floating toggle */}

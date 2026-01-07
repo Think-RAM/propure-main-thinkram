@@ -3,7 +3,7 @@ import { Plan } from "@/types/types";
 import clerkClient from "../clerk";
 import { prisma, StrategyType } from "@propure/db";
 
-interface UserPreferences {
+export interface UserPreferences {
   primaryGoal: string;
   holdingPeriod: string;
   riskLevel: string;
@@ -56,6 +56,7 @@ const updateUserMetadata = async (userId: string, metadata?: PublicMetadata, pri
       await prisma.strategy.create({
         data: {
           userId: applicationUser.id,
+          status: "ACTIVE",
           type: STRATEGY_TYPES[metadata.userPreferences.primaryGoal],
           budget: parseFloat(metadata.userPreferences.totalBudget.replace(/[^0-9.-]+/g, "")),
           deposit: parseFloat(metadata.userPreferences.personalSavings.replace(/[^0-9.-]+/g, "")),

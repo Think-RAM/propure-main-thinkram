@@ -18,7 +18,7 @@ export default clerkMiddleware(async (auth, req) => {
   const isAuth = isAuthRoute(req);
   const isOnBoarding = isOnBoardingRoute(req);
   const isDashboard = isDashboardRoute(req);
-  const isOnBoardingComplete = sessionClaims?.metadata?.onboardingComplete;
+  const isOnBoardingComplete = sessionClaims?.metadata?.onboardingComplete ?? false;
 
   console.log(`Middleware triggered for path: ${pathname}`);
   console.log(`Path is public: ${isPublic}`);
@@ -43,6 +43,11 @@ export default clerkMiddleware(async (auth, req) => {
       `User ${userId} has completed onboarding and is accessing an onboarding route: ${pathname}`
     );
     return NextResponse.redirect(new URL("/dashboard", req.url));
+  } else if (!isOnBoardingComplete && !isOnBoarding && userId) {
+    console.log(
+      `User ${userId} has not completed onboarding and is accessing a non-onboarding route: ${pathname}`
+    );
+    return NextResponse.redirect(new URL("/onboarding", req.url));
   }
 
   return NextResponse.next({ request: { headers: requestHeaders } });

@@ -4,6 +4,7 @@ import { Inter, Poppins, Lato } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -37,7 +38,9 @@ export default function RootLayout({
   const appShell = (content: React.ReactNode) => (
     <html lang="en" suppressHydrationWarning>
       <head />
-      <body className={`${poppins.variable} ${lato.variable} ${inter.className}`}>
+      <body
+        className={`${poppins.variable} ${lato.variable} ${inter.className}`}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
@@ -46,6 +49,7 @@ export default function RootLayout({
           storageKey="propure-theme"
         >
           {content}
+          <Toaster richColors />
         </ThemeProvider>
       </body>
     </html>
@@ -65,8 +69,8 @@ export default function RootLayout({
           <p className="text-gray-600">
             Add{" "}
             <code className="font-mono">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</code>{" "}
-            (and <code className="font-mono">CLERK_SECRET_KEY</code>) to your env
-            to enable authentication and run/build the app.
+            (and <code className="font-mono">CLERK_SECRET_KEY</code>) to your
+            env to enable authentication and run/build the app.
           </p>
         </div>
       </main>

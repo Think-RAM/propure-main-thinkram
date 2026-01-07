@@ -20,7 +20,9 @@ import { saveStrategy } from "@/lib/tools/strategyTools";
 import { v4 as generateUUID } from "uuid";
 import { ChatMessageAI } from "@/types/ai";
 import { ChatSDKError } from "@/lib/ai-error";
-import { convertToUIMessages, getChatById, saveChatSession, saveMessages, updateChatTitleById, updateMessage } from "@/lib/chat/data";
+import { getChatById, saveChatSession, saveMessages, updateChatTitleById, updateMessage } from "@/lib/chat/data";
+import { convertCurrency, convertToUIMessages } from "@/lib/utils";
+import { UserPreferences } from "@/types/types";
 
 /* ======================================================================
    SYSTEM PROMPT
@@ -72,6 +74,8 @@ async function generateTitleFromUserMessage({
     prompt: getTextFromMessage(message),
   });
 
+  console.log(`Chat Title ${title}`)
+
   return title;
 }
 
@@ -114,15 +118,32 @@ export async function POST(req: Request) {
     }
 
     const activeStrategy = user.strategies[0];
+    const activeStrategyParams = activeStrategy ? activeStrategy.params as UserPreferences : null;
 
     const strategyContext = activeStrategy
       ? `
-        Current strategy:
+        Current Strategy:
         - Type: ${activeStrategy.type}
-        - Budget: ${activeStrategy.budget ?? "Not set"}
-        - Deposit: ${activeStrategy.deposit ?? "Not set"}
-        - Risk: ${activeStrategy.riskTolerance ?? "Unknown"}
-        `
+        - Status: ${activeStrategy.status}
+        - Budget: $${activeStrategy.budget ? convertCurrency(activeStrategy.budget) : "Not set"}
+        - Deposit: $${activeStrategy.deposit ? convertCurrency(activeStrategy.deposit) : "Not set"}
+        - Annual Income: $${activeStrategy.income ? convertCurrency(activeStrategy.income) : "Not set"}
+        - Risk Tolerance: ${activeStrategy.riskTolerance ?? "Unknown"}
+        - Investment Timeline: ${activeStrategy.timeline ?? "Not set"}
+        - Management Style: ${activeStrategy.managementStyle ?? "Not set"}
+
+        Investment Preferences:
+        - Target Regions: ${activeStrategyParams?.regions?.join(", ") ?? "Not specified"}
+        - Remote Investing: ${activeStrategyParams?.remoteInvesting ? "Yes" : "No"}
+        - Area Preference: ${activeStrategyParams?.areaPreference ?? "Not specified"}
+        - Property Type: ${activeStrategyParams?.propertyType ?? "Not specified"}
+        - Bedrooms: ${activeStrategyParams?.bedrooms ?? "Not specified"}
+        - Property Age: ${activeStrategyParams?.propertyAge ?? "Not specified"}
+        - Previous Experience: ${activeStrategyParams?.previousExperience ?? "Not specified"}
+        - Co-Investment: ${activeStrategyParams?.coInvestment ? "Open" : "Solo only"}
+        - Cashflow Expectations: ${activeStrategyParams?.cashflowExpectations ? convertCurrency(activeStrategyParams.cashflowExpectations) : "Not set"}
+        - Target Cashflow: $${activeStrategyParams?.cashflowAmount ? convertCurrency(activeStrategyParams.cashflowAmount) : "Not set"}
+      `
       : "";
 
     /* ---------------- Chat Persistance ---------------- */
@@ -135,7 +156,8 @@ export async function POST(req: Request) {
         return new ChatSDKError("forbidden:chat").toResponse();
       }
       messagesFromDb = chat.messages;
-    } else if (message?.role === "user") {
+    }
+    else if (message?.role === "user") {
       // Save chat immediately with placeholder title
       await saveChatSession({
         id,
@@ -143,12 +165,12 @@ export async function POST(req: Request) {
         title: "New chat",
         strategyId: activeStrategy?.id,
       });
-
-      // Start title generation in parallel (don't await)
-      titlePromise = generateTitleFromUserMessage({ message });
     }
 
-    const UIMessages = [...convertToUIMessages(messagesFromDb), message as ChatMessageAI];
+    // Start title generation in parallel (don't await)
+    titlePromise = generateTitleFromUserMessage({ message });
+
+    const UIMessages = chat ? [...convertToUIMessages(messagesFromDb), message as ChatMessageAI] : [...convertToUIMessages(messages)];
 
     const stream = createUIMessageStream({
       originalMessages: UIMessages,
@@ -157,7 +179,12 @@ export async function POST(req: Request) {
         if (titlePromise) {
           titlePromise.then((title) => {
             updateChatTitleById({ chatId: id, title });
-            dataStream.write({ type: "data-chat-title", data: title });
+            dataStream.write({
+              type: "data-chat-title", data: {
+                title,
+                id
+              }
+            });
           });
         }
         /* ---------------- AI Stream ---------------- */
@@ -238,7 +265,7 @@ export async function POST(req: Request) {
           const existingMsg = UIMessages.find((m) => m.id === finishedMsg.id);
           if (existingMsg) {
             updatedMessageIds.push(finishedMsg.id);
-            await updateMessage(finishedMsg.id, finishedMsg.parts);
+            await updateMessage(finishedMsg.id, finishedMsg.parts, finishedMsg.role, id);
           } else {
             newMessages.push({
               id: finishedMsg.id,

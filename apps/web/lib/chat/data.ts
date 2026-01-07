@@ -1,7 +1,8 @@
-import { ChatMessageAI, ChatTools } from "@/types/ai";
-import { ChatMessage, prisma } from "@propure/db";
+"use server";
+import { ChatTools } from "@/types/ai";
+import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@propure/db";
 import { UIDataTypes, UIMessagePart } from "ai";
-import { formatISO } from 'date-fns';
 
 export const getChatById = async ({ id }: { id: string }) => {
     const chat = await prisma.chatSession.findUnique({
@@ -50,22 +51,19 @@ export const updateChatTitleById = async ({
     });
 }
 
-export function convertToUIMessages(messages: ChatMessage[]): ChatMessageAI[] {
-    return messages.map((message) => ({
-        id: message.id,
-        role: message.role as 'user' | 'assistant' | 'system',
-        parts: message.toolCalls as UIMessagePart<UIDataTypes, ChatTools>[],
-        metadata: {
-            createdAt: formatISO(message.createdAt),
-        },
-    }));
-}
-
-export async function updateMessage(id: string, updatedParts: UIMessagePart<UIDataTypes, ChatTools>[]) {
-    await prisma.chatMessage.update({
+export async function updateMessage(id: string, updatedParts: UIMessagePart<UIDataTypes, ChatTools>[], role: 'user' | 'assistant' | 'system', chatSessionId: string) {
+    await prisma.chatMessage.upsert({
         where: { id },
-        data: {
+        update: {
             toolCalls: updatedParts as any,
+        },
+        create: {
+            id,
+            role,
+            toolCalls: updatedParts as any,
+            createdAt: new Date(),
+            chatSessionId,
+            content: "Any Content",
         },
     });
 }
@@ -87,4 +85,25 @@ export async function saveMessages(messages: Array<{
             content: "Any Content",
         })),
     });
+}
+
+export async function getUserChatSessions() {
+    try {
+        const { userId } = await auth();
+        if (!userId) {
+            throw new Error("User not authenticated");
+        }
+        const chatHistory = await prisma.chatSession.findMany({
+            where: {
+                user: {
+                    clerkUserId: userId,
+                }
+            }
+        });
+
+        return chatHistory;
+    } catch (error) {
+        console.error("Error fetching user chat sessions:", error);
+        throw error;
+    }
 }

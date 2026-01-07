@@ -1,30 +1,23 @@
 "use client";
 
 import type React from "react";
-
-import { useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import {
-  Search,
-  Send,
-  SendHorizonal,
   SendHorizonalIcon,
   SlidersHorizontal,
   User,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GoogleMap } from "./google-map";
 import { cn } from "../lib/utils";
-import SearchResultsSidebar from "./SearchResultsSidebar";
 import FiltersPanel from "./FiltersPanel";
 import { CityFilterPills } from "./SuburbFilter";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
-import { useClerk, UserProfile } from "@clerk/nextjs";
-import { Dialog, DialogContent, DialogHeader } from "./ui/dialog";
+import { useClerk } from "@clerk/nextjs";
 import UserProfileDialog from "./user-profile-dialog";
 import { Textarea } from "./ui/textarea";
 import { ChatSidebar } from "./ChatSideBar";
+import { useUserChats } from "@/context/ChatContext";
 
 const MAX_HEIGHT = 180; // px ~ ChatGPT clamp
 
@@ -33,15 +26,14 @@ interface DashboardPageProps {
 }
 
 export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
-  // const [isSearchActive, setIsSearchActive] = useState(false);
   const [isChatActive, setIsChatActive] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
+  const [searchValue, setSearchValue] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [selectedCity, setSelectedCity] = useState("All");
-  const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const { isSignedIn, user, loaded } = useClerk();
+  const { user, loaded } = useClerk();
+  const { activeSessionId, activeChatMessages, chatsLoading } = useUserChats();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -49,11 +41,15 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
   };
 
   const handleSubmit = () => {
-    if (searchValue.length > 0 && !isChatActive) {
+    if (searchValue && searchValue.length > 0 && !isChatActive) {
       closeSidebar(); 
       setIsChatActive(true);
     }
   };
+
+  useEffect(() => {
+    setIsChatActive(!!activeSessionId);
+  }, [activeSessionId]);
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
@@ -144,7 +140,7 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
 
           <div className="relative max-w-lg mx-auto">
             <Textarea
-              value={searchValue}
+              value={searchValue ?? ""}
               placeholder="Ask about properties, locations, pricing, or investment insights…"
               rows={1}
               onChange={(e) => {
@@ -161,7 +157,7 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
                 // Enter → submit
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  if (!searchValue.trim()) return;
+                  if (!searchValue?.trim()) return;
                   handleSubmit();
                 }
 
@@ -183,13 +179,13 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
 
             {/* Send button */}
             <button
-              disabled={!searchValue.trim()}
+              disabled={!searchValue?.trim()}
               onClick={() => handleSubmit()}
               className={cn(
                 "absolute bottom-2 right-2",
                 "flex h-9 w-9 items-center justify-center rounded-full",
                 "transition-all",
-                searchValue.trim()
+                searchValue?.trim()
                   ? "bg-gradient-to-br from-cyan-400 to-teal-500 text-white shadow-md hover:from-cyan-500 hover:to-teal-600"
                   : "bg-cyan-200/60 text-cyan-500 cursor-not-allowed"
               )}
@@ -208,7 +204,10 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
       {/* Results Panel - appears when search is active */}
       <ChatSidebar 
         open={isChatActive}
-        send={searchValue} 
+        send={searchValue ?? undefined}
+        initialMessages={activeChatMessages}
+        activeSessionId={activeSessionId ?? undefined} 
+        isLoading={chatsLoading}
       />
 
       <div

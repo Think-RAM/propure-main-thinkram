@@ -1,29 +1,19 @@
 "use client";
 import DashboardPage from "@/components/real-estate-map";
-import { ChatSession, ChatSidebar } from "@/components/ChatHistorySidebar";
+import { ChatSidebar } from "@/components/ChatHistorySidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useState } from "react";
-
-const chatSessions: ChatSession[] = [
-  {
-    id: "1",
-    title: "Map Configuration",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    title: "Property Analysis",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "3",
-    title: "Market Research",
-    createdAt: new Date().toISOString(),
-  },
-];
+import { useUserChats } from "@/context/ChatContext";
 
 export default function Page() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const {
+    userChatSessions,
+    historyLoading,
+    activeSessionId,
+    setActiveSession,
+  } = useUserChats();
+
   const toggleSidebar = (close = false) => {
     setIsSidebarOpen(close ? false : !isSidebarOpen);
   };
@@ -40,10 +30,18 @@ export default function Page() {
         <ChatSidebar
           open={isSidebarOpen}
           toggle={() => toggleSidebar()}
-          sessions={chatSessions}
-          activeSessionId="1"
-          onSelect={(id) => console.log("Selected session:", id)}
-          onNewChat={() => console.log("New chat initiated")}
+          sessions={userChatSessions}
+          activeSessionId={activeSessionId ?? undefined}
+          onSelect={(id) => {
+            if(id === activeSessionId) return;
+            setActiveSession(id);
+            toggleSidebar(true);
+          }}
+          onNewChat={() => {
+            setActiveSession(null);
+            toggleSidebar(true);
+          }}
+          loading={historyLoading}
         />
       </div>
     </TooltipProvider>
