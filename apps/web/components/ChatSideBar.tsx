@@ -1,14 +1,16 @@
 "use client";
-
 import { useChat } from "@ai-sdk/react";
-import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useEffect, useRef, useState } from "react";
 import { DefaultChatTransport } from "ai";
-import { ArrowDownIcon, Bot, SendHorizonalIcon, SparklesIcon } from "lucide-react";
+import {
+  ArrowDownIcon,
+  Bot,
+  SendHorizonalIcon,
+  SparklesIcon,
+} from "lucide-react";
 
 import { cn, fetchWithErrorHandlers } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ChatMessageAI } from "@/types/ai";
@@ -16,6 +18,9 @@ import { v4 as generateUUID } from "uuid";
 import { useAutoResume } from "@/hooks/use-auto-resume";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useUserChats } from "@/context/ChatContext";
+import { Response } from "./elements/response";
+import { ScrollArea } from "./ui/scroll-area";
+import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 
 interface ChatSidebarProps {
   open: boolean;
@@ -32,25 +37,24 @@ export function ChatSidebar({
   activeSessionId,
   isLoading,
 }: ChatSidebarProps) {
-  const bottomRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState("");
-  const viewportRef = useRef<HTMLDivElement | null>(null);
   const lastSentRef = useRef<string | null>(null);
-  const isAtBottomRef = useRef(true);
-  const [error, setError] = useState<Error | null>(null);
+  // const [error, setError] = useState<Error | null>(null);
+  const scrollElRef = useRef<HTMLDivElement | null>(null);
+  const [isAtBottom, setIsAtBottom] = useState(true);
   const { updateChatSessionTitle } = useUserChats();
 
-  const handleScroll = () => {
-    const el = viewportRef.current;
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    const el = scrollElRef.current;
     if (!el) return;
 
-    const atBottom =
-      Math.abs(el.scrollHeight - el.scrollTop - el.clientHeight) < 10;
-
-    isAtBottomRef.current = atBottom;
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior,
+    });
   };
 
-  const { messages, status, sendMessage, setMessages, resumeStream } =
+  const { messages, status, sendMessage, setMessages, resumeStream, error } =
     useChat<ChatMessageAI>({
       id: activeSessionId,
       messages: initialMessages,
@@ -99,15 +103,22 @@ export function ChatSidebar({
       },
       onError: (error) => {
         console.error("Chat error:", error);
-        setError(error);
-      },
+        // setError(error);
+      }
     });
 
+  console.log(messages);
+  console.log("Status:", status);
+  // Auto-scroll ONLY if already at bottom
   useEffect(() => {
-    requestAnimationFrame(() => {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    });
+    if (isAtBottom) {
+      scrollToBottom("auto");
+    }
   }, [messages.length]);
+
+  useEffect(() => {
+    console.log("isAtBottom:", isAtBottom);
+  }, [isAtBottom]);
 
   useEffect(() => {
     if (!send || !open) return;
@@ -119,6 +130,33 @@ export function ChatSidebar({
       parts: [{ type: "text", text: send }],
     });
   }, [send, open]);
+
+  useEffect(() => {
+    const root = document.querySelector(
+      "[data-radix-scroll-area-viewport]"
+    ) as HTMLDivElement | null;
+
+    if (!root) {
+      console.warn("Scroll viewport not found");
+      return;
+    }
+
+    scrollElRef.current = root;
+
+    const onScroll = () => {
+      const el = root;
+      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 24;
+
+      setIsAtBottom(atBottom);
+    };
+
+    root.addEventListener("scroll", onScroll);
+    onScroll(); // initialize state
+
+    return () => {
+      root.removeEventListener("scroll", onScroll);
+    };
+  }, []);
 
   useAutoResume({
     autoResume: true,
@@ -133,7 +171,7 @@ export function ChatSidebar({
         className={cn(
           "fixed inset-y-0 left-0 z-20 w-96",
           "bg-gradient-to-b from-white/95 via-white/90 to-cyan-50/95 backdrop-blur-lg",
-          "border-r border-cyan-200/50 rounded-r-xl shadow-xl",
+          "border-r border-cyan-200/50 shadow-xl",
           "transition-transform duration-300 ease-in-out",
           "flex flex-col",
           open ? "translate-x-0" : "-translate-x-full"
@@ -142,16 +180,27 @@ export function ChatSidebar({
         <div className="flex-1 min-h-0">
           <ScrollArea className="h-full px-4 py-3">
             <div className="flex flex-col gap-3">
-              {[...Array(5)].map((_, i) => (
+              {[...Array(6)].map((_, i) => (
                 <div
                   key={i}
                   className={cn(
-                    "max-w-[85%] rounded-lg px-3 py-2 h-12 animate-pulse",
-                    i % 2 === 0
-                      ? "bg-cyan-100/50 self-end"
-                      : "bg-white/50 border border-cyan-100 self-start"
+                    "flex gap-2",
+                    i % 2 === 0 ? "justify-end" : "justify-start"
                   )}
-                />
+                >
+                  {i % 2 !== 0 && (
+                    <div className="h-8 w-8 rounded-full bg-cyan-100 animate-pulse" />
+                  )}
+
+                  <div
+                    className={cn(
+                      "h-10 rounded-lg animate-pulse",
+                      i % 2 === 0
+                        ? "w-[60%] bg-cyan-100"
+                        : "w-[75%] bg-white border"
+                    )}
+                  />
+                </div>
               ))}
             </div>
           </ScrollArea>
@@ -192,87 +241,89 @@ export function ChatSidebar({
     >
       {/* ================= Messages ================= */}
       <div className="flex-1 min-h-0">
-        <ScrollArea className="h-full px-4 py-3">
-          <div
-            className="flex flex-col gap-3"
-            ref={viewportRef}
-            onScroll={handleScroll}
-          >
-            {messages.map(
-              (msg) =>
-                msg.parts.some(
-                  (part) => part.type === "text" && part.text.trim().length > 0
-                ) && (
-                  <div
-                    key={msg.id}
-                    className={cn(
-                      "flex gap-2",
-                      msg.role === "user" ? "justify-end" : "justify-start"
-                    )}
-                  >
-                    {/* Agent Avatar */}
-                    {msg.role !== "user" && (
-                      <Avatar className="h-8 w-8 border border-cyan-200 bg-white">
-                        <AvatarFallback className="bg-cyan-50 text-cyan-700">
-                          <Bot className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
-
-                    {/* Message Bubble */}
+        <ScrollArea className="h-full">
+          <ScrollAreaPrimitive.Viewport className="h-full px-4 py-3">
+            <div className="flex flex-col gap-4">
+              {messages.map(
+                (msg) =>
+                  msg.parts.some(
+                    (part) =>
+                      part.type === "text" && part.text.trim().length > 0
+                  ) && (
                     <div
+                      key={msg.id}
                       className={cn(
-                        "max-w-[85%] rounded-lg px-3 py-2 text-sm leading-relaxed",
-                        msg.role === "user"
-                          ? "bg-cyan-100/70 text-gray-900"
-                          : "bg-white/80 text-gray-800 border border-cyan-100"
+                        "flex gap-2",
+                        msg.role === "user" ? "justify-end" : "justify-start"
                       )}
                     >
-                      {msg.parts.map((part, i) =>
-                        part.type === "text" ? (
-                          <div
-                            key={i}
-                            className="prose prose-sm prose-cyan m-0 p-0"
-                          >
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {part.text}
-                            </ReactMarkdown>
-                          </div>
-                        ) : null
+                      {/* Agent Avatar */}
+                      {msg.role !== "user" && (
+                        <Avatar className="h-8 w-8 mt-0.5 border border-cyan-200 bg-white">
+                          <AvatarFallback className="bg-cyan-50 text-cyan-700">
+                            <Bot className="h-4 w-4" />
+                          </AvatarFallback>
+                        </Avatar>
                       )}
+
+                      {/* Message Bubble */}
+                      <div
+                        className={cn(
+                          "max-w-[85%] rounded-lg px-3 py-2 text-sm leading-relaxed",
+                          msg.role === "user"
+                            ? "bg-cyan-100/70 text-gray-900"
+                            : "bg-white/80 text-gray-800 border border-cyan-100"
+                        )}
+                      >
+                        {msg.parts.map((part, i) =>
+                          part.type === "text" ? (
+                            <div
+                              key={i}
+                              className="prose prose-sm prose-cyan m-0 p-0"
+                            >
+                              <Response
+                                controls={{
+                                  table: true, // Show table download button
+                                }}
+                                remarkPlugins={[remarkGfm]}
+                              >
+                                {part.text}
+                              </Response>
+                            </div>
+                          ) : null
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )
-            )}
+                  )
+              )}
 
-            {status === "streaming" && <ThinkingMessage />}
-            {error && (
-              <div className="max-w-[85%] rounded-lg bg-red-100/70 text-red-900 self-center px-3 py-2 text-sm leading-relaxed">
-                {error.message ||
-                  "An error occurred while processing your chat."}
-              </div>
-            )}
-
-            <div ref={bottomRef} />
-          </div>
+              {status === "streaming" && <ThinkingMessage />}
+              {error && (
+                <div className="max-w-[85%] rounded-lg bg-red-100/70 text-red-900 self-center px-3 py-2 text-sm leading-relaxed">
+                  {error.message ||
+                    "An error occurred while processing your chat."}
+                </div>
+              )}
+            </div>
+          </ScrollAreaPrimitive.Viewport>
         </ScrollArea>
-      </div>
 
-      {/* Hover to see scroll button */}
-      <button
-        aria-label="Scroll to bottom"
-        className={`-translate-x-1/2 absolute bottom-4 left-1/2 z-10 rounded-full border bg-background p-2 shadow-lg transition-all hover:bg-muted ${
-          isAtBottomRef.current
-            ? "pointer-events-none scale-0 opacity-0"
-            : "pointer-events-auto scale-100 opacity-100"
-        }`}
-        onClick={() =>
-          bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-        }
-        type="button"
-      >
-        <ArrowDownIcon className="size-4" />
-      </button>
+        {/* Scroll to bottom button */}
+        <button
+          type="button"
+          aria-label="Scroll to bottom"
+          onClick={() => scrollToBottom()}
+          className={cn(
+            "absolute bottom-24 left-1/2 -translate-x-1/2 z-50",
+            "rounded-full border bg-white p-2 shadow-lg transition-all",
+            isAtBottom
+              ? "pointer-events-none opacity-0 scale-90"
+              : "opacity-100 scale-100 hover:bg-muted"
+          )}
+        >
+          <ArrowDownIcon className="h-4 w-4" />
+        </button>
+      </div>
 
       {/* ================= Composer ================= */}
       <form

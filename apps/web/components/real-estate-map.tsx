@@ -33,7 +33,7 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
   const [selectedCity, setSelectedCity] = useState("All");
   const router = useRouter();
   const { user, loaded } = useClerk();
-  const { activeSessionId, activeChatMessages, chatsLoading } = useUserChats();
+  const { activeSessionId, activeChatMessages, chatsLoading, createNewChatSession } = useUserChats();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -43,6 +43,7 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
   const handleSubmit = () => {
     if (searchValue && searchValue.length > 0 && !isChatActive) {
       closeSidebar(); 
+      createNewChatSession(searchValue);
       setIsChatActive(true);
     }
   };

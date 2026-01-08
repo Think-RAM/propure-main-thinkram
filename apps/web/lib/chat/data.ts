@@ -98,6 +98,9 @@ export async function getUserChatSessions() {
                 user: {
                     clerkUserId: userId,
                 }
+            },
+            orderBy: {
+                updatedAt: "desc",
             }
         });
 

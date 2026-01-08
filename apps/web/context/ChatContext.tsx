@@ -1,8 +1,5 @@
 "use client";
-import {
-  getChatById,
-  getUserChatSessions,
-} from "@/lib/chat/data";
+import { getChatById, getUserChatSessions } from "@/lib/chat/data";
 import { convertToUIMessages } from "@/lib/utils";
 import { ChatMessageAI } from "@/types/ai";
 import { ChatSession } from "@prisma/client";
@@ -14,12 +11,14 @@ import {
   useEffect,
 } from "react";
 import { toast } from "sonner";
+import { v4 as generateUUID } from "uuid";
 
 interface ChatContextType {
   userChatSessions: ChatSession[];
   activeSessionId: string | null;
   setActiveSession: (id: string | null) => void;
   updateChatSessionTitle: (id: string, title: string) => void;
+  createNewChatSession: (send: string) => void;
   activeChatMessages: ChatMessageAI[];
   historyLoading: boolean;
   chatsLoading: boolean;
@@ -39,11 +38,14 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const setActiveSession = useCallback(async (id: string | null) => {
     try {
       setActiveSessionId(id);
+      setActiveChatMessages([]);
       if (id) {
         setIsChatsLoading(true);
         const fetchedMessages = await getChatById({ id });
         setActiveChatMessages(
-          fetchedMessages ? [...convertToUIMessages(fetchedMessages.messages)] : []
+          fetchedMessages
+            ? [...convertToUIMessages(fetchedMessages.messages)]
+            : []
         );
       }
     } catch (error) {
@@ -60,9 +62,29 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const updateChatSessionTitle = useCallback((id: string, title: string) => {
     setUserChatSessions((prevSessions) =>
       prevSessions.map((session) =>
-        session.id === id ? { ...session, title } : session
+        session.id === id ? { ...session, title, updatedAt: new Date() } : session
       )
     );
+  }, []);
+
+  const createNewChatSession = useCallback((send: string) => {
+    const newSession: ChatSession = {
+      id: generateUUID(),
+      title: "New Chat",
+      userId: "",
+      strategyId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    setUserChatSessions((prevSessions) => [...prevSessions, newSession].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()));
+    setActiveSessionId(newSession.id);
+    setActiveChatMessages([
+      {
+        id: generateUUID(),
+        role: "user",
+        parts: [{ type: "text", text: send }],
+      }
+    ]);
   }, []);
 
   useEffect(() => {
@@ -90,6 +112,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         activeSessionId,
         setActiveSession,
         updateChatSessionTitle,
+        createNewChatSession,
         activeChatMessages,
         historyLoading: isLoading,
         chatsLoading: isChatsLoading,

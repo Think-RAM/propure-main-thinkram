@@ -55,8 +55,9 @@ When multiple agents are needed, invoke them efficiently:
 - Feedback: When results need refinement
 `;
 
-function getTextFromMessage(message: ChatMessageAI | UIMessage): string {
-  return message.parts
+function getTextFromMessage(message: ChatMessageAI[] | UIMessage[]): string {
+  return message
+    .flatMap((msg) => msg.parts)
     .filter((part) => part.type === 'text')
     .map((part) => (part as { type: 'text'; text: string }).text)
     .join('');
@@ -66,7 +67,7 @@ function getTextFromMessage(message: ChatMessageAI | UIMessage): string {
 async function generateTitleFromUserMessage({
   message,
 }: {
-  message: UIMessage;
+  message: UIMessage[] | ChatMessageAI[];
 }) {
   const { text: title } = await generateText({
     model: google("gemini-2.0-flash-lite"),
@@ -167,10 +168,10 @@ export async function POST(req: Request) {
       });
     }
 
-    // Start title generation in parallel (don't await)
-    titlePromise = generateTitleFromUserMessage({ message });
+    const UIMessages = chat ? [...convertToUIMessages(messagesFromDb), message as ChatMessageAI] : [message as ChatMessageAI];
 
-    const UIMessages = chat ? [...convertToUIMessages(messagesFromDb), message as ChatMessageAI] : [...convertToUIMessages(messages)];
+    // Start title generation in parallel (don't await)
+    titlePromise = generateTitleFromUserMessage({ message: UIMessages });
 
     const stream = createUIMessageStream({
       originalMessages: UIMessages,
