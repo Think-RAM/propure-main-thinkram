@@ -39,7 +39,6 @@ export function ChatSidebar({
 }: ChatSidebarProps) {
   const [input, setInput] = useState("");
   const lastSentRef = useRef<string | null>(null);
-  // const [error, setError] = useState<Error | null>(null);
   const scrollElRef = useRef<HTMLDivElement | null>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const { updateChatSessionTitle } = useUserChats();
@@ -103,22 +102,15 @@ export function ChatSidebar({
       },
       onError: (error) => {
         console.error("Chat error:", error);
-        // setError(error);
       }
     });
 
-  console.log(messages);
-  console.log("Status:", status);
   // Auto-scroll ONLY if already at bottom
   useEffect(() => {
     if (isAtBottom) {
       scrollToBottom("auto");
     }
   }, [messages.length]);
-
-  useEffect(() => {
-    console.log("isAtBottom:", isAtBottom);
-  }, [isAtBottom]);
 
   useEffect(() => {
     if (!send || !open) return;

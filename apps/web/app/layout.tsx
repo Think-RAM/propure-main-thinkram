@@ -2,6 +2,7 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Inter, Poppins, Lato } from "next/font/google";
 import "./globals.css";
+import "leaflet/dist/leaflet.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
@@ -37,7 +38,9 @@ export default function RootLayout({
 
   const appShell = (content: React.ReactNode) => (
     <html lang="en" suppressHydrationWarning>
-      <head />
+      <head>
+        <link rel="preconnect" href="https://basemaps.cartocdn.com" />
+      </head>
       <body
         className={`${poppins.variable} ${lato.variable} ${inter.className}`}
       >

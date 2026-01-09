@@ -1,13 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import {
-  GoogleMap,
-  useLoadScript,
-  InfoWindow,
-  Marker,
-} from "@react-google-maps/api";
-import { Libraries } from "@react-google-maps/api/dist/utils/make-load-script-url";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +8,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import Image from "next/image";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
 
 // Define types for our map data
 type PropertyData = {
@@ -385,37 +380,27 @@ const australiaMarkers: MapMarker[] = [
   },
 ];
 
-// Map container style
-const mapContainerStyle = {
-  width: "100%",
-  height: "100%",
-};
+/* ------------------------------------------------------------------ */
+/* Constants                                                          */
+/* ------------------------------------------------------------------ */
+const AUSTRALIA_CENTER: [number, number] = [-25.2744, 133.7751];
 
-// Center the map on Australia
-const center = {
-  lat: -25.2744, // Australia's approximate center latitude
-  lng: 133.7751, // Australia's approximate center longitude
-};
-
-// Map options
-const options = {
-  disableDefaultUI: true,
-  zoomControl: true,
-  mapTypeControl: true,
-  streetViewControl: false,
-  styles: [
-    {
-      featureType: "water",
-      elementType: "geometry",
-      stylers: [{ color: "#B3E0FF" }],
-    },
-    {
-      featureType: "landscape",
-      elementType: "geometry",
-      stylers: [{ color: "#F8F9FA" }],
-    },
-  ],
-};
+/* ------------------------------------------------------------------ */
+/* Custom Leaflet icon (Canvas-friendly)                               */
+/* ------------------------------------------------------------------ */
+const createIcon = (color: string) =>
+  L.divIcon({
+    className: "",
+    html: `<div style="
+      width:18px;
+      height:18px;
+      border-radius:50%;
+      background:${color};
+      border:2px solid #fff;
+    "></div>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+  });
 
 // Helper function to get marker color based on growth rate
 const getMarkerColor = (growthRate: number): string => {
@@ -426,250 +411,121 @@ const getMarkerColor = (growthRate: number): string => {
   return "#FF6F61"; // High growth
 };
 
-// Define required libraries
-const libraries: Libraries = ["places", "visualization"];
-
+/* ------------------------------------------------------------------ */
+/* Component                                                          */
+/* ------------------------------------------------------------------ */
 export default function AustraliaMap({
   selectedCity = "All",
 }: {
   selectedCity?: string;
 }) {
-  // Load the Google Maps script
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-    libraries,
-  });
-
-  // State for the selected marker
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
-  // Reference to the map instance
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  // State for selected property
-  const [selectedProperty, setSelectedProperty] = useState<PropertyData | null>(
-    null
-  );
+  const [selectedProperty, setSelectedProperty] =
+    useState<PropertyData | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
 
-  // Filter markers based on the selected city or region
-  const filteredMarkers = (() => {
-    if (selectedCity === "All") {
-      return australiaMarkers;
-    } else if (selectedCity === "Sydney") {
-      return australiaMarkers.filter(
-        (marker) =>
-          marker.suburb.includes("Sydney") ||
-          marker.suburb === "Bondi" ||
-          marker.suburb === "Parramatta"
-      );
-    } else if (selectedCity === "Melbourne") {
-      return australiaMarkers.filter(
-        (marker) =>
-          marker.suburb.includes("Melbourne") ||
-          marker.suburb === "St Kilda" ||
-          marker.suburb === "Footscray"
-      );
-    } else if (selectedCity === "Brisbane") {
-      return australiaMarkers.filter((marker) =>
-        marker.suburb.includes("Brisbane")
-      );
-    } else if (selectedCity === "Perth") {
-      return australiaMarkers.filter((marker) =>
-        marker.suburb.includes("Perth")
-      );
-    } else if (selectedCity === "Adelaide") {
-      return australiaMarkers.filter((marker) =>
-        marker.suburb.includes("Adelaide")
-      );
-    } else if (selectedCity === "Hobart") {
-      return australiaMarkers.filter((marker) =>
-        marker.suburb.includes("Hobart")
-      );
-    } else if (selectedCity === "Darwin") {
-      return australiaMarkers.filter((marker) =>
-        marker.suburb.includes("Darwin")
-      );
-    } else if (selectedCity === "Canberra") {
-      return australiaMarkers.filter((marker) =>
-        marker.suburb.includes("Canberra")
-      );
-    } else {
-      // If selectedCity is a specific suburb name
-      return australiaMarkers.filter((marker) =>
-        marker.suburb.includes(selectedCity)
-      );
-    }
-  })();
+  /* -------------------------------------------------------------- */
+  /* Filter markers                                                  */
+  /* -------------------------------------------------------------- */
+  const filteredMarkers = useMemo(() => {
+    if (selectedCity === "All") return australiaMarkers;
+    return australiaMarkers.filter((m) =>
+      m.suburb.toLowerCase().includes(selectedCity.toLowerCase())
+    );
+  }, [selectedCity]);
 
-  // Dynamically adjust map center and zoom based on filtered markers
+  /* -------------------------------------------------------------- */
+  /* Fit bounds on filter change                                     */
+  /* -------------------------------------------------------------- */
   useEffect(() => {
-    if (map && filteredMarkers.length > 0) {
-      // If filtering to a specific city/region, zoom in to that area
-      if (selectedCity !== "All" && filteredMarkers.length > 0) {
-        // Create bounds object
-        const bounds = new google.maps.LatLngBounds();
-
-        // Add each marker to bounds
-        filteredMarkers.forEach((marker) => {
-          bounds.extend(marker.position);
-        });
-
-        // Fit the map to the bounds
-        map.fitBounds(bounds);
-
-        // Set a minimum zoom level to prevent excessive zoom on single markers
-        const listener = google.maps.event.addListener(map, "idle", () => {
-          if (map.getZoom()! > 10) {
-            map.setZoom(10);
-          }
-          google.maps.event.removeListener(listener);
-        });
-      } else {
-        // Reset to Australia-wide view
-        map.setCenter(center);
-        map.setZoom(4);
-      }
+    if (filteredMarkers.length === 0 || !mapRef.current) return;
+    if (selectedCity !== "All") {
+      const bounds = L.latLngBounds(
+        filteredMarkers.map((m) => [m.position.lat, m.position.lng])
+      );
+      mapRef.current.fitBounds(bounds, { maxZoom: 10 });
+    } else {
+      mapRef.current.setView(AUSTRALIA_CENTER, 4);
     }
-  }, [map, filteredMarkers, selectedCity]);
+  }, [filteredMarkers, selectedCity]);
 
-  // Handle marker click
-  const handleMarkerClick = useCallback((marker: MapMarker) => {
-    setSelectedMarker(marker);
-  }, []);
-
-  // Handle info window close
-  const handleInfoWindowClose = useCallback(() => {
-    setSelectedMarker(null);
-  }, []);
-
-  // Render loading state
-  if (loadError) {
-    console.error("Error loading Google Maps:", loadError);
-    return (
-      <div className="text-center p-12">
-        Error loading maps. Please check your API key configuration.
-      </div>
-    );
-  }
-
-  if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-pulse text-primary">Loading map...</div>
-      </div>
-    );
-  }
-
+  /* -------------------------------------------------------------- */
+  /* Render                                                         */
+  /* -------------------------------------------------------------- */
   return (
     <div className="relative aspect-[16/9] rounded-lg overflow-hidden h-full">
-      <GoogleMap
-        mapContainerStyle={mapContainerStyle}
-        center={center}
+      <MapContainer
+        center={AUSTRALIA_CENTER}
         zoom={4}
-        options={options}
-        onLoad={setMap}
+        className="h-full w-full"
+        zoomControl={false}
+        scrollWheelZoom={false}
+        renderer={L.canvas()}
+        preferCanvas
+        ref={mapRef}
       >
+        {/* Dark Theme Tiles */}
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution="© OpenStreetMap © CARTO"
+        />
+
         {filteredMarkers.map((marker) => (
           <Marker
             key={marker.id}
-            position={marker.position}
-            icon={{
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 10,
-              fillColor: getMarkerColor(marker.growthRate),
-              fillOpacity: 0.9,
-              strokeWeight: 2,
-              strokeColor: "#FFFFFF",
+            position={[marker.position.lat, marker.position.lng]}
+            icon={createIcon(getMarkerColor(marker.growthRate))}
+            eventHandlers={{
+              click: () => setSelectedMarker(marker),
             }}
-            onClick={() => handleMarkerClick(marker)}
           />
         ))}
 
         {selectedMarker && (
-          <InfoWindow
-            position={selectedMarker.position}
-            onCloseClick={handleInfoWindowClose}
+          <Popup
+            position={[
+              selectedMarker.position.lat,
+              selectedMarker.position.lng,
+            ]}
+            closeButton
+            autoPan
+            eventHandlers={{
+              remove: () => setSelectedMarker(null),
+            }}
           >
-            <div className="p-3 max-w-[400px]">
-              <h3 className="font-bold text-[#0B3C5D] text-lg mb-3">
+            <div className="p-3 max-w-[360px]">
+              <h3 className="font-bold text-lg mb-3">
                 {selectedMarker.suburb}
               </h3>
 
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="bg-blue-50 p-2 rounded-lg">
-                  <div className="text-xs text-gray-600">Median Price</div>
-                  <div className="font-semibold">
-                    ${selectedMarker.metrics.medianPrice.toLocaleString()}
-                  </div>
-                </div>
-                <div className="bg-green-50 p-2 rounded-lg">
-                  <div className="text-xs text-gray-600">Rental Yield</div>
-                  <div className="font-semibold">
-                    {selectedMarker.metrics.averageRentalYield}%
-                  </div>
-                </div>
-                <div className="bg-orange-50 p-2 rounded-lg">
-                  <div className="text-xs text-gray-600">
-                    Price Change (YoY)
-                  </div>
-                  <div className="font-semibold text-orange-600">
-                    +{selectedMarker.metrics.priceChangeYoY}%
-                  </div>
-                </div>
-                <div className="bg-purple-50 p-2 rounded-lg">
-                  <div className="text-xs text-gray-600">Growth Prediction</div>
-                  <div
-                    className="font-semibold"
-                    style={{ color: getMarkerColor(selectedMarker.growthRate) }}
-                  >
-                    {selectedMarker.growthRate}%
-                  </div>
-                </div>
-                <div className="bg-red-50 p-2 rounded-lg">
-                  <div className="text-xs text-gray-600">Vacancy Rate</div>
-                  <div className="font-semibold">
-                    {selectedMarker.metrics.vacancyRate}%
-                  </div>
-                </div>
-                <div className="bg-gray-50 p-2 rounded-lg">
-                  <div className="text-xs text-gray-600">
-                    Avg. Days on Market
-                  </div>
-                  <div className="font-semibold">
-                    {selectedMarker.metrics.averageDaysOnMarket} days
-                  </div>
-                </div>
+              <div className="grid grid-cols-2 gap-2 mb-4 text-sm">
+                <div>Median: ${selectedMarker.metrics.medianPrice.toLocaleString()}</div>
+                <div>Yield: {selectedMarker.metrics.averageRentalYield}%</div>
+                <div>YoY: +{selectedMarker.metrics.priceChangeYoY}%</div>
+                <div>Vacancy: {selectedMarker.metrics.vacancyRate}%</div>
               </div>
 
               {selectedMarker.properties.length > 0 && (
-                <div className="mt-3">
-                  <h4 className="font-semibold text-sm mb-2">
-                    Available Properties:
-                  </h4>
-                  <div className="space-y-2">
-                    {selectedMarker.properties.map((property) => (
-                      <div
-                        key={property.id}
-                        className="bg-white p-2 rounded-md shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
-                        onClick={() => setSelectedProperty(property)}
-                      >
-                        <div className="text-sm font-medium">
-                          {property.address}
-                        </div>
-                        <div className="flex justify-between text-xs text-gray-600 mt-1">
-                          <span>${property.price.toLocaleString()}</span>
-                          <span>
-                            {property.bedrooms}bed {property.bathrooms}bath
-                          </span>
-                        </div>
+                <div className="space-y-2">
+                  {selectedMarker.properties.map((p) => (
+                    <div
+                      key={p.id}
+                      className="cursor-pointer rounded-md bg-slate-800/50 p-2 hover:bg-slate-700"
+                      onClick={() => setSelectedProperty(p)}
+                    >
+                      <div className="text-sm font-medium">{p.address}</div>
+                      <div className="text-xs text-gray-400">
+                        ${p.price.toLocaleString()} · {p.bedrooms} bed
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-          </InfoWindow>
+          </Popup>
         )}
 
-        {/* Property Details Dialog */}
+        {/* Property Dialog */}
         <Dialog
           open={!!selectedProperty}
           onOpenChange={() => setSelectedProperty(null)}
@@ -680,127 +536,46 @@ export default function AustraliaMap({
                 <DialogHeader>
                   <DialogTitle>{selectedProperty.address}</DialogTitle>
                 </DialogHeader>
+
                 <div className="grid md:grid-cols-2 gap-4 mt-4">
-                  <div className="space-y-2">
-                    {selectedProperty.images ? (
-                      <>
-                        <div className="relative aspect-video rounded-lg overflow-hidden">
-                          <Image
-                            src={selectedProperty.images[0]}
-                            alt={`${selectedProperty.address} - Main Image`}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        <div className="grid grid-cols-3 gap-2">
-                          {selectedProperty.images
-                            .slice(1, 4)
-                            .map((image, index) => (
-                              <div
-                                key={index}
-                                className="relative aspect-square rounded-lg overflow-hidden"
-                              >
-                                <Image
-                                  src={image}
-                                  alt={`${selectedProperty.address} - Image ${
-                                    index + 2
-                                  }`}
-                                  fill
-                                  className="object-cover"
-                                />
-                              </div>
-                            ))}
-                        </div>
-                      </>
-                    ) : selectedProperty.imageUrl ? (
-                      <div className="relative aspect-video rounded-lg overflow-hidden">
-                        <Image
-                          src={selectedProperty.imageUrl}
-                          alt={selectedProperty.address}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : null}
+                  <div className="relative aspect-video rounded-lg overflow-hidden">
+                    <Image
+                      src={
+                        selectedProperty.images?.[0] ??
+                        selectedProperty.imageUrl ??
+                        "/placeholder.jpg"
+                      }
+                      alt={selectedProperty.address}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-semibold text-2xl">
-                        ${selectedProperty.price.toLocaleString()}
-                      </h3>
-                      <p className="text-gray-600">
-                        {selectedProperty.propertyType.charAt(0).toUpperCase() +
-                          selectedProperty.propertyType.slice(1)}{" "}
-                        for {selectedProperty.listingType}
-                      </p>
+
+                  <div className="space-y-3">
+                    <div className="text-2xl font-semibold">
+                      ${selectedProperty.price.toLocaleString()}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-sm text-gray-600">Bedrooms</div>
-                        <div className="font-semibold">
-                          {selectedProperty.bedrooms}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-600">Bathrooms</div>
-                        <div className="font-semibold">
-                          {selectedProperty.bathrooms}
-                        </div>
-                      </div>
-                      {selectedProperty.landSize && (
-                        <div>
-                          <div className="text-sm text-gray-600">Land Size</div>
-                          <div className="font-semibold">
-                            {selectedProperty.landSize}m²
-                          </div>
-                        </div>
-                      )}
-                      {selectedProperty.rentalYield && (
-                        <div>
-                          <div className="text-sm text-gray-600">
-                            Rental Yield
-                          </div>
-                          <div className="font-semibold">
-                            {selectedProperty.rentalYield}%
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    <p className="text-sm text-gray-500">
+                      {selectedProperty.description}
+                    </p>
 
-                    <div>
-                      <h4 className="font-semibold mb-1">Description</h4>
-                      <p className="text-sm text-gray-600">
-                        {selectedProperty.description}
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      {selectedProperty.externalLink && (
-                        <a
-                          href={selectedProperty.externalLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors"
-                        >
-                          View on Domain.com.au
-                        </a>
-                      )}
-
-                      <button
-                        className="w-full bg-[#FF6F61] hover:bg-[#FF6F61]/90 text-white py-2 px-4 rounded-md transition-colors"
-                        onClick={() => setSelectedProperty(null)}
+                    {selectedProperty.externalLink && (
+                      <a
+                        href={selectedProperty.externalLink}
+                        target="_blank"
+                        className="block text-center bg-cyan-600 text-white py-2 rounded-md"
                       >
-                        Request More Information
-                      </button>
-                    </div>
+                        View Listing
+                      </a>
+                    )}
                   </div>
                 </div>
               </>
             )}
           </DialogContent>
         </Dialog>
-      </GoogleMap>
+      </MapContainer>
     </div>
   );
 }

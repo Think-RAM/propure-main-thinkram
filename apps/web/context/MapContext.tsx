@@ -1,13 +1,21 @@
-"use client"
+"use client";
 
-import { createContext, useContext, useState, useRef, useCallback } from "react"
+import {
+  createContext,
+  useContext,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
+import type { Map as LeafletMap } from "leaflet";
+import { HazardLegendItem, HazardPolygon } from "@/lib/hazardZones";
 
 type LatLng = {
-  lat: number
-  lng: number
-}
+  lat: number;
+  lng: number;
+};
 
-type SearchResult = {
+export type SearchResult = {
   title: string;
   description: string;
   yield: string;
@@ -19,38 +27,54 @@ type SearchResult = {
 };
 
 type MapContextType = {
-  setCenter: (coords: LatLng) => void
-  registerMap: (map: google.maps.Map) => void
-  results: SearchResult[]
-  setResults: (results: SearchResult[]) => void
-}
+  setCenter: (coords: LatLng, zoom?: number) => void;
+  registerMap: (map: LeafletMap) => void;
+  results: SearchResult[];
+  polygons: HazardPolygon[];
+  legends: HazardLegendItem[];
+  setResults: (results: SearchResult[]) => void;
+  setPolygons: (polygons: HazardPolygon[]) => void;
+  setLegends: (legends: HazardLegendItem[]) => void;
+};
 
-const MapContext = createContext<MapContextType | undefined>(undefined)
+const MapContext = createContext<MapContextType | null>(null);
 
-export const MapProvider = ({ children }: { children: React.ReactNode }) => {
-  const mapRef = useRef<{ setCenter: (coords: LatLng) => void; setZoom: (zoom: number) => void } | null>(null);
-  const [results, setResults] = useState<SearchResult[]>([])
+export function MapProvider({ children }: { children: React.ReactNode }) {
+  const mapRef = useRef<LeafletMap | null>(null);
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [polygons, setPolygons] = useState<HazardPolygon[]>([]);
+  const [legends, setLegends] = useState<HazardLegendItem[]>([]);
 
-  const registerMap = useCallback((map: google.maps.Map) => {
-    mapRef.current = map
-  }, [])
+  const registerMap = useCallback((map: LeafletMap) => {
+    mapRef.current = map;
+  }, []);
 
-  const setCenter = useCallback((coords: LatLng) => {
-    if (mapRef.current) {
-      mapRef.current.setCenter(coords)
-      mapRef.current.setZoom(14)
-    }
-  }, [])
+  const setCenter = useCallback((coords: LatLng, zoom = 14) => {
+    mapRef.current?.setView([coords.lat, coords.lng], zoom, {
+      animate: true,
+    });
+  }, []);
 
   return (
-    <MapContext.Provider value={{ setCenter, registerMap, results, setResults }}>
+    <MapContext.Provider
+      value={{
+        setCenter,
+        registerMap,
+        results,
+        setResults,
+        polygons,
+        legends,
+        setPolygons,
+        setLegends,
+      }}
+    >
       {children}
     </MapContext.Provider>
-  )
+  );
 }
 
-export const useMap = () => {
-  const context = useContext(MapContext)
-  if (!context) throw new Error("useMap must be used within MapProvider")
-  return context
+export function useMap() {
+  const ctx = useContext(MapContext);
+  if (!ctx) throw new Error("useMap must be used within MapProvider");
+  return ctx;
 }

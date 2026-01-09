@@ -387,6 +387,11 @@ const australiaMarkers: MapMarker[] = [
   },
 ];
 
+/* -------------------------------------------------- */
+/* Constants                                          */
+/* -------------------------------------------------- */
+const AUSTRALIA_CENTER: [number, number] = [-25.2744, 133.7751];
+
 export const CityFilterPills: React.FC<CityFilterPillsProps> = ({
   selected,
   onSelect,
@@ -399,11 +404,16 @@ export const CityFilterPills: React.FC<CityFilterPillsProps> = ({
           key={key}
           variant={selected === key ? "default" : "outline"}
           onClick={() => {
-            const position = australiaMarkers.find(
-              (marker) => marker.id.startsWith(key.toLowerCase())
+            const position = australiaMarkers.find((marker) =>
+              marker.id.startsWith(key.toLowerCase())
             )?.position;
             if (position) {
               setCenter({ lat: position.lat, lng: position.lng });
+            } else {
+              setCenter(
+                { lat: AUSTRALIA_CENTER[0], lng: AUSTRALIA_CENTER[1] },
+                6
+              );
             }
             onSelect(key);
           }}

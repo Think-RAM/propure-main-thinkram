@@ -58,7 +58,10 @@ export default function Home() {
               Propure
             </span>
           </div>
-          <Button className="bg-[#FF6F61] hover:bg-[#FF6F61]/90 hover-lift" onClick={() => router.push("/dashboard")}>
+          <Button
+            className="bg-[#FF6F61] hover:bg-[#FF6F61]/90 hover-lift"
+            onClick={() => router.push("/dashboard")}
+          >
             Check the Demo
           </Button>
         </div>

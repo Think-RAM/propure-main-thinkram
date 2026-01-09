@@ -7,7 +7,6 @@ import {
   SlidersHorizontal,
   User,
 } from "lucide-react";
-import { GoogleMap } from "./google-map";
 import { cn } from "../lib/utils";
 import FiltersPanel from "./FiltersPanel";
 import { CityFilterPills } from "./SuburbFilter";
@@ -18,6 +17,7 @@ import UserProfileDialog from "./user-profile-dialog";
 import { Textarea } from "./ui/textarea";
 import { ChatSidebar } from "./ChatSideBar";
 import { useUserChats } from "@/context/ChatContext";
+import { LeafletMap } from "./maps/LeafletMap";
 
 const MAX_HEIGHT = 180; // px ~ ChatGPT clamp
 
@@ -54,8 +54,8 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
-      {/* Google Map Background */}
-      <GoogleMap
+      {/* Leaflet Map Background */}
+      <LeafletMap
         className="absolute inset-0 w-full h-full"
         isBlurred={!isChatActive}
       />
