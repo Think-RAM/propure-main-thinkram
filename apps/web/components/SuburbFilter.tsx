@@ -2,6 +2,7 @@ import React from "react";
 import { cn } from "@/lib/utils"; // or use classnames lib if you don't use this
 import { Badge } from "@/components/ui/badge"; // assuming you're using shadcn/ui or similar
 import { useMap } from "@/context/MapContext";
+import { ZONING_LEGEND } from "@/lib/map/landingZoneLayer";
 
 type CityFilterPillsProps = {
   selected: string;
@@ -387,6 +388,17 @@ const australiaMarkers: MapMarker[] = [
   },
 ];
 
+const styleByZone = (feature: any) => {
+  const layClass = feature.properties.LAY_CLASS;
+  const legend = layClass ? ZONING_LEGEND[layClass] : null;
+  return {
+    color: legend?.strokeColor,
+    weight: 1,
+    fillOpacity: 0.6,
+    fillColor: legend?.fillColor,
+  }
+};
+
 /* -------------------------------------------------- */
 /* Constants                                          */
 /* -------------------------------------------------- */
@@ -396,7 +408,7 @@ export const CityFilterPills: React.FC<CityFilterPillsProps> = ({
   selected,
   onSelect,
 }) => {
-  const { setCenter } = useMap();
+  const { setCenter, setMapLayer } = useMap();
   return (
     <div className="flex flex-wrap gap-1">
       {Object.entries(cityGroups).map(([key, label]) => (
@@ -409,6 +421,11 @@ export const CityFilterPills: React.FC<CityFilterPillsProps> = ({
             )?.position;
             if (position) {
               setCenter({ lat: position.lat, lng: position.lng });
+              // For Testing Sydney Zoning Layer
+              setMapLayer(
+                "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Planning/EPI_Primary_Planning_Layers/MapServer/2",
+                styleByZone
+              );
             } else {
               setCenter(
                 { lat: AUSTRALIA_CENTER[0], lng: AUSTRALIA_CENTER[1] },

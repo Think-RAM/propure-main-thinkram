@@ -2,10 +2,37 @@
 import { useState, memo, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useMap as useMapContext } from "@/context/MapContext";
-import { MapContainer, TileLayer, Marker, Popup, Polygon } from "react-leaflet";
-
 import L from "leaflet";
 import { DEMO_HAZARD_LEGEND, DEMO_HAZARD_POLYGONS } from "@/lib/hazardZones";
+import dynamic from "next/dynamic";
+
+/**
+ * React-Leaflet components MUST be client-only
+ */
+export const MapContainer = dynamic(
+  () => import("react-leaflet").then((m) => m.MapContainer),
+  { ssr: false }
+);
+
+export const TileLayer = dynamic(
+  () => import("react-leaflet").then((m) => m.TileLayer),
+  { ssr: false }
+);
+
+export const Marker = dynamic(
+  () => import("react-leaflet").then((m) => m.Marker),
+  { ssr: false }
+);
+
+export const Popup = dynamic(
+  () => import("react-leaflet").then((m) => m.Popup),
+  { ssr: false }
+);
+
+export const Polygon = dynamic(
+  () => import("react-leaflet").then((m) => m.Polygon),
+  { ssr: false }
+);
 
 /* -------------------------------------------------- */
 /* Constants                                          */
@@ -38,8 +65,6 @@ function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
     if (registered && mapRef.current) {
       console.log("Map Registered");
       registerMap(mapRef.current);
-      console.log(`Demo Hazard Data: `, DEMO_HAZARD_POLYGONS);
-      console.log(`Demo Legends: `, DEMO_HAZARD_LEGEND);
       setPolygons(DEMO_HAZARD_POLYGONS);
       setLegends(DEMO_HAZARD_LEGEND);
     }
