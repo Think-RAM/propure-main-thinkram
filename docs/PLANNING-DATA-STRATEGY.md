@@ -97,12 +97,147 @@ This document outlines a **Python-first, data-driven approach** to ingest this g
 
 ### 2.4 Key Queensland Data Endpoints
 
-| Dataset                 | Endpoint                                                                                                         | Format    |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------- | --------- |
-| SPP Interactive Mapping | [SPP IMS](https://planning.dsdmip.qld.gov.au/maps?type=spp)                                                      | WMS       |
-| SARA Mapping            | [DAMS](https://www.planning.qld.gov.au/planning-framework/mapping)                                               | WMS       |
-| Bushfire Prone Area     | [data.qld.gov.au](https://www.data.qld.gov.au/dataset/bushfire-prone-area-queensland-series)                     | Shapefile |
-| Cadastral Data          | [QSpatial](https://www.business.qld.gov.au/running-business/support-services/mapping-data-imagery/data/qspatial) | GPKG, SHP |
+#### Central QLD Government ArcGIS REST Services Directory
+
+**Main Portal**: `https://spatial-gis.information.qld.gov.au/arcgis/rest/services/`
+
+This is the central statewide ArcGIS REST directory (Version 11.3) with 50+ service folders. Key planning-related folders include:
+
+| Folder | Description | Key Services |
+|--------|-------------|--------------|
+| **PlanningCadastre** | Core planning & cadastral | Land Parcel Framework, Land Use, PDAs, SDAs, Residential Land Supply |
+| **Boundaries** | Administrative boundaries | LGA boundaries, ShapingSEQ 2023, Localities, Electoral |
+| **Environment** | Environmental data | MSES, Vegetation, Wetlands, Coastal |
+| **FloodCheck** | Flood data | Historic flood lines, Flood overlays |
+
+**Important**: This central portal provides **statewide foundational data** (cadastral, land use, boundaries, PDAs) but **NOT individual council planning zones**. Council-specific zoning must still be accessed from each council's own ArcGIS endpoint.
+
+#### PlanningCadastre Services (Statewide)
+
+| Service | Endpoint | Description |
+|---------|----------|-------------|
+| **Land Parcel Framework** | `https://spatial-gis.information.qld.gov.au/arcgis/rest/services/PlanningCadastre/LandParcelPropertyFramework/MapServer` | Cadastral parcels (nightly update), addresses, LGA boundaries, localities |
+| **Land Use (ALUMC)** | `https://spatial-gis.information.qld.gov.au/arcgis/rest/services/PlanningCadastre/LandUse/MapServer` | Statewide land use classification (ACLUMP) - NOT planning zones |
+| **Priority Development Areas** | `https://spatial-gis.information.qld.gov.au/arcgis/rest/services/PlanningCadastre/PriorityDevelopmentAreas/MapServer` | Gazetted PDAs statewide |
+| **State Development Areas** | `https://spatial-gis.information.qld.gov.au/arcgis/rest/services/PlanningCadastre/StateDevelopmentAreas/MapServer` | Coordinator General SDAs |
+| **Residential Land Supply** | `https://spatial-gis.information.qld.gov.au/arcgis/rest/services/PlanningCadastre/ResidentialLandSupply/MapServer` | Housing supply data |
+| **Coordinated Projects** | `https://spatial-gis.information.qld.gov.au/arcgis/rest/services/PlanningCadastre/CoordinatedProjects/MapServer` | Major coordinated projects |
+| **Coastal Management** | `https://spatial-gis.information.qld.gov.au/arcgis/rest/services/PlanningCadastre/CoastalManagement/MapServer` | Coastal zones and erosion |
+
+#### Administrative Boundaries Framework (130+ Layers)
+
+**Endpoint**: `https://spatial-gis.information.qld.gov.au/arcgis/rest/services/Boundaries/AdminBoundariesFramework/MapServer`
+
+| Layer Group | Key Layers (Layer IDs) |
+|-------------|------------------------|
+| **LGA & Localities** | Local Government area (11), Locality boundary (26) |
+| **ShapingSEQ 2023** | Regional land use (157), Development areas (110), Major enterprise areas (130) |
+| **Planning Interests** | Priority agricultural area (33), Priority living area (34), Strategic environmental area (35) |
+| **State Development** | State development area (37), Priority development area (196) |
+| **MSES (Environmental)** | Protected areas (185), Nature refuges (186), Regulated vegetation (187-192), HES wetlands (195) |
+| **Flood & Hazards** | Floodplain overlay (15), Erosion prone (61), Acid sulfate soils (82) |
+| **Heritage** | Queensland heritage register (78), Ramsar sites (79) |
+
+**Technical**: CRS EPSG:3857, MaxRecordCount 2000, Supports WMS/WFS
+
+#### Other State Government Endpoints
+
+| Dataset                    | Endpoint                                                                                                                    | Format                 |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| SPP Interactive Mapping    | [SPP IMS](https://planning.dsdmip.qld.gov.au/maps?type=spp)                                                                 | WMS                    |
+| SARA Mapping               | [DAMS](https://www.planning.qld.gov.au/planning-framework/mapping)                                                          | WMS                    |
+| Bushfire Prone Area        | [data.qld.gov.au](https://www.data.qld.gov.au/dataset/bushfire-prone-area-queensland-series)                                | Shapefile              |
+| QLD Spatial Catalogue      | [QSpatial](http://qldspatial.information.qld.gov.au/catalogue/)                                                             | Various                |
+| Cadastral Data             | [QSpatial](https://www.business.qld.gov.au/running-business/support-services/mapping-data-imagery/data/qspatial)            | GPKG, SHP              |
+
+#### Council Planning Scheme ArcGIS REST Services (Validated)
+
+| Council                    | Endpoint                                                                                                                    | Layers | CRS         |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------ | ----------- |
+| **Toowoomba Regional**     | `https://maps.tr.qld.gov.au/arcgis/rest/services/External/External_PlanningScheme/MapServer`                                | 170+   | EPSG:28356  |
+| **Scenic Rim Regional**    | `https://esriprod.scenicrim.qld.gov.au/arcgis/rest/services/EPlan_Scenic_Rim_Planning_Scheme/MapServer`                      | 210+   | EPSG:28356  |
+| **Logan City**             | `https://arcgis.lcc.wspdigital.com/server/rest/services/LoganHub/Logan_Planning_Scheme_v9_1_TLPI_20241030/MapServer`         | 387    | EPSG:7856   |
+| **Bundaberg Regional**     | `https://mappingdata.bundaberg.qld.gov.au/arcgis/rest/services/`                                                            | 50+    | EPSG:28356  |
+| **Sunshine Coast**         | `https://services-ap1.arcgis.com/YQyt7djuXN7rQyg4/arcgis/rest/services/`                                                    | 80+    | EPSG:3857   |
+| **Sunshine Coast (Legacy)**| `https://gislegacy.scc.qld.gov.au/arcgis/rest/services/PlanningCadastre/`                                                   | Multi  | EPSG:28356  |
+| **Redland City**           | `https://gis.redland.qld.gov.au/arcgis/rest/services/planning/city_plan/MapServer`                                          | Multi  | EPSG:28356  |
+| **Mackay Regional**        | `https://arcgis.mackay.qld.gov.au/server/rest/services/`                                                                    | Multi  | EPSG:28356  |
+| **Gold Coast**             | `https://maps.cityofgoldcoast.com.au/arcgis/rest/services/`                                                                 | Multi  | EPSG:28356  |
+| **Moreton Bay Regional**   | `https://gis.moretonbay.qld.gov.au/arcgis/rest/services/`                                                                   | Multi  | EPSG:28356  |
+| **Rockhampton Regional**   | `https://arcgismaps-prod.rockhamptonregion.qld.gov.au/arcgis/rest/services/`                                                | Multi  | EPSG:28356  |
+
+#### Council ArcGIS Hub / Open Data Portals
+
+| Council                    | Portal URL                                                         | Type           |
+| -------------------------- | ------------------------------------------------------------------ | -------------- |
+| **Brisbane City**          | `https://spatial-brisbane.opendata.arcgis.com/`                    | ArcGIS Hub     |
+| **Brisbane City**          | `https://www.spatial-data.brisbane.qld.gov.au/`                    | Open Data      |
+| **Townsville City**        | `https://data-tsvcitycouncil.opendata.arcgis.com/`                 | ArcGIS Hub     |
+| **Somerset Regional**      | `https://somerset.maps.arcgis.com/`                                | ArcGIS Online  |
+| **Noosa Shire**            | `https://storymaps.arcgis.com/collections/effa39321b984f94a4ccee16f7588ba4` | StoryMaps |
+
+#### Council Geocortex / Custom Portals
+
+| Council                    | Portal URL                                                         | Type           |
+| -------------------------- | ------------------------------------------------------------------ | -------------- |
+| **Bundaberg Regional**     | `https://mapping.bundaberg.qld.gov.au/Geocortex/`                  | Geocortex      |
+| **Rockhampton Regional**   | `https://maps.rockhamptonregion.qld.gov.au/Geocortex/`             | Geocortex      |
+| **Gympie Regional**        | `https://maps.gympie.qld.gov.au/`                                  | Custom         |
+
+> **See Also**: `/docs/qld/council-data-matrix.md` for comprehensive matrix of all 77 QLD councils
+
+#### Key Sunshine Coast Planning Layers (ArcGIS Online FeatureServer)
+
+| Layer | Endpoint |
+|-------|----------|
+| Zones | `https://services-ap1.arcgis.com/YQyt7djuXN7rQyg4/arcgis/rest/services/Zones/FeatureServer` |
+| Bushfire Hazard | `https://services-ap1.arcgis.com/YQyt7djuXN7rQyg4/arcgis/rest/services/Bushfire_Hazard_Overlay/FeatureServer` |
+| Flood Hazard | `https://services-ap1.arcgis.com/YQyt7djuXN7rQyg4/arcgis/rest/services/Flood_Hazard_Overlay_i_Flood_Risk_Area/FeatureServer` |
+| Heritage | `https://services-ap1.arcgis.com/YQyt7djuXN7rQyg4/arcgis/rest/services/Heritage_and_Character_Areas_Overlay/FeatureServer` |
+| Height Overlay | `https://services-ap1.arcgis.com/YQyt7djuXN7rQyg4/arcgis/rest/services/Height_Overlay/FeatureServer` |
+| Minimum Lot Size | `https://services-ap1.arcgis.com/YQyt7djuXN7rQyg4/arcgis/rest/services/Minimum_Lot_Size/FeatureServer` |
+
+#### Toowoomba Regional Council ArcGIS REST Details
+
+The TRC Planning Scheme MapServer provides comprehensive planning data with 170+ layers:
+
+| Layer ID | Layer Name | Description |
+|----------|------------|-------------|
+| 165 | Land Use Zones | Parent group for all zoning layers |
+| 170 | Zones | Detailed zoning polygons |
+| 167 | Precincts | Zone precinct boundaries |
+| 169 | Local Plan Areas | Local plan boundaries |
+| 126 | Overlays | Parent group for all overlay layers |
+| 156 | Flood Hazard | Flood planning areas with risk categories |
+| 145 | Bushfire Hazard | Bushfire prone land mapping |
+| 152 | Heritage | Heritage conservation areas |
+| 138 | Environmental Significance | Ecological significance areas |
+| 79 | LGIP | Local Government Infrastructure Plan layers |
+| 11 | Priority Development Area | Railway Parklands and special development areas |
+
+#### Logan City Council ArcGIS REST Details
+
+The Logan Planning Scheme v9.1 MapServer (387 layers) includes:
+
+| Layer Group | Key Layers |
+|-------------|------------|
+| **Zones and Precincts (Part 6)** | Zone Map (368), Precinct Map (367) |
+| **Overlays (Part 8)** | Flood Hazard (29-40), Bushfire (19-21), Heritage (42-44), Biodiversity (4-18) |
+| **LGIP (Part 4)** | Water (95-100), Sewerage (101-106), Stormwater (107-113), Transport (114-118), Parks (119-122) |
+| **Local Plans (Part 7)** | Beenleigh, Browns Plains, Jimboomba, Logan Central, etc. |
+
+#### Scenic Rim Regional Council ArcGIS REST Details
+
+The Scenic Rim Planning Scheme MapServer (210+ layers) includes comprehensive:
+- **Zoning** (Layer 22) with Precincts (Layer 21)
+- **15 Overlay categories**: Agricultural Land, Airport Environs, Bushfire Hazard, Environmental Significance (6 sub-overlays), Extractive Resources, Flood Hazard, Landslide Hazard, Heritage, Regional Infrastructure, Water Resource Catchments, Master Plan Areas, Transport Noise, Minimum Lot Size, Higher Order Roads, Road Hierarchy
+- **LGIP layers** (169-212): Priority Infrastructure Area, Developable Area, Parks, Transport, Stormwater
+
+**Technical Notes**:
+- **CRS**: Transform all to EPSG:7844 (GDA2020) for consistency
+- **Max Records**: 1000-2000 per query (implement pagination)
+- **Supported Formats**: JSON, GeoJSON, PBF
+- **Query Pattern**: `/{layerId}/query?where=1=1&outFields=*&f=geojson`
 
 ### 2.5 National Administrative Boundaries
 

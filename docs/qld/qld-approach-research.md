@@ -54,8 +54,8 @@ Queensland uses a **decentralized planning system** where zoning is managed by i
 
 ### Major Councils Analysis
 
-| Council                          | LGA Code | Population | Planning Scheme                | Data Access             | Format            | API Available |
-| -------------------------------- | -------- | ---------- | ------------------------------ | ----------------------- | ----------------- | ------------- |
+| Council                          | LGA Code | Population | Planning Scheme                | Data Access             | Format            | API Available      |
+| -------------------------------- | -------- | ---------- | ------------------------------ | ----------------------- | ----------------- | ------------------ |
 | **Brisbane City Council**        | BCC      | ~1.3M      | Open Data Portal               | GeoJSON, CSV            | REST API          |
 | **City of Gold Coast**           | GCC      | ~650K      | Open Data Portal + Data.gov.au | ESRI Geodatabase        | ArcGIS REST       |
 | **Sunshine Coast Council**       | SCC      | ~340K      | ArcGIS REST Server             | JSON, GeoJSON, PBF      | ArcGIS REST       |
@@ -63,6 +63,7 @@ Queensland uses a **decentralized planning system** where zoning is managed by i
 | **Redland City Council**         | RCC      | ~180K      | ArcGIS REST Server             | Geodatabase             | ArcGIS REST       |
 | **Moreton Bay Regional Council** | MBRC     | ~70K       | Datahub + Data.gov.au          | Shapefile, KML, CSV     | REST API          |
 | **Ipswich City Council**         | ICC      | ~250K      | Data.gov.au                    | Shapefile, GeoJSON, WFS | **WFS Available** |
+| **Toowoomba Regional Council**   | TRC      | ~180K      | ArcGIS REST MapServer          | JSON, GeoJSON, PBF, WMS | **ArcGIS REST**   |
 
 ### Detailed Council Analysis
 
@@ -435,6 +436,156 @@ Queensland uses a **decentralized planning system** where zoning is managed by i
 
 ---
 
+### 2.8 Toowoomba Regional Council (TRC)
+
+**Planning Scheme**: Toowoomba Regional Planning Scheme
+
+**Data Access Methods:**
+
+- **ArcGIS REST MapServer**: https://maps.tr.qld.gov.au/arcgis/rest/services/External/External_PlanningScheme/MapServer
+- **Interactive Mapping**: Council mapping portal
+- **Layer Count**: 170+ layers across planning zones, overlays, and infrastructure
+
+**Primary Datasets:**
+
+- **Land Use Zones** (Layer 165)
+  - **Zones** (Layer 170) - Core zoning polygons
+  - **Precincts** (Layer 167) - Zone precinct boundaries
+  - **Local Plan Areas** (Layer 169) - Local plan boundaries
+  - **Greenfield Areas** (Layer 168)
+- **Planning Overlays** (Layer 126)
+  - **Flood Hazard** (Layer 156) - Includes flood plain areas, vulnerable uses restriction, risk categories
+  - **Bushfire Hazard** (Layer 145)
+  - **Heritage** (Layer 152)
+  - **Environmental Significance** (Layer 138) - Biodiversity corridors, ecological significance
+  - **Landslide Hazard** (Layer 155)
+  - **Scenic Amenity** (Layer 161)
+  - **Airport Environs** (Layer 127) - OLS, wildlife hazard zones, ANEF contours
+  - **Agricultural Land** (Layer 153)
+  - **Extractive Resources** (Layer 146)
+- **Strategic Framework** (Layer 15)
+  - **Settlement Pattern** (Layer 16) - Urban extent, centres hierarchy
+  - **Natural Environment** (Layer 39) - Corridors, ecological areas
+  - **Natural Resources** (Layer 45) - Agricultural land, KRAs
+  - **Access and Mobility** (Layer 54) - Future roads, cycle networks
+  - **Infrastructure and Services** (Layer 59) - Electricity, water, gas corridors
+  - **Economic Development** (Layer 72) - Centre hierarchy
+- **LGIP** (Layer 79) - Local Government Infrastructure Plan
+  - Water supply, sewerage, stormwater, transport, parks trunk infrastructure
+  - Priority Infrastructure Area (Layer 122)
+- **Priority Development Area** (Layer 11)
+  - Railway Parklands Development (Layers 12-13)
+
+**ArcGIS REST Endpoints:**
+
+```
+Base URL: https://maps.tr.qld.gov.au/arcgis/rest/services/External/External_PlanningScheme/MapServer
+
+Key Layer Endpoints:
+- Zones:     /170/query?where=1=1&outFields=*&f=geojson
+- Precincts: /167/query?where=1=1&outFields=*&f=geojson
+- Flood:     /156/query?where=1=1&outFields=*&f=geojson
+- Bushfire:  /145/query?where=1=1&outFields=*&f=geojson
+- Heritage:  /152/query?where=1=1&outFields=*&f=geojson
+```
+
+**Formats Available:**
+
+- ✅ JSON
+- ✅ GeoJSON
+- ✅ PBF (Protocolbuffer Format)
+- ✅ WMS (Web Map Service)
+- ✅ SOAP
+- ✅ KML (via export)
+- ❌ WFS (uses ArcGIS REST instead)
+
+**Technical Specifications:**
+
+| Property | Value |
+|----------|-------|
+| **Spatial Reference** | EPSG:28356 (MGA Zone 56) |
+| **Max Record Count** | 1000 (pagination required) |
+| **Supports Dynamic Layers** | Yes |
+| **Image Formats** | PNG32, PNG24, PNG, JPG, GIF, SVG, PDF |
+| **Max Image Size** | 4096 x 4096 pixels |
+
+**Zone Categories (from Layer 170):**
+
+- Residential zones
+- Centre zones (Principal, Major, District, Local, Neighbourhood)
+- Industry zones (Light, Medium)
+- Community Facilities zones
+- Open Space zones
+- Environmental zones
+- Rural zones
+- Special Purpose zones
+
+**Special Features:**
+
+- **Transport Noise Corridors** (Layers 2-7) - Noise level categories from <58dB to >=73dB
+- **5m Contours** (Layer 10) - Terrain data
+- **Mining Tenements** (Layer 50) - Mineral development licences, mining leases
+- **Comprehensive LGIP** - Full infrastructure charging area data
+
+**Implementation Notes:**
+
+```python
+# Example: Fetch TRC Zones
+import requests
+import geopandas as gpd
+
+def fetch_trc_zones():
+    """Fetch Toowoomba Regional Council zones from ArcGIS REST"""
+    base_url = "https://maps.tr.qld.gov.au/arcgis/rest/services/External/External_PlanningScheme/MapServer"
+    layer_id = 170  # Zones layer
+
+    # Query with pagination
+    all_features = []
+    offset = 0
+    max_records = 1000
+
+    while True:
+        query_url = f"{base_url}/{layer_id}/query"
+        params = {
+            "where": "1=1",
+            "outFields": "*",
+            "f": "geojson",
+            "resultOffset": offset,
+            "resultRecordCount": max_records
+        }
+
+        response = requests.get(query_url, params=params)
+        data = response.json()
+
+        features = data.get("features", [])
+        if not features:
+            break
+
+        all_features.extend(features)
+        offset += max_records
+
+    # Convert to GeoDataFrame
+    gdf = gpd.GeoDataFrame.from_features(all_features)
+
+    # Transform from MGA Zone 56 to GDA2020
+    gdf = gdf.set_crs(epsg=28356)
+    gdf = gdf.to_crs(epsg=7844)
+
+    # Add metadata
+    gdf['council'] = 'Toowoomba Regional Council'
+    gdf['state'] = 'QLD'
+    gdf['data_source'] = 'TRC ArcGIS REST MapServer'
+
+    return gdf
+```
+
+**Contact/Support:**
+
+- Council GIS team (via mapping portal)
+- Planning Department
+
+---
+
 ## 3. Zone Code Standardization Challenges
 
 ### Code Variations Between Councils
@@ -755,14 +906,15 @@ def load_zones_to_postgis(zones_gdf):
 
 ### Phase 1: Priority Councils (Immediate)
 
-| Council            | Priority | Rationale                 | Data Quality | Effort |
-| ------------------ | -------- | ------------------------- | ------------ | ------ |
-| **Brisbane**       | 🥇 1     | Largest market, good API  | Low          |
-| **Ipswich**        | 🥈 2     | WFS available, clear docs | Low          |
-| **Sunshine Coast** | 🥉 3     | ArcGIS REST available     | Low          |
-| **Gold Coast**     | 🥉 4     | Good open data portal     | Medium       |
+| Council            | Priority | Rationale                            | Data Quality | Effort |
+| ------------------ | -------- | ------------------------------------ | ------------ | ------ |
+| **Brisbane**       | 🥇 1     | Largest market, good API             | Low          |
+| **Ipswich**        | 🥈 2     | WFS available, clear docs            | Low          |
+| **Sunshine Coast** | 🥉 3     | ArcGIS REST available                | Low          |
+| **Gold Coast**     | 🥉 4     | Good open data portal                | Medium       |
+| **Toowoomba**      | 🏅 5     | Comprehensive ArcGIS REST, 170+ layers | Low          |
 
-**Estimated Coverage**: ~50% of QLD property market by value
+**Estimated Coverage**: ~55% of QLD property market by value
 
 ### Phase 2: Secondary Councils (Next)
 
@@ -954,15 +1106,16 @@ def check_data_freshness(council, dataset_type='zones'):
 
 ### Council Contact Matrix
 
-| Council        | GIS Contact                   | Planning Contact    | Open Data URL                               | API Documentation        |
-| -------------- | ----------------------------- | ------------------- | ------------------------------------------- | ------------------------ |
-| Brisbane       | Open Data Portal support      | Planning Department | https://data.brisbane.qld.gov.au/           | Terms & Conditions       |
-| Gold Coast     | Planning team                 | Planning Department | https://data-goldcoast.opendata.arcgis.com/ | City Plan documentation  |
-| Sunshine Coast | Strategic Planning Branch     | Planning Department | https://data.sunshinecoast.qld.gov.au/      | ArcGIS REST docs         |
-| Logan          | Open Data Portal              | Planning Department | https://data-logancity.opendata.arcgis.com/ | Fact sheets              |
-| Redland        | Spatial Business Intelligence | Planning Department | https://opendata.redland.qld.gov.au/        | ArcGIS REST docs         |
-| Moreton Bay    | GIS@moretonbay.qld.gov.au     | Planning Department | https://datahub.moretonbay.qld.gov.au/      | Interactive mapping help |
-| Ipswich        | Planning Department           | Planning Department | https://www.data.gov.au/ (search)           | Planning scheme docs     |
+| Council        | GIS Contact                   | Planning Contact    | Open Data URL                                                                            | API Documentation        |
+| -------------- | ----------------------------- | ------------------- | ---------------------------------------------------------------------------------------- | ------------------------ |
+| Brisbane       | Open Data Portal support      | Planning Department | https://data.brisbane.qld.gov.au/                                                        | Terms & Conditions       |
+| Gold Coast     | Planning team                 | Planning Department | https://data-goldcoast.opendata.arcgis.com/                                              | City Plan documentation  |
+| Sunshine Coast | Strategic Planning Branch     | Planning Department | https://data.sunshinecoast.qld.gov.au/                                                   | ArcGIS REST docs         |
+| Logan          | Open Data Portal              | Planning Department | https://data-logancity.opendata.arcgis.com/                                              | Fact sheets              |
+| Redland        | Spatial Business Intelligence | Planning Department | https://opendata.redland.qld.gov.au/                                                     | ArcGIS REST docs         |
+| Moreton Bay    | GIS@moretonbay.qld.gov.au     | Planning Department | https://datahub.moretonbay.qld.gov.au/                                                   | Interactive mapping help |
+| Ipswich        | Planning Department           | Planning Department | https://www.data.gov.au/ (search)                                                        | Planning scheme docs     |
+| Toowoomba      | Council GIS team              | Planning Department | https://maps.tr.qld.gov.au/arcgis/rest/services/External/External_PlanningScheme/MapServer | ArcGIS REST docs (170+ layers) |
 
 ### Zone Code Reference Table
 
