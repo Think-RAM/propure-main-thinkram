@@ -6,21 +6,22 @@
 
 ## Decision Status
 
-| Component | Decision | Status |
-|-----------|----------|--------|
-| Database | PostgreSQL (Neon) + PostGIS + TimescaleDB + pgvector | **Confirmed** |
-| Backend | Next.js 15 Full-Stack | **Confirmed** |
-| Frontend | React 19 + Zustand + MapLibre | **Confirmed** |
-| Background Jobs | Inngest | **Confirmed** |
-| AI/Agents | Vercel AI SDK + Claude | **Confirmed** |
-| Real-time | Pusher/Ably | **Confirmed** |
-| Hosting | Vercel + Neon + Upstash | **Confirmed** |
+| Component       | Decision                                             | Status        |
+| --------------- | ---------------------------------------------------- | ------------- |
+| Database        | PostgreSQL (Neon) + PostGIS + TimescaleDB + pgvector | **Confirmed** |
+| Backend         | Next.js 15 Full-Stack                                | **Confirmed** |
+| Frontend        | React 19 + Zustand + MapLibre                        | **Confirmed** |
+| Background Jobs | Inngest                                              | **Confirmed** |
+| AI/Agents       | Vercel AI SDK + Claude                               | **Confirmed** |
+| Real-time       | Pusher/Ably                                          | **Confirmed** |
+| Hosting         | Vercel + Neon + Upstash                              | **Confirmed** |
 
 ---
 
 ## Executive Summary
 
 Propure has unique technical challenges:
+
 1. **High Data Volume**: Millions of property records, suburb statistics, economic indicators
 2. **Real-Time Updates**: Map and list must update as AI conversation progresses
 3. **Complex Queries**: Geospatial + time-series + full-text search combined
@@ -37,13 +38,13 @@ This document analyzes options across four architectural layers and provides rec
 
 You're dealing with multiple data types that need different handling:
 
-| Data Type | Volume | Update Frequency | Query Pattern |
-|-----------|--------|------------------|---------------|
-| Property listings | ~10M+ records | Daily/Real-time | Geospatial, filters |
-| Suburb statistics | ~15K suburbs | Monthly | Aggregations, time-series |
-| Economic indicators | ~100 metrics | Monthly/Quarterly | Time-series |
-| User conversations | Growing | Real-time | Full-text, context retrieval |
-| Calculated scores | Derived | On-demand | Fast lookups |
+| Data Type           | Volume        | Update Frequency  | Query Pattern                |
+| ------------------- | ------------- | ----------------- | ---------------------------- |
+| Property listings   | ~10M+ records | Daily/Real-time   | Geospatial, filters          |
+| Suburb statistics   | ~15K suburbs  | Monthly           | Aggregations, time-series    |
+| Economic indicators | ~100 metrics  | Monthly/Quarterly | Time-series                  |
+| User conversations  | Growing       | Real-time         | Full-text, context retrieval |
+| Calculated scores   | Derived       | On-demand         | Fast lookups                 |
 
 ### Option A: PostgreSQL + Extensions (Recommended for MVP)
 
@@ -68,6 +69,7 @@ You're dealing with multiple data types that need different handling:
 ```
 
 **Pros**:
+
 - Single database for all data types (simpler ops)
 - PostGIS is industry-standard for geospatial (used by Uber, Airbnb)
 - TimescaleDB handles time-series efficiently (10-100x faster than vanilla PG)
@@ -77,10 +79,12 @@ You're dealing with multiple data types that need different handling:
 - Managed options: Neon (serverless), Supabase, AWS RDS
 
 **Cons**:
+
 - Single point of failure (mitigated by managed services)
 - May need to shard at extreme scale (>100M records)
 
 **Performance Optimizations**:
+
 ```sql
 -- Geospatial index for property searches
 CREATE INDEX idx_properties_location ON properties USING GIST (location);
@@ -125,6 +129,7 @@ CREATE INDEX idx_metrics_time ON suburb_metrics USING BRIN (recorded_at);
 ```
 
 **When to use**:
+
 - When you have >50M properties
 - When analytics queries slow down transactional workloads
 - When you need sub-10ms vector search at scale
@@ -164,6 +169,7 @@ CREATE INDEX idx_metrics_time ON suburb_metrics USING BRIN (recorded_at);
 ```
 
 **When to use**:
+
 - Billions of records
 - Complex ML pipelines
 - Multi-tenant enterprise deployments
@@ -186,11 +192,11 @@ PostgreSQL 16+      ──▶  + Redis Cache        ──▶  + ClickHouse
 
 **Managed Service Recommendation**:
 
-| Option | Best For | Pricing Model |
-|--------|----------|---------------|
-| **Neon** | Serverless, auto-scaling, branching | Pay per compute-second |
-| **Supabase** | Full stack (auth, storage, realtime) | Predictable monthly |
-| **PlanetScale** | MySQL alternative, branching | Per-row reads/writes |
+| Option          | Best For                             | Pricing Model          |
+| --------------- | ------------------------------------ | ---------------------- |
+| **Neon**        | Serverless, auto-scaling, branching  | Pay per compute-second |
+| **Supabase**    | Full stack (auth, storage, realtime) | Predictable monthly    |
+| **PlanetScale** | MySQL alternative, branching         | Per-row reads/writes   |
 
 **My pick**: **Neon** for the serverless scaling and database branching (great for dev/staging).
 
@@ -240,6 +246,7 @@ Deployment: Vercel (Edge + Serverless)
 ```
 
 **Pros**:
+
 - Single codebase, single deployment
 - React Server Components for fast initial loads
 - Streaming responses for AI (critical for chat UX)
@@ -248,11 +255,13 @@ Deployment: Vercel (Edge + Serverless)
 - Vercel handles scaling automatically
 
 **Cons**:
+
 - Vendor lock-in to Vercel ecosystem
 - Cold starts on serverless (mitigated by edge)
 - Complex background jobs may need dedicated workers
 
 **Key Libraries**:
+
 ```json
 {
   "dependencies": {
@@ -305,6 +314,7 @@ Deployment: Kubernetes (EKS/GKE) or Fly.io
 ```
 
 **When to use**:
+
 - Team > 10 engineers
 - Need polyglot (Go for perf, Python for AI)
 - Strict isolation requirements
@@ -340,6 +350,7 @@ Deployment: Kubernetes (EKS/GKE) or Fly.io
 ```
 
 **Pros**:
+
 - Start as monolith, split when needed
 - Shared types prevent drift
 - Turborepo caching speeds up CI/CD
@@ -418,37 +429,39 @@ propure/
 
 ```typescript
 // stores/strategy-store.ts
-import { create } from 'zustand'
+import { create } from "zustand";
 
 interface StrategyState {
-  strategy: Strategy | null
-  filters: PropertyFilters
-  setStrategy: (strategy: Strategy) => void
-  updateFilters: (filters: Partial<PropertyFilters>) => void
+  strategy: Strategy | null;
+  filters: PropertyFilters;
+  setStrategy: (strategy: Strategy) => void;
+  updateFilters: (filters: Partial<PropertyFilters>) => void;
 }
 
 export const useStrategyStore = create<StrategyState>((set) => ({
   strategy: null,
   filters: defaultFilters,
   setStrategy: (strategy) => set({ strategy }),
-  updateFilters: (filters) => set((state) => ({
-    filters: { ...state.filters, ...filters }
-  })),
-}))
+  updateFilters: (filters) =>
+    set((state) => ({
+      filters: { ...state.filters, ...filters },
+    })),
+}));
 
 // Real-time sync with map
 useEffect(() => {
   const unsubscribe = useStrategyStore.subscribe(
     (state) => state.filters,
-    (filters) => map.current?.setFilter('properties', buildMapFilter(filters))
-  )
-  return unsubscribe
-}, [])
+    (filters) => map.current?.setFilter("properties", buildMapFilter(filters)),
+  );
+  return unsubscribe;
+}, []);
 ```
 
 #### Maps: MapLibre GL + deck.gl
 
 **Why MapLibre over Mapbox**:
+
 - Open source (no vendor lock-in)
 - Same API as Mapbox GL JS
 - Can use Mapbox tiles or free alternatives (Maptiler, Stadia)
@@ -577,103 +590,123 @@ export function ChatPanel() {
 
 ```typescript
 // packages/ai/agents/orchestrator.ts
-import { anthropic } from '@ai-sdk/anthropic'
-import { generateText, tool } from 'ai'
-import { z } from 'zod'
+import { anthropic } from "@ai-sdk/anthropic";
+import { generateText, tool } from "ai";
+import { z } from "zod";
 
 const strategistAgent = createAgent({
-  model: anthropic('claude-sonnet-4-20250514'),
+  model: anthropic("claude-sonnet-4-20250514"),
   system: `You are a property investment strategist...`,
   tools: {
     askDiscoveryQuestion: tool({
-      description: 'Ask user a discovery question',
+      description: "Ask user a discovery question",
       parameters: z.object({
         question: z.string(),
-        category: z.enum(['financial', 'goals', 'constraints', 'preferences']),
+        category: z.enum(["financial", "goals", "constraints", "preferences"]),
       }),
     }),
     recommendStrategy: tool({
-      description: 'Recommend an investment strategy',
+      description: "Recommend an investment strategy",
       parameters: z.object({
-        strategy: z.enum(['cash_flow', 'capital_growth', 'renovation', 'development']),
+        strategy: z.enum([
+          "cash_flow",
+          "capital_growth",
+          "renovation",
+          "development",
+        ]),
         rationale: z.string(),
         keyMetrics: z.array(z.string()),
       }),
     }),
   },
-})
+});
+```
 
-const analystAgent = createAgent({
-  model: anthropic('claude-sonnet-4-20250514'),
-  system: `You are a property investment analyst...`,
-  tools: {
-    calculateCashFlow: tool({ /* ... */ }),
-    assessRisk: tool({ /* ... */ }),
-    projectROI: tool({ /* ... */ }),
-  },
-})
+---
 
-const researcherAgent = createAgent({
-  model: anthropic('claude-haiku-3-5-20241022'), // Faster, cheaper for data fetching
-  system: `You are a property market researcher...`,
-  tools: {
-    getSuburbStats: tool({ /* ... */ }),
-    searchProperties: tool({ /* ... */ }),
-    fetchMarketData: tool({ /* ... */ }),
-  },
-})
+## 4.2 Performance-First Map Architecture
 
-// Orchestrator coordinates agents
-export async function orchestrate(messages: Message[], context: Context) {
-  const result = await generateText({
-    model: anthropic('claude-sonnet-4-20250514'),
-    system: `You are the orchestrator. Coordinate between:
-      - Strategist: For strategy questions and recommendations
-      - Analyst: For financial calculations and risk assessment
-      - Researcher: For market data and property searches
+**Decision**: Planning zones and property listings will use **Leaflet as the primary map technology**, with MapLibre GL + deck.gl added conditionally based on performance requirements.
 
-      Based on the user's message, decide which agent(s) to invoke.`,
-    messages,
-    tools: {
-      invokeStrategist: tool({
-        description: 'Ask strategist agent for strategy guidance',
-        parameters: z.object({ task: z.string() }),
-        execute: async ({ task }) => {
-          return await strategistAgent.run(task, context)
-        },
-      }),
-      invokeAnalyst: tool({
-        description: 'Ask analyst agent for calculations',
-        parameters: z.object({ task: z.string(), data: z.any() }),
-        execute: async ({ task, data }) => {
-          return await analystAgent.run(task, { ...context, data })
-        },
-      }),
-      invokeResearcher: tool({
-        description: 'Ask researcher agent for market data',
-        parameters: z.object({ task: z.string() }),
-        execute: async ({ task }) => {
-          return await researcherAgent.run(task, context)
-        },
-      }),
-      updateUI: tool({
-        description: 'Send update to frontend UI',
-        parameters: z.object({
-          type: z.enum(['filters', 'highlight', 'zoom']),
-          payload: z.any(),
-        }),
-        execute: async ({ type, payload }) => {
-          // Push to real-time channel
-          await pusher.trigger(`user-${context.userId}`, 'ui-update', { type, payload })
-          return { success: true }
-        },
-      }),
-    },
-  })
+### Performance Metrics & Monitoring
 
-  return result
+Before adding MapLibre GL + deck.gl, implement and measure:
+
+| Metric                         | Tool            | Target          | Pass/Fail Criteria                        |
+| ------------------------------ | --------------- | --------------- | ----------------------------------------- |
+| **Core Web Vitals**            | LCP             | < 2.5s (FCP 75) | Performance score ≥ 90                    |
+| **Page Load Time**             | DevTools LCP    | < 3s            | Page loads in < 3s                        |
+| **First Contentful Paint**     | DevTools LCP    | < 1.5s          | First meaningful paint < 1.5s             |
+| **Time to Interactive**        | DevTools        | < 100ms         | Map becomes interactive < 100ms           |
+| **Frame Rate During Pan/Zoom** | DevTools        | ≥ 55 FPS        | No dropped frames during map interactions |
+| **Memory Usage**               | DevTools Memory | < 150MB         | Map stays under memory limit              |
+| **Bundle Size**                | Build output    | < 200KB         | Additional JS < 200KB                     |
+
+### When to Add MapLibre GL + deck.gl
+
+**Trigger**: Add if **ANY** of these conditions occur:
+
+1. **Property Heatmaps** > 50k points AND real-time updates (> 1 update/sec)
+2. **Complex WebGL visualizations** required (3D building envelopes, terrain shading)
+3. **Advanced GPU shaders/filters** needed (custom effects, real-time processing)
+4. **User feedback indicates slow performance**
+5. **Chrome DevTools shows consistent 60fps drops** during map operations
+
+**Measured Implementation**:
+
+```bash
+# Only add if performance issues confirmed
+pnpm add react-map-gl maplibre-gl @deck.gl/core @deck.gl/layers
+```
+
+### Leaflet Plugins Recommended
+
+| Plugin                    | Purpose                           | Installation                     |
+| ------------------------- | --------------------------------- | -------------------------------- |
+| **esri-leaflet**          | ArcGIS REST/WFS                   | `pnpm add leaflet esri-leaflet`  |
+| **leaflet-omnivore**      | WFS support (QLD councils)        | `pnpm add leaflet-omnivore`      |
+| **leaflet-heat**          | Property heatmaps                 | `pnpm add leaflet-heat`          |
+| **Leaflet.markercluster** | Property clustering (10k+ points) | `pnpm add leaflet.markercluster` |
+
+### Why This Approach
+
+| Factor                   | Explanation                                                                         |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| **Developer Experience** | Leaflet has larger community, better docs, easier debugging                         |
+| **Faster Development**   | Simpler codebase (~50KB vs ~300KB), faster iterations                               |
+| **Better ArcGIS/WFS**    | esri-leaflet is battle-tested, WFS plugin is mature                                 |
+| **Council Variation**    | Leaflet's plugin ecosystem handles 77 different QLD approaches better               |
+| **Performance**          | For Propure's use case (400k zones, filtered 10k properties), Leaflet is sufficient |
+
+### Next.js 15 Performance Integration
+
+```typescript
+// apps/web/app/layout.tsx
+import Script from 'next/script';
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <head>
+        <Script
+          src="https://unpkg.com/web-vitals@3/dist/web-vitals.umd.js"
+          strategy="afterInteractive"
+          onReport={(metric) => {
+            // Send to analytics service
+            if (navigator.sendBeacon) {
+              navigator.sendBeacon('analytics', JSON.stringify(metric));
+            }
+          }}
+        />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
 }
 ```
+
+---
 
 ---
 
@@ -712,6 +745,7 @@ export async function orchestrate(messages: Message[], context: Context) {
 ```
 
 **When to use**:
+
 - Complex multi-step workflows
 - Need checkpointing and resumability
 - Conditional branching logic
@@ -725,47 +759,50 @@ export async function orchestrate(messages: Message[], context: Context) {
 
 ```typescript
 // inngest/functions/property-search.ts
-import { inngest } from './client'
+import { inngest } from "./client";
 
 export const propertySearchWorkflow = inngest.createFunction(
-  { id: 'property-search', retries: 3 },
-  { event: 'property/search.requested' },
+  { id: "property-search", retries: 3 },
+  { event: "property/search.requested" },
   async ({ event, step }) => {
     // Step 1: Get strategy context
-    const strategy = await step.run('get-strategy', async () => {
-      return await db.strategy.findUnique({ where: { id: event.data.strategyId } })
-    })
+    const strategy = await step.run("get-strategy", async () => {
+      return await db.strategy.findUnique({
+        where: { id: event.data.strategyId },
+      });
+    });
 
     // Step 2: Fetch suburb data (parallelized)
-    const suburbData = await step.run('fetch-suburb-data', async () => {
-      return await fetchSuburbStats(strategy.targetSuburbs)
-    })
+    const suburbData = await step.run("fetch-suburb-data", async () => {
+      return await fetchSuburbStats(strategy.targetSuburbs);
+    });
 
     // Step 3: AI scoring
-    const scoredProperties = await step.run('ai-scoring', async () => {
-      return await scoreProperties(suburbData.properties, strategy)
-    })
+    const scoredProperties = await step.run("ai-scoring", async () => {
+      return await scoreProperties(suburbData.properties, strategy);
+    });
 
     // Step 4: Update user's search results
-    await step.run('update-results', async () => {
+    await step.run("update-results", async () => {
       await db.searchResult.create({
         data: {
           userId: event.data.userId,
           properties: scoredProperties,
         },
-      })
+      });
       // Notify frontend
-      await pusher.trigger(`user-${event.data.userId}`, 'search-complete', {
+      await pusher.trigger(`user-${event.data.userId}`, "search-complete", {
         count: scoredProperties.length,
-      })
-    })
+      });
+    });
 
-    return { success: true, count: scoredProperties.length }
-  }
-)
+    return { success: true, count: scoredProperties.length };
+  },
+);
 ```
 
 **Why Inngest**:
+
 - Automatic retries with backoff
 - Step functions for long-running workflows
 - Built-in observability
@@ -861,15 +898,15 @@ Real-time (Chat):          Background (Jobs):
 
 ### Estimated Costs (MVP Scale)
 
-| Service | Free Tier | Growth Estimate |
-|---------|-----------|-----------------|
-| Vercel | Hobby free, Pro $20/mo | $50-200/mo at scale |
-| Neon | 0.5GB free | $20-100/mo |
-| Upstash Redis | 10K commands/day free | $10-50/mo |
-| Inngest | 25K runs/mo free | $25-100/mo |
-| Pusher | 200K messages free | $50-200/mo |
-| Claude API | Pay per token | $100-500/mo |
-| **Total** | **~$0/mo to start** | **$300-1000/mo at growth** |
+| Service       | Free Tier              | Growth Estimate            |
+| ------------- | ---------------------- | -------------------------- |
+| Vercel        | Hobby free, Pro $20/mo | $50-200/mo at scale        |
+| Neon          | 0.5GB free             | $20-100/mo                 |
+| Upstash Redis | 10K commands/day free  | $10-50/mo                  |
+| Inngest       | 25K runs/mo free       | $25-100/mo                 |
+| Pusher        | 200K messages free     | $50-200/mo                 |
+| Claude API    | Pay per token          | $100-500/mo                |
+| **Total**     | **~$0/mo to start**    | **$300-1000/mo at growth** |
 
 ---
 
@@ -889,32 +926,32 @@ Phase 1 (MVP):              Phase 2 (Growth):           Phase 3 (Scale):
 
 ## 7. Decision Summary
 
-| Layer | Choice | Rationale |
-|-------|--------|-----------|
-| **Database** | PostgreSQL (Neon) + PostGIS + TimescaleDB + pgvector | Single DB for all needs, serverless scaling, all extensions supported |
-| **Backend** | Next.js 15 Full-Stack | Fast development, streaming AI, excellent DX |
-| **Frontend** | React 19 + Zustand + MapLibre | RSC for speed, Zustand for simplicity, MapLibre for cost |
-| **AI/Agents** | Vercel AI SDK + Claude + Inngest | Native streaming, reliable workflows, TypeScript |
-| **Real-time** | Pusher or Ably | Managed WebSocket, no infra overhead |
-| **Hosting** | Vercel + Neon + Upstash | Serverless, auto-scaling, low ops |
+| Layer         | Choice                                               | Rationale                                                             |
+| ------------- | ---------------------------------------------------- | --------------------------------------------------------------------- |
+| **Database**  | PostgreSQL (Neon) + PostGIS + TimescaleDB + pgvector | Single DB for all needs, serverless scaling, all extensions supported |
+| **Backend**   | Next.js 15 Full-Stack                                | Fast development, streaming AI, excellent DX                          |
+| **Frontend**  | React 19 + Zustand + MapLibre                        | RSC for speed, Zustand for simplicity, MapLibre for cost              |
+| **AI/Agents** | Vercel AI SDK + Claude + Inngest                     | Native streaming, reliable workflows, TypeScript                      |
+| **Real-time** | Pusher or Ably                                       | Managed WebSocket, no infra overhead                                  |
+| **Hosting**   | Vercel + Neon + Upstash                              | Serverless, auto-scaling, low ops                                     |
 
 ---
 
 ## 8. What NOT to Choose (and Why)
 
-| Don't Choose | Why Not |
-|--------------|---------|
-| **MongoDB** | Weak geospatial compared to PostGIS, no real transactions |
-| **Firebase** | Vendor lock-in, expensive at scale, weak querying |
-| **Supabase** | Good alternative, but Neon has better serverless scaling |
-| **LangChain.js** | Overly complex for this use case, Vercel AI SDK simpler |
-| **Google Maps** | Expensive at scale, MapLibre is free |
-| **Redux** | Overkill, Zustand is simpler for this app |
-| **GraphQL** | Adds complexity, tRPC gives type safety without it |
-| **Microservices** | Too early, operational overhead not justified |
+| Don't Choose      | Why Not                                                   |
+| ----------------- | --------------------------------------------------------- |
+| **MongoDB**       | Weak geospatial compared to PostGIS, no real transactions |
+| **Firebase**      | Vendor lock-in, expensive at scale, weak querying         |
+| **Supabase**      | Good alternative, but Neon has better serverless scaling  |
+| **LangChain.js**  | Overly complex for this use case, Vercel AI SDK simpler   |
+| **Google Maps**   | Expensive at scale, MapLibre is free                      |
+| **Redux**         | Overkill, Zustand is simpler for this app                 |
+| **GraphQL**       | Adds complexity, tRPC gives type safety without it        |
+| **Microservices** | Too early, operational overhead not justified             |
 
 ---
 
-*Document Version: 1.0*
-*Last Updated: December 2024*
-*Status: Ready for Review*
+_Document Version: 1.0_
+_Last Updated: December 2024_
+_Status: Ready for Review_

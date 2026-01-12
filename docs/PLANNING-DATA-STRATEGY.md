@@ -257,10 +257,74 @@ duckdb.sql("COPY (SELECT * FROM zones) TO 'output.geojson' WITH (FORMAT GDAL, DR
 │  │  • /api/planning/overlay • Choropleth fills         • assessDevelopment │    │
 │  │  • /api/planning/hazard  • Popup details            • checkConstraints  │    │
 │  │                                                                          │    │
-│  └─────────────────────────────────────────────────────────────────────────┘    │
+│  └─────────────────────────────────────────────────────────────────────────┘
 │                                                                                  │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+### 5.2 Map Technology Decision
+
+**Critical Choice**: Planning zones can be visualized using different frontend map libraries.
+
+| Requirement                   | Leaflet                     | MapLibre GL            | Decision                        |
+| ----------------------------- | --------------------------- | ---------------------- | ------------------------------- |
+| **Planning Zones** (polygons) | ✅ Excellent support        | ⚠️ Works but complex   | ✅ **Leaflet (Primary)**        |
+| **Property Markers** (points) | ✅ Native support           | ✅ Excellent           | ✅ **Leaflet**                  |
+| **Property Heatmaps**         | ⚠️ Plugin available         | ✅ WebGL excels        | ⚠️ **Leaflet-heat** (if needed) |
+| **ArcGIS REST/WFS**           | ✅ esri-leaflet (mature)    | ⚠️ Needs custom source | ✅ **Leaflet + WFS plugin**     |
+| **Performance (10k zones)**   | ✅ Canvas/SVG (fast enough) | ❌ WebGL overhead      | ✅ **Sufficient**               |
+
+**Recommendation**: **Start with Leaflet for Planning Zones**
+
+**Rationale**:
+
+1. **Leaflet is battle-tested** for ArcGIS REST and WFS integration (esri-leaflet, leaflet-omnivore plugins)
+2. **Simpler codebase** (~50KB vs ~300KB with deck.gl)
+3. **Mature plugin ecosystem** (10,000+ plugins vs growing deck.gl ecosystem)
+4. **Better ArcGIS support** (native esri-leaflet vs experimental @deck.gl/mapbox)
+5. **Native WFS** (critical for QLD councils - only Ipswich has WFS available)
+6. **Lower learning curve** for developers
+7. **Better mobile support** and touch interactions
+
+**Performance Monitoring Required**:
+Before adding MapLibre GL + deck.gl, implement and measure:
+
+- Core Web Vitals (LCP)
+- Chrome DevTools Performance panel
+- Page load time with 5k+ zones
+- Frame rate during pan/zoom operations
+- Bundle size impact
+
+**When to Add MapLibre GL + deck.gl**:
+Only add if performance issues arise:
+
+- Property heatmaps with 50k+ unfiltered points
+- Real-time analytics requiring GPU acceleration
+- 3D visualizations (building envelopes, terrain)
+- Complex WebGL shaders/filters needed
+
+**Implementation Approach**:
+
+```bash
+# Phase 1: Leaflet-only (Start here)
+pnpm add leaflet esri-leaflet leaflet-omnivore
+
+# Phase 2: Add MapLibre GL (If needed)
+pnpm add react-map-gl maplibre-gl @deck.gl/core @deck.gl/layers
+```
+
+**API Routes (Updated)**:
+
+```
+API Routes              Leaflet (Primary) or MapLibre GL (Optional)     AI Agents           │
+────────────────        ────────────────────────────────────────────────────          │
+/api/planning/zone    • GeoJSON layers (Leaflet/esri-leaflet)   • getPlanningInfo   │
+/api/planning/overlay • Choropleth fills (Leaflet)         • assessDevelopment │
+/api/planning/hazard  • Popup details (Leaflet)          • checkConstraints │
+/api/planning/heatmap • Property heatmaps (MapLibre GL + deck.gl) • updateFilters    │
+```
+
+---
 
 ### 4.2 Pipeline Orchestration with Dagster
 
@@ -610,7 +674,7 @@ import { prisma } from "@propure/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { propertyId: string } }
+  { params }: { params: { propertyId: string } },
 ) {
   const { propertyId } = params;
 
