@@ -1,10 +1,11 @@
 "use client";
-import { useState, memo, useRef, useEffect } from "react";
+import { useState, memo, useRef, useEffect, Activity } from "react";
 import { useRouter } from "next/navigation";
-import { useMap as useMapContext } from "@/context/MapContext";
+import { MAP_LABELS_OVERLAY, MAP_VIEW_URLS, useMap as useMapContext } from "@/context/MapContext";
 import L from "leaflet";
 import { DEMO_HAZARD_LEGEND, DEMO_HAZARD_POLYGONS } from "@/lib/hazardZones";
 import dynamic from "next/dynamic";
+import { MapLayersPopover } from "./MapLayersPopover";
 
 /**
  * React-Leaflet components MUST be client-only
@@ -48,7 +49,7 @@ interface LeafletMapProps {
 }
 
 function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
-  const { results, registerMap, polygons, legends, setPolygons, setLegends } =
+  const { results, registerMap, polygons, legends, currentView } =
     useMapContext();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -65,8 +66,8 @@ function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
     if (registered && mapRef.current) {
       console.log("Map Registered");
       registerMap(mapRef.current);
-      setPolygons(DEMO_HAZARD_POLYGONS);
-      setLegends(DEMO_HAZARD_LEGEND);
+      // setPolygons(DEMO_HAZARD_POLYGONS);
+      // setLegends(DEMO_HAZARD_LEGEND);
     }
   }, [registered]);
 
@@ -87,9 +88,10 @@ function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
         whenReady={onMapReady}
       >
         <TileLayer
-          attribution="© OpenStreetMap contributors"
-          url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+          // attribution="© OpenStreetMap contributors"
+          url={MAP_VIEW_URLS[currentView]}
         />
+        <TileLayer url={MAP_LABELS_OVERLAY} />
 
         {results.map((property, index) => (
           <Marker
@@ -136,13 +138,23 @@ function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
           <Polygon key={p.id} positions={p.coordinates} pathOptions={p.style} />
         ))}
       </MapContainer>
-      <div className="absolute z-[1000] bottom-6 right-1 bg-white p-3 rounded text-sm shadow-lg">
-        {legends.map((l) => (
-          <div key={l.label} className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded" style={{ background: l.color }} />
-            <span>{l.label}</span>
+      {legends.length > 0 && (
+        <div className="absolute z-[1000] bottom-6 right-1 p-3 bg-white/90 rounded text-sm shadow-lg">
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {legends.map((l) => (
+              <div key={l.label} className="flex items-center gap-2">
+                <span
+                  className="w-3 h-3 rounded"
+                  style={{ background: l.color }}
+                />
+                <span>{l.label}</span>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+      )}
+      <div className="absolute z-[1000] top-12 right-4 p-3 rounded text-sm shadow-lg">
+        <MapLayersPopover />
       </div>
     </div>
   );
