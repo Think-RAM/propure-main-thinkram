@@ -7,6 +7,7 @@ import {
   Waves,
   Mountain,
   CloudRain,
+  Landmark,
 } from "lucide-react";
 
 import {
@@ -49,16 +50,21 @@ const layers: LayerOption[] = [
     label: "Bushfire Hazard",
     icon: <Flame className="h-4 w-4" />,
   },
+  // {
+  //   id: "LANDSLIDE_HAZARD",
+  //   label: "Landslide Hazard",
+  //   icon: <Mountain className="h-4 w-4" />,
+  // },
+  // {
+  //   id: "STORM_TIDE_HAZARD",
+  //   label: "Storm Tide Hazard",
+  //   icon: <CloudRain className="h-4 w-4" />,
+  // },
   {
-    id: "LANDSLIDE_HAZARD",
-    label: "Landslide Hazard",
-    icon: <Mountain className="h-4 w-4" />,
-  },
-  {
-    id: "STORM_TIDE_HAZARD",
-    label: "Storm Tide Hazard",
-    icon: <CloudRain className="h-4 w-4" />,
-  },
+    id: "HERITAGE_ZONES",
+    label: "Heritage Zones",
+    icon: <Landmark className="h-4 w-4" />,
+  }
 ];
 
 export const MAP_VIEWS: {

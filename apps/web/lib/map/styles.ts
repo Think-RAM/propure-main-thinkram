@@ -42,7 +42,7 @@ export const seededColor = (key: string): string => {
 
 
 
-export const handleLegendExtraction = async (url: string): Promise<Styles[]> => {
+export const handleLegendExtraction = async (url: string, groupName: string): Promise<Styles[]> => {
     try {
         // convert arcgis endpoint to legend endpoint eg: "MapServer/1" to "MapServer/legend?f=pjson
         const legendUrl = url.replace(/\/\d+$/, "/legend?f=pjson");
@@ -66,6 +66,7 @@ export const handleLegendExtraction = async (url: string): Promise<Styles[]> => 
                     idKey: item.values?.flatMap(v => v.split(",")).map(v => v.trim()) ?? [],
                     label: item.label.length ? item.label : layerLegend.layerName, // Clean label if needed
                     fillColor: seededColor(item.label),
+                    groupName: groupName,
                 };
                 return style;
             }
@@ -78,23 +79,95 @@ export const handleLegendExtraction = async (url: string): Promise<Styles[]> => 
     }
 }
 
-export const styleLayer = (feature: any, legends: Styles[]) => {
-    const key = feature.properties.LAY_CLASS || feature.properties.OVL2_CAT;
-    const legendItem = legends.find(l => l.idKey.includes(key) || l.label === key);
+// ensures we always compare strings
+const toStr = (v: unknown) => {
+    if (v === null || v === undefined) return "";
+    // ArcGIS sometimes sends numbers/booleans - coerce
+    return String(v);
+};
+
+const getLabelValue = (feature: any, labelKey: string) => {
+    const props = feature?.properties ?? {};
+    const v = props?.[labelKey];
+    const s = toStr(v).trim();
+    return s;
+};
+
+const findLegendItem = (legends: Styles[], key: string) => {
+    // normalize comparisons
+    const k = key.trim();
+    if(legends.length === 1) {
+        return legends[0];
+    }
+    return legends.find(l =>
+        (Array.isArray(l.idKey) && l.idKey.some(id => toStr(id) === k)) ||
+        toStr(l.label) === k
+    );
+};
+
+export const styleLayer = (
+    feature: any,
+    legends: Styles[],
+    propertyKeys: string[],
+    labelKey: string
+) => {
+    const key = getLabelValue(feature, labelKey);
+
+    // if labelKey not present or empty, you can choose a fallback:
+    // 1) use "Unknown"
+    // 2) or use first non-empty property among propertyKeys
+    const fallbackKey =
+        key ||
+        propertyKeys.map(k => toStr(feature?.properties?.[k]).trim()).find(Boolean) ||
+        "Unknown";
+
+    const legendItem = findLegendItem(legends, fallbackKey);
+
     if (!legendItem) {
-        console.info(`No legend item found for feature label: ${key}`);
+        console.info(`No legend item found for feature label: ${fallbackKey}`);
         console.log(feature)
         return {
-            fillColor: legends.length === 1 ? legends[0].fillColor : "#CCCCCC",
-            color: legends.length === 1 ? legends[0].strokeColor ?? "#000000" : "#000000",
+            fillColor: seededColor(fallbackKey),
+            color: "#000",
             weight: 1,
             fillOpacity: 0.7,
-        }
+        };
     }
+
     return {
         color: legendItem.strokeColor ?? "#000",
         fillColor: legendItem.fillColor ?? "#FFF",
         weight: 1,
         fillOpacity: 0.7,
     };
-}
+};
+
+export const stylePopupLayer = (
+    feature: any,
+    propertyKeys: string[],
+    labelKey: string,
+    layer: L.Layer
+) => {
+    const props = feature?.properties ?? {};
+    const label = getLabelValue(feature, labelKey) || "Unknown";
+
+    // Tooltip title (simple + stable)
+    layer.bindTooltip(label, { sticky: true });
+
+    // If you also want a popup showing only propertyKeys, uncomment:
+    const rows = propertyKeys
+        .map((k) => {
+            const val = toStr(props?.[k]);
+            return `<tr><td style="padding:4px 8px;font-weight:600;">${k}</td><td style="padding:4px 8px;">${val}</td></tr>`;
+        })
+        .join("");
+
+    layer.bindPopup(
+        `
+        <div style="max-width:320px;">
+            <div style="font-weight:700;margin-bottom:6px;">${labelKey}: ${label}</div>
+            <table style="border-collapse:collapse;width:100%;">${rows}</table>
+        </div>
+     `
+    );
+};
