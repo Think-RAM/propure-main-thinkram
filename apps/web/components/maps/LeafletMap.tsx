@@ -1,11 +1,12 @@
 "use client";
 import { useState, memo, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { MAP_VIEW_URLS, useMap as useMapContext } from "@/context/MapContext";
 import L from "leaflet";
 import dynamic from "next/dynamic";
 import { MapLayersPopover } from "./MapLayersPopover";
 import { LegendGroupCollapsible } from "./CollapsableLegendList";
+import { PropertyPreviewCard } from "./propertyPopover";
+import { MAP_MARKER_ICON } from "@/types/types";
 
 /**
  * React-Leaflet components MUST be client-only
@@ -49,12 +50,11 @@ interface LeafletMapProps {
 }
 
 function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
-  const { results, registerMap, polygons, legends, currentView } =
+  const { results, registerMap, polygons, legends, currentView, setResults } =
     useMapContext();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const [registered, setRegistered] = useState(false);
-  const router = useRouter();
 
   const onMapReady = () => {
     if (!registered) {
@@ -68,6 +68,28 @@ function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
       registerMap(mapRef.current);
       // setPolygons(DEMO_HAZARD_POLYGONS);
       // setLegends(DEMO_HAZARD_LEGEND);
+      setResults([
+        {
+          title: "4 Cherry Court, Norman Gardens, QLD 4701",
+          description: "3 Bed | 2 Bath | 1 Car",
+          lat: -23.310021,
+          lng: 150.528786,
+          yield: "5.2%",
+          gradientFrom: "from-emerald-500/15",
+          gradientTo: "to-emerald-500/0",
+          yieldColor: "text-emerald-700",
+        },
+        {
+          title: "19 Hall St, Wandal QLD 4700",
+          description: "4 Bed | 2 Bath | 2 Car",
+          lat: -23.363898,
+          lng: 150.50107,
+          yield: "4.8%",
+          gradientFrom: "from-cyan-500/15",
+          gradientTo: "to-cyan-500/0",
+          yieldColor: "text-cyan-700",
+        },
+      ]);
     }
   }, [registered]);
 
@@ -99,35 +121,16 @@ function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
             eventHandlers={{
               click: () => setSelectedIndex(index),
             }}
+            icon={L.divIcon({
+              className: "custom-marker-icon",
+              html: MAP_MARKER_ICON,
+              iconSize: [16, 16],
+              iconAnchor: [8, 8],
+            })}
           >
             {selectedIndex === index && (
-              <Popup closeButton autoPan>
-                <div className="p-3 w-64">
-                  <h4 className="font-semibold text-gray-800">
-                    {property.title}
-                  </h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {property.description}
-                  </p>
-                  <span
-                    className={`text-sm font-medium mt-2 inline-block ${property.yieldColor}`}
-                  >
-                    {property.yield}
-                  </span>
-
-                  <button
-                    onClick={() =>
-                      router.push(
-                        `/details?id=${encodeURIComponent(
-                          property.title.toLowerCase().split(" ").join("-")
-                        )}`
-                      )
-                    }
-                    className="mt-3 text-sm text-cyan-700 hover:underline"
-                  >
-                    View Details →
-                  </button>
-                </div>
+              <Popup closeButton={false} autoPan maxWidth={800}>
+                <PropertyPreviewCard property={property} />
               </Popup>
             )}
           </Marker>

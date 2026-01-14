@@ -5,7 +5,7 @@ import { ChatMessage } from "@prisma/client";
 import { ChatMessageAI, ChatTools } from "@/types/ai";
 import { UIDataTypes, UIMessagePart } from "ai";
 import { formatISO } from "date-fns";
-import { AustralianState, BBBox, JuridsictionCoords, Jurisdiction, StateCoords } from "./map/layers";
+import { AustralianState, BBBox, getLayersForView, JuridsictionCoords, Jurisdiction, Layers, StateCoords } from "./map/layers";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -113,3 +113,47 @@ export function coordsToJurisdictions(view: BBBox): Jurisdiction[] {
 
   return inView;
 }
+
+type ArcGisFeature = { attributes: Record<string, any> };
+
+export async function fetchDetailsAtPoint(layerId: Layers, lat: number, lng: number) {
+  const bbBox: BBBox = {
+    minLat: lat - 0.0001,
+    minLng: lng - 0.0001,
+    maxLat: lat + 0.0001,
+    maxLng: lng + 0.0001,
+  };
+  const layerData = getLayersForView(bbBox, layerId);
+  const params = new URLSearchParams({
+    f: "json",
+    where: "1=1",
+    geometry: `${lng},${lat}`,
+    geometryType: "esriGeometryPoint",
+    inSR: "4326", // ✅ FIX
+    spatialRel: "esriSpatialRelIntersects",
+    outFields: "*",
+    returnGeometry: "false",
+    resultRecordCount: "5",
+  });
+
+  const layer = layerData[0];
+
+  try {
+    const res = await fetch(`${layer.url}/query?${params.toString()}`);
+    const json = await res.json();
+    if (!json.error) {
+      return {
+        data: json.features.length > 0 ? json.features[0] as ArcGisFeature : {} as ArcGisFeature,
+        attrs: layer.propertyKey,
+      };
+    }
+  } catch (error) {
+    console.error(`Failed to fetch from layer ${layer.url}:`, error);
+  }
+
+  return {
+    data: {} as ArcGisFeature,
+    attrs: layer.propertyKey,
+  };
+}
+
