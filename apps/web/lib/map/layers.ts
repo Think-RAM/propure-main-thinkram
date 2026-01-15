@@ -315,15 +315,378 @@ const QLD_LAYER_INFO: LayerInfo = {
     }
 }
 
+// Western Australia Layer Configuration
+const WA_LAYER_INFO: LayerInfo = {
+    LANDIND_ZONES: {
+        id: "WA_LAND_ZONING",
+        name: "WA Land Zoning",
+        url: "https://public-services.slip.wa.gov.au/public/rest/services/SLIP_Public_Services/Property_and_Planning/MapServer/112",
+        coverage: "state",
+        propertyKey: [
+            "objectid",
+            "zone_numbe",
+            "zone",
+            "add_label",
+            "rest_label",
+            "specadd_la",
+            "special_la",
+            "label",
+            "label_desc",
+            "gazettal_d",
+            "scheme_nam",
+            "lga",
+            "scheme_no",
+            "shape",
+        ],
+        labelKey: "zone",
+    },
+    FLOOD_HAZARD: {
+        id: "WA_FLOOD_HAZARD",
+        name: "WA Flood Hazard (Climate Projections)",
+        url: "https://public-services.slip.wa.gov.au/public/rest/services/SLIP_Public_Services/Climate/MapServer/0",
+        coverage: "state",
+        propertyKey: [
+            "objectid",
+            "x",
+            "y",
+            "uniqueid",
+            "model_tags",
+            "shape",
+            "st_area(shape)",
+            "st_perimeter(shape)",
+        ],
+        labelKey: "uniqueid",
+    },
+    BUSHFIRE_HAZARD: {
+        id: "WA_BUSHFIRE_HAZARD",
+        name: "WA Bushfire Prone Areas",
+        url: "https://public-services.slip.wa.gov.au/public/rest/services/SLIP_Public_Services/Bush_Fire_Prone_Areas/MapServer/17",
+        coverage: "state",
+        propertyKey: [
+            "designation",
+            "lga",
+            "objectid",
+            "type",
+            "designationdate",
+            "shape",
+            "st_area(shape)",
+            "st_perimeter(shape)",
+        ],
+        labelKey: "designation",
+    },
+    LANDSLIDE_HAZARD: {
+        id: "WA_LANDSLIDE_HAZARD",
+        name: "WA Landslide Hazard",
+        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Landslide_Hazard/MapServer/0", // Placeholder - no WA specific data
+        coverage: "state",
+        propertyKey: [],
+        labelKey: "",
+    },
+    STORM_TIDE_HAZARD: {
+        id: "WA_STORM_TIDE_HAZARD",
+        name: "WA Storm Tide Hazard",
+        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Storm_Tide_Hazard/MapServer/0", // Placeholder - no WA specific data
+        coverage: "state",
+        propertyKey: [],
+        labelKey: "",
+    },
+    HERITAGE_ZONES: {
+        id: "WA_HERITAGE_ZONES",
+        name: "WA Heritage Register",
+        url: "https://public-services.slip.wa.gov.au/public/rest/services/SLIP_Public_Services/People_and_Society/MapServer/7",
+        coverage: "state",
+        propertyKey: [
+            "objectid",
+            "place_no",
+            "place_name",
+            "location",
+            "lga",
+            "her_record",
+            "date_modif",
+            "cluster",
+            "more_info",
+            "shape_leng",
+            "shape",
+            "st_area(shape)",
+            "st_perimeter(shape)",
+        ],
+        labelKey: "place_name",
+    }
+}
+
+// South Australia Layer Configuration
+const SA_LAYER_INFO: LayerInfo = {
+    LANDIND_ZONES: {
+        id: "SA_LAND_ZONING",
+        name: "SA Land Use (Biologically Important Areas)",
+        url: "https://gis.environment.gov.au/gispubmap/rest/services/ogc_services/Biologically_Important_Areas/MapServer/1",
+        coverage: "state",
+        propertyKey: [],
+        labelKey: "",
+    },
+    FLOOD_HAZARD: {
+        id: "SA_FLOOD_HAZARD",
+        name: "SA Flood Hazard (National Heritage)",
+        url: "https://gis.environment.gov.au/gispubmap/rest/services/ogc_services/National_Heritage_List/FeatureServer/0",
+        coverage: "state",
+        propertyKey: [],
+        labelKey: "",
+    },
+    BUSHFIRE_HAZARD: {
+        id: "SA_BUSHFIRE_HAZARD",
+        name: "SA Bushfire Hazard (World Heritage)",
+        url: "https://gis.environment.gov.au/gispubmap/rest/services/ogc_services/World_Heritage_Areas/MapServer/0",
+        coverage: "state",
+        propertyKey: [],
+        labelKey: "",
+    },
+    LANDSLIDE_HAZARD: {
+        id: "SA_LANDSLIDE_HAZARD",
+        name: "SA Landslide Hazard",
+        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Landslide_Hazard/MapServer/0", // Placeholder
+        coverage: "state",
+        propertyKey: [],
+        labelKey: "",
+    },
+    STORM_TIDE_HAZARD: {
+        id: "SA_STORM_TIDE_HAZARD",
+        name: "SA Storm Tide Hazard",
+        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Storm_Tide_Hazard/MapServer/0", // Placeholder
+        coverage: "state",
+        propertyKey: [],
+        labelKey: "",
+    },
+    HERITAGE_ZONES: {
+        id: "SA_HERITAGE_ZONES",
+        name: "SA Heritage Areas (World Heritage)",
+        url: "https://gis.environment.gov.au/gispubmap/rest/services/ogc_services/World_Heritage_Areas/MapServer/0",
+        coverage: "state",
+        propertyKey: [],
+        labelKey: "",
+    }
+}
+
+// Australian Capital Territory Layer Configuration
+const ACT_LAYER_INFO: LayerInfo = {
+    LANDIND_ZONES: {
+        id: "ACT_LAND_ZONING",
+        name: "ACT Landscape Area Assets",
+        url: "https://services1.arcgis.com/E5n4f1VY84i0xSjy/ArcGIS/rest/services/ACTGOV_Landscape_Area_Assets/FeatureServer/1",
+        coverage: "state",
+        propertyKey: [
+            "OBJECTID",
+            "ASSET_TYPE",
+            "ASSET_SUB_TYPE",
+            "ASSET_ID",
+            "ASSET_NAME",
+            "LOCATION",
+            "MATERIAL",
+            "EDGE_MATERIAL",
+            "SURFACE_AREA",
+            "SURFACE_AREA_UNIT",
+            "SUBURB",
+            "ADDRESS",
+            "OWNERSHIP",
+            "MAINTAINED_BY",
+            "GlobalID",
+            "Shape__Area",
+            "Shape__Length",
+        ],
+        labelKey: "ASSET_SUB_TYPE",
+    },
+    FLOOD_HAZARD: {
+        id: "ACT_FLOOD_HAZARD",
+        name: "ACT Flood Extent",
+        url: "https://services1.arcgis.com/E5n4f1VY84i0xSjy/ArcGIS/rest/services/ACTGOV_FLOOD_EXTENT/FeatureServer/0",
+        coverage: "state",
+        propertyKey: [
+            "OBJECTID",
+            "FLOOD_TYPE",
+            "FLOOD_ZONE",
+            "DESCRIPTION",
+            "GlobalID",
+            "Shape__Area",
+            "Shape__Length",
+        ],
+        labelKey: "FLOOD_ZONE",
+    },
+    BUSHFIRE_HAZARD: {
+        id: "ACT_BUSHFIRE_HAZARD",
+        name: "ACT Fire Management Zones",
+        url: "https://services1.arcgis.com/E5n4f1VY84i0xSjy/ArcGIS/rest/services/ESA_Fire_Management_Zones_Final/FeatureServer/0",
+        coverage: "state",
+        propertyKey: [
+            "objectid",
+            "zonetype",
+            "iapz",
+            "oapz",
+            "vegtype",
+            "reference",
+            "notes",
+            "Shape__Area",
+            "Shape__Length",
+            "CreationDate",
+            "Creator",
+            "EditDate",
+            "Editor",
+            "GlobalID",
+        ],
+        labelKey: "zonetype",
+    },
+    LANDSLIDE_HAZARD: {
+        id: "ACT_LANDSLIDE_HAZARD",
+        name: "ACT Landslide Hazard",
+        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Landslide_Hazard/MapServer/0", // Placeholder
+        coverage: "state",
+        propertyKey: [],
+        labelKey: "",
+    },
+    STORM_TIDE_HAZARD: {
+        id: "ACT_STORM_TIDE_HAZARD",
+        name: "ACT Storm Tide Hazard",
+        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Storm_Tide_Hazard/MapServer/0", // Placeholder
+        coverage: "state",
+        propertyKey: [],
+        labelKey: "",
+    },
+    HERITAGE_ZONES: {
+        id: "ACT_HERITAGE_ZONES",
+        name: "ACT Heritage Register",
+        url: "https://services1.arcgis.com/E5n4f1VY84i0xSjy/ArcGIS/rest/services/ACTGOV_Heritage_Register/FeatureServer/1",
+        coverage: "state",
+        propertyKey: [
+            "OBJECTID",
+            "BLOCK_NUMBER",
+            "SECTION_NUMBER",
+            "LAND_USE_POLICY_ZONES",
+            "OVERLAY_PROVISION_ZONES",
+            "DIVISION_CODE",
+            "DIVISION_NAME",
+            "DIVISION_SHORT",
+            "DISTRICT_CODE",
+            "DISTRICT_NAME",
+            "DISTRICT_SHORT",
+            "NAME",
+            "SITE_NAME",
+            "DataRestrictions",
+            "HRcategory",
+            "HRcode",
+            "HeritageID",
+            "HRstatus",
+            "last_edited_user",
+            "last_edited_date",
+            "created_user",
+            "created_date",
+            "Shape__Area",
+            "Shape__Length",
+        ],
+        labelKey: "NAME",
+    }
+}
+
+// Victoria Layer Configuration
+const VIC_LAYER_INFO: LayerInfo = {
+    LANDIND_ZONES: {
+        id: "VIC_LAND_ZONING",
+        name: "VIC Local Government Areas",
+        url: "https://services2.arcgis.com/18ajPSI0b3ppsmMt/arcgis/rest/services/LGA/FeatureServer/0",
+        coverage: "state",
+        propertyKey: [
+            "OBJECTID_1",
+            "OBJECTID",
+            "COLOR",
+            "SH_NAME",
+            "ABB_NAME",
+        ],
+        labelKey: "SH_NAME",
+    },
+    FLOOD_HAZARD: {
+        id: "VIC_FLOOD_HAZARD",
+        name: "VIC Flood Hazard (LGA)",
+        url: "https://services2.arcgis.com/18ajPSI0b3ppsmMt/arcgis/rest/services/LGA/FeatureServer/0",
+        coverage: "state",
+        propertyKey: [
+            "OBJECTID_1",
+            "OBJECTID",
+            "COLOR",
+            "SH_NAME",
+            "ABB_NAME",
+        ],
+        labelKey: "SH_NAME",
+    },
+    BUSHFIRE_HAZARD: {
+        id: "VIC_BUSHFIRE_HAZARD",
+        name: "VIC Bushfire Hazard (LGA)",
+        url: "https://services2.arcgis.com/18ajPSI0b3ppsmMt/arcgis/rest/services/LGA/FeatureServer/0",
+        coverage: "state",
+        propertyKey: [
+            "OBJECTID_1",
+            "OBJECTID",
+            "COLOR",
+            "SH_NAME",
+            "ABB_NAME",
+        ],
+        labelKey: "SH_NAME",
+    },
+    LANDSLIDE_HAZARD: {
+        id: "VIC_LANDSLIDE_HAZARD",
+        name: "VIC Landslide Hazard",
+        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Landslide_Hazard/MapServer/0", // Placeholder
+        coverage: "state",
+        propertyKey: [],
+        labelKey: "",
+    },
+    STORM_TIDE_HAZARD: {
+        id: "VIC_STORM_TIDE_HAZARD",
+        name: "VIC Storm Tide Hazard",
+        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/Hazards/Storm_Tide_Hazard/MapServer/0", // Placeholder
+        coverage: "state",
+        propertyKey: [],
+        labelKey: "",
+    },
+    HERITAGE_ZONES: {
+        id: "VIC_HERITAGE_ZONES",
+        name: "VIC Heritage Areas (Resurfacing)",
+        url: "https://services2.arcgis.com/18ajPSI0b3ppsmMt/ArcGIS/rest/services/Area_of_Resurfacing_2019_20/FeatureServer/0",
+        coverage: "state",
+        propertyKey: [
+            "OBJECTID",
+            "Resurface",
+            "Area",
+            "GlobalID",
+            "Shape__Area",
+            "Shape__Length",
+            "Bid_id",
+            "Comments_1",
+            "Comments_2",
+            "JobStatus",
+            "gisAREA",
+            "Patch",
+            "MixedType",
+            "CNJobNumb",
+        ],
+        labelKey: "Resurface",
+    }
+}
+
+export const LayerInfoLabelNames: Record<Layers, string[]> = {
+    LANDIND_ZONES: ["LAY_CLASS", "tertiary"],
+    FLOOD_HAZARD: ["LAY_CLASS", "sub_name"],
+    BUSHFIRE_HAZARD: ["zone", "FireType"],
+    LANDSLIDE_HAZARD: ["LAY_CLASS"],
+    STORM_TIDE_HAZARD: ["LAY_CLASS"],
+    HERITAGE_ZONES: ["LAY_CLASS", "placename"],
+}
+
 export const stateLayerMapping: Record<AustralianState, LayerInfo> = {
     [AustralianState.NSW]: NSW_LAYER_INFO,
-    [AustralianState.VIC]: NSW_LAYER_INFO,
+    [AustralianState.VIC]: VIC_LAYER_INFO,
     [AustralianState.QLD]: QLD_LAYER_INFO,
-    [AustralianState.WA]: NSW_LAYER_INFO,
-    [AustralianState.SA]: NSW_LAYER_INFO,
-    [AustralianState.TAS]: NSW_LAYER_INFO,
-    [AustralianState.NT]: NSW_LAYER_INFO,
-    [AustralianState.ACT]: NSW_LAYER_INFO,
+    [AustralianState.WA]: WA_LAYER_INFO,
+    [AustralianState.SA]: SA_LAYER_INFO,
+    [AustralianState.TAS]: NSW_LAYER_INFO, // Tasmania still uses NSW as fallback
+    [AustralianState.NT]: NSW_LAYER_INFO, // Northern Territory still uses NSW as fallback
+    [AustralianState.ACT]: ACT_LAYER_INFO,
 }
 
 export const getLayersForView = (view: BBBox, layer: Layers): LayerRegistry[] => {

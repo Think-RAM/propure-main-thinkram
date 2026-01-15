@@ -156,4 +156,3 @@ export async function fetchDetailsAtPoint(layerId: Layers, lat: number, lng: num
     attrs: layer.propertyKey,
   };
 }
-

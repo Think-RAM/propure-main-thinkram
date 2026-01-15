@@ -10,7 +10,7 @@ import {
   TableCell,
   TableRow,
 } from "@/components/ui/table";
-import { Layers } from "@/lib/map/layers";
+import { LayerInfoLabelNames, Layers } from "@/lib/map/layers";
 import { fetchDetailsAtPoint } from "@/lib/utils";
 import { SearchResult } from "@/context/MapContext";
 import { useEffect, useState } from "react";
@@ -54,27 +54,27 @@ function formatLayerValue(layer: Layers, data?: Record<string, any> | null) {
 
   switch (layer) {
     case "LANDIND_ZONES": {
-      const v = get("LAY_CLASS", "tertiary");
+      const v = get(...LayerInfoLabelNames[layer]);
       return { value: v ? String(v) : "No zone found", tone: v ? ("ok" as const) : ("muted" as const) };
     }
     case "FLOOD_HAZARD": {
-      const v = get("LAY_CLASS", "sub_name") ? "High Risk Flood Zone" : null;
+      const v = get(...LayerInfoLabelNames[layer]);
       return { value: v ? String(v) : "No flood hazard", tone: v ? ("warn" as const) : ("muted" as const) };
     }
     case "BUSHFIRE_HAZARD": {
-      const v = get("zone", "FireType");
+      const v = get(...LayerInfoLabelNames[layer]);
       return { value: v ? String(v) : "No bushfire hazard", tone: v ? ("warn" as const) : ("muted" as const) };
     }
     case "HERITAGE_ZONES": {
-      const v = get("LAY_CLASS", "placename");
+      const v = get(...LayerInfoLabelNames[layer]);
       return { value: v ? String(v) : "Not heritage-listed", tone: v ? ("info" as const) : ("muted" as const) };
     }
     case "LANDSLIDE_HAZARD": {
-      const v = get("LAY_CLASS");
+      const v = get(...LayerInfoLabelNames[layer]);
       return { value: v ? String(v) : "No landslide hazard", tone: v ? ("warn" as const) : ("muted" as const) };
     }
     case "STORM_TIDE_HAZARD": {
-      const v = get("LAY_CLASS");
+      const v = get(...LayerInfoLabelNames[layer]);
       return { value: v ? String(v) : "No storm tide hazard", tone: v ? ("warn" as const) : ("muted" as const) };
     }
     default:

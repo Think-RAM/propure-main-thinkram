@@ -44,6 +44,61 @@ export const seededColor = (key: string): string => {
 
 export const handleLegendExtraction = async (url: string, groupName: string): Promise<Styles[]> => {
     try {
+        // Check if this is a FeatureServer or MapServer endpoint
+        const isFeatureServer = url.includes("/FeatureServer/");
+        
+        if (isFeatureServer) {
+            // For FeatureServer, get legend info from the layer's drawingInfo
+            const layerInfoUrl = `${url}?f=pjson`;
+            const response = await fetch(layerInfoUrl);
+            if (!response.ok) {
+                console.error(`Failed to fetch layer info: ${response.statusText}`);
+                return [] as Styles[];
+            }
+            const layerJson = await response.json();
+            
+            // Extract from drawingInfo.renderer
+            const renderer = layerJson?.drawingInfo?.renderer;
+            if (!renderer) {
+                console.warn(`No renderer found for FeatureServer layer: ${groupName}`);
+                // Return a default style based on layer name
+                return [{
+                    idKey: [],
+                    label: groupName,
+                    fillColor: seededColor(groupName),
+                    groupName: groupName,
+                }];
+            }
+
+            // Handle uniqueValue renderer
+            if (renderer.type === "uniqueValue" && renderer.uniqueValueInfos) {
+                return renderer.uniqueValueInfos.map((info: any) => ({
+                    idKey: [info.value?.toString() ?? ""],
+                    label: info.label || info.value?.toString() || groupName,
+                    fillColor: seededColor(info.label || info.value?.toString() || groupName),
+                    groupName: groupName,
+                }));
+            }
+
+            // Handle simple renderer
+            if (renderer.type === "simple") {
+                return [{
+                    idKey: [],
+                    label: renderer.label || groupName,
+                    fillColor: seededColor(renderer.label || groupName),
+                    groupName: groupName,
+                }];
+            }
+
+            // Default fallback
+            return [{
+                idKey: [],
+                label: groupName,
+                fillColor: seededColor(groupName),
+                groupName: groupName,
+            }];
+        }
+
         // convert arcgis endpoint to legend endpoint eg: "MapServer/1" to "MapServer/legend?f=pjson
         const legendUrl = url.replace(/\/\d+$/, "/legend?f=pjson");
         const layerIdMatch = url.match(/\/(\d+)$/);
