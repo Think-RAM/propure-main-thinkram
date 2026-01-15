@@ -10,13 +10,15 @@ This directory contains Architecture Decision Records (ADRs) for the Propure pro
 | [002](./002-nsw-planning-data-endpoints.md) | NSW Planning Data Endpoint Selection | Accepted | 2026-01-15 |
 | [003](./003-victoria-planning-data-endpoints.md) | Victoria Planning Data Endpoint Selection | Accepted | 2026-01-15 |
 | [004](./004-western-australia-planning-data-endpoints.md) | Western Australia Planning Data Endpoint Selection | Accepted | 2026-01-15 |
+| [005](./005-act-planning-data-endpoints.md) | ACT Planning Data Endpoint Selection | Accepted | 2026-01-15 |
+| [006](./006-south-australia-planning-data-endpoints.md) | South Australia Planning Data Endpoint Selection | Accepted | 2026-01-15 |
 
 ## Pending Decisions
 
 | ADR | Title | Status |
 |-----|-------|--------|
-| 005 | Council-specific endpoint integration strategy | Pending |
-| 006 | Map library selection (Leaflet vs MapLibre GL) | Pending |
+| 007 | Council-specific endpoint integration strategy | Pending |
+| 008 | Map library selection (Leaflet vs MapLibre GL) | Pending |
 
 ## ADR Format
 
