@@ -152,19 +152,9 @@ We will use the following **SA Location SA ArcGIS REST endpoints** as the primar
 
 ---
 
-## Key Differences from Other States
+## SA-Specific Features
 
-| Aspect | SA | NSW | QLD | VIC | WA | ACT |
-|--------|-----|-----|-----|-----|-----|-----|
-| Planning system | P&D Code | LEPs | Planning Schemes | Planning Schemes | Local Schemes | Territory Plan |
-| System age | 2021 | Various | Various | Various | Various | Ongoing |
-| Zone codes | Descriptive | R2, B3 | Descriptive | GRZ, NRZ | Descriptive | RZ1, CZ1 |
-| CRS | EPSG:3857 | EPSG:4326 | EPSG:3857 | EPSG:3111 | EPSG:4326 | EPSG:7855 |
-| Bushfire tiers | **6 levels** | 3 categories | FMZ | BMO/History | OBRM | FMZ |
-| Heritage layers | **6 types** | 1 layer | 1 layer | HO sublayer | 1 layer | 1 layer |
-| Max records | 2,000 | 2,000 | 2,000 | 1,000 | 10,000 | 2,000 |
-
-### SA-Specific: Planning and Design Code
+### Planning and Design Code
 
 The P&D Code is unique in that:
 - Replaced all 72 individual council Development Plans in 2021
@@ -174,7 +164,7 @@ The P&D Code is unique in that:
 
 This is the most recent major planning reform in Australia.
 
-### SA-Specific: 6-Tier Bushfire System
+### 6-Tier Bushfire System
 
 SA's bushfire classification is the most granular:
 1. **Urban Interface** - Urban/rural edge (highest risk)
@@ -184,11 +174,13 @@ SA's bushfire classification is the most granular:
 5. **Regional** - Regional areas
 6. **Outback** - Remote/arid areas
 
-Compare to NSW (3 categories) or WA (single designation).
+For cross-state comparisons, see [PLANNING_DATA_LAYER.md](../PLANNING_DATA_LAYER.md#quick-reference).
 
 ---
 
 ## Alternatives Considered
+
+See [ADR README](./README.md#common-alternatives-rejected) for common rejected approaches.
 
 ### 1. Individual Council Data
 

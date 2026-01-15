@@ -130,18 +130,7 @@ We will use the following **WA SLIP ArcGIS REST endpoints** as the primary data 
 
 ---
 
-## Key Differences from Other States
-
-| Aspect | WA | NSW | QLD | VIC |
-|--------|-----|-----|-----|-----|
-| Density system | **R-Codes** | Zone-based | Zone-based | Zone-based |
-| Zone codes | Descriptive + Number | Alphanumeric | Descriptive | Abbreviations |
-| CRS | EPSG:4326 | EPSG:4326 | EPSG:3857 | EPSG:3111 |
-| Max records | **10,000** | 2,000 | 2,000 | 1,000 |
-| Data platform | SLIP | Planning Portal | QSpatial | Vicplan |
-| Bushfire authority | OBRM | RFS | QFES | CFA |
-
-### WA-Specific: R-Codes
+## WA-Specific: R-Codes
 
 R-Codes are unique to Western Australia and determine:
 - Minimum and average lot sizes
@@ -152,9 +141,13 @@ R-Codes are unique to Western Australia and determine:
 
 This is a **critical differentiator** for development feasibility analysis in WA.
 
+For cross-state comparisons, see [PLANNING_DATA_LAYER.md](../PLANNING_DATA_LAYER.md#quick-reference).
+
 ---
 
 ## Alternatives Considered
+
+See [ADR README](./README.md#common-alternatives-rejected) for common rejected approaches.
 
 ### 1. Individual Council Planning Schemes
 
