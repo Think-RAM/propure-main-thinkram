@@ -31,6 +31,7 @@ export interface HazardPolygon {
 export interface HazardLegendItem {
   label: string;
   color: string;
+  groupName: string;
 }
 
 type GeoJSONPolygon = {
@@ -137,20 +138,24 @@ export function buildHazardPolygons(
 export function buildHazardLegend(
   data: HazardZoneRecord[]
 ): HazardLegendItem[] {
-  const unique = new Map<string, string>();
+  const unique = new Map<string, { color: string; groupName: string }>();
 
   data.forEach((z) => {
     if (!unique.has(z.hazard_type)) {
       unique.set(
         z.hazard_type,
-        HAZARD_COLORS[z.hazard_type] ?? "#EF4444"
+        {
+          color: HAZARD_COLORS[z.hazard_type] ?? "#EF4444",
+          groupName: z.hazard_type,
+        }
       );
     }
   });
 
   return Array.from(unique.entries()).map(([label, color]) => ({
     label,
-    color,
+    color: color.color,
+    groupName: color.groupName,
   }));
 }
 
