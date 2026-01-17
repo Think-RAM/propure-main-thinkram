@@ -8,6 +8,16 @@ export {
   type WebUnblockerResponse,
 } from "./oxylabs";
 
+// Oxylabs Web Scraper client
+export {
+  OxylabsWebScraper,
+  getOxylabsWebScraperClient,
+  scrapeDomainWithWebScraper,
+  scrapeRealEstateWithWebScraper,
+  type WebScraperOptions,
+  type WebScraperResponse,
+} from "./oxylabs";
+
 // Rate limiter
 export {
   getRateLimiter,

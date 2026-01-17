@@ -2,6 +2,7 @@ import {
   scrapeDomain,
   parseDomainPropertyListing,
   parseDomainSearchResults,
+  scrapeDomainWithWebScraper,
   type PropertyListing,
   type PropertySearchParams,
   type AustralianState,
@@ -16,6 +17,7 @@ import {
   getMockAgentInfo,
   getMockAuctionResults,
 } from "./mock-data";
+import { writeFileSync } from "fs";
 
 /**
  * Build Domain.com.au search URL from params
@@ -37,6 +39,10 @@ function buildSearchUrl(params: PropertySearchParams): string {
   // Property types
   if (params.propertyTypes?.length) {
     searchParams.set("ptype", params.propertyTypes.join(","));
+  }
+
+  if (params.postcode) {
+    searchParams.set("postcode", params.postcode);
   }
 
   // Price range
@@ -62,7 +68,7 @@ function buildSearchUrl(params: PropertySearchParams): string {
   }
 
   const queryString = searchParams.toString();
-  const url = `${baseUrl}${path}/${location}${params.state ? `-${params.state.toLowerCase()}` : ""}${queryString ? `?${queryString}` : ""}`;
+  const url = `${baseUrl}${path}/${location}${params.state ? `-${params.state.toLowerCase()}` : ""}${params.postcode ? `-${params.postcode}` : ""}${queryString ? `?${queryString}` : ""}`;
 
   return url;
 }
@@ -71,7 +77,7 @@ function buildSearchUrl(params: PropertySearchParams): string {
  * Search properties on Domain.com.au
  */
 export async function searchDomainProperties(
-  params: PropertySearchParams,
+  params: PropertySearchParams
 ): Promise<{
   listings: PropertyListing[];
   totalCount: number;
@@ -84,7 +90,16 @@ export async function searchDomainProperties(
   }
 
   const url = buildSearchUrl(params);
-  const html = await scrapeDomain(url);
+  const html = await scrapeDomainWithWebScraper(url);
+
+  //create a file in root directory/reference folder named domain-search-result.html and write the html content to it for reference
+  
+  writeFileSync("reference/domain-search-result.html", html);
+
+
+  // console.log("Fetched HTML length:", html);
+
+
   const listings = parseDomainSearchResults(html);
 
   // Domain typically shows 20 results per page
@@ -102,7 +117,7 @@ export async function searchDomainProperties(
  * Get property details from Domain.com.au
  */
 export async function getDomainPropertyDetails(
-  listingId: string,
+  listingId: string
 ): Promise<PropertyListing | null> {
   // Check for mock mode
   if (isMockModeEnabled()) {
@@ -122,7 +137,7 @@ export async function getDomainPropertyDetails(
 export async function getDomainSuburbStats(
   suburb: string,
   state: AustralianState,
-  postcode: string,
+  postcode: string
 ): Promise<{
   suburb: string;
   state: AustralianState;
@@ -137,7 +152,7 @@ export async function getDomainSuburbStats(
   // Check for mock mode
   if (isMockModeEnabled()) {
     console.log(
-      `[Mock Mode] Returning mock suburb stats for ${suburb}, ${state}`,
+      `[Mock Mode] Returning mock suburb stats for ${suburb}, ${state}`
     );
     return getMockSuburbStats(suburb, state, postcode);
   }
@@ -152,7 +167,7 @@ export async function getDomainSuburbStats(
     // Extract stats from the page
     // Domain embeds suburb data in __NEXT_DATA__ as well
     const match = html.match(
-      /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/,
+      /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/
     );
 
     if (!match?.[1]) {
@@ -196,7 +211,7 @@ export async function getDomainSuburbStats(
 export async function getDomainSalesHistory(
   address: string,
   suburb: string,
-  state: AustralianState,
+  state: AustralianState
 ): Promise<
   Array<{
     saleDate: string;
@@ -221,7 +236,7 @@ export async function getDomainSalesHistory(
 
     // Extract sales history from property profile page
     const match = html.match(
-      /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/,
+      /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/
     );
 
     if (!match?.[1]) {
@@ -239,7 +254,7 @@ export async function getDomainSalesHistory(
         saleDate: sale.date || "",
         salePrice: sale.price || 0,
         saleType: sale.type,
-      }),
+      })
     );
   } catch (error) {
     console.error(`Failed to get sales history for ${address}:`, error);
@@ -272,7 +287,7 @@ export async function getDomainAgentInfo(agentId: string): Promise<{
     const html = await scrapeDomain(url);
 
     const match = html.match(
-      /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/,
+      /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/
     );
 
     if (!match?.[1]) {
@@ -309,7 +324,7 @@ export async function getDomainAgentInfo(agentId: string): Promise<{
  */
 export async function getDomainAuctionResults(
   suburb: string,
-  state: AustralianState,
+  state: AustralianState
 ): Promise<
   Array<{
     address: string;
@@ -322,7 +337,7 @@ export async function getDomainAuctionResults(
   // Check for mock mode
   if (isMockModeEnabled()) {
     console.log(
-      `[Mock Mode] Returning mock auction results for ${suburb}, ${state}`,
+      `[Mock Mode] Returning mock auction results for ${suburb}, ${state}`
     );
     return getMockAuctionResults(suburb, state);
   }
@@ -334,7 +349,7 @@ export async function getDomainAuctionResults(
     const html = await scrapeDomain(url);
 
     const match = html.match(
-      /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/,
+      /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/
     );
 
     if (!match?.[1]) {
@@ -361,7 +376,7 @@ export async function getDomainAuctionResults(
         result: auction.result || "unknown",
         guidePrice: auction.guidePrice,
         soldPrice: auction.soldPrice || auction.price,
-      }),
+      })
     );
   } catch (error) {
     console.error(`Failed to get auction results for ${suburb}:`, error);
