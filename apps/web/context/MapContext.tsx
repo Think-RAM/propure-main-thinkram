@@ -1,26 +1,34 @@
 "use client";
 
-import {
+import React, {
   createContext,
+  useCallback,
   useContext,
+  useEffect,
+  useMemo,
   useRef,
   useState,
-  useCallback,
-  useEffect,
 } from "react";
 import { type Map as LeafletMap } from "leaflet";
-import { HazardLegendItem, HazardPolygon } from "@/lib/hazardZones";
 import { featureLayer, FeatureLayer } from "esri-leaflet";
-import { handleLegendExtraction, styleLayer } from "@/lib/map/styles";
 import { toast } from "sonner";
-import { Layers, stateLayerMapping } from "@/lib/map/layers";
-import { coordToAUState } from "@/lib/utils";
 
-type LatLng = {
-  lat: number;
-  lng: number;
-};
+import { HazardPolygon } from "@/lib/hazardZones";
+import {
+  handleLegendExtraction,
+  styleLayer,
+  stylePopupLayer,
+} from "@/lib/map/styles";
+import {
+  BBBox,
+  getLayersForView,
+  LayerRegistry,
+  Layers,
+  Styles,
+} from "@/lib/map/layers";
+import { coordToAUStates } from "@/lib/utils";
 
+type LatLng = { lat: number; lng: number };
 export type MapViewType = "default" | "satellite" | "terrain";
 
 export type SearchResult = {
@@ -39,35 +47,81 @@ type MapContextType = {
   currentLayer?: Layers;
   setCenter: (coords: LatLng, zoom?: number) => void;
   registerMap: (map: LeafletMap) => void;
-  setMapLayer: (layerId?: Layers) => void;
+  setMapLayer: (layerId?: Layers) => Promise<void>;
   results: SearchResult[];
   polygons: HazardPolygon[];
-  legends: HazardLegendItem[];
+  legends: Styles[];
   setResults: (results: SearchResult[]) => void;
   setPolygons: (polygons: HazardPolygon[]) => void;
-  setLegends: (legends: HazardLegendItem[]) => void;
+  setLegends: (legends: Styles[]) => void;
   setMapView: (view: MapViewType) => void;
 };
 
-export const MAP_VIEW_URLS: Record<MapViewType, string> = {
-  default: "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
-  satellite:
-    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-  terrain:
-    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-};
+interface MapViewUrls {
+  attribution: string;
+  url: string;
+}
 
-export const MAP_LABELS_OVERLAY =
-  "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}";
+export const MAP_VIEW_URLS: Record<MapViewType, MapViewUrls> = {
+  default: {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  },
+  satellite: {
+    attribution: "Tiles &copy; Esri",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  },
+  terrain: {
+    attribution:
+      'Map data: &copy; <a href="https://openstreetmap.org">OpenStreetMap</a>, SRTM | Style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a>',
+    url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+  },
+};
 
 const MapContext = createContext<MapContextType | null>(null);
 
+function bboxFromMap(map: LeafletMap): BBBox {
+  const b = map.getBounds();
+  return {
+    minLat: b.getSouth(),
+    minLng: b.getWest(),
+    maxLat: b.getNorth(),
+    maxLng: b.getEast(),
+  };
+}
+
+/** small helper to keep a stable event handler that reads latest refs */
+function useEvent<T extends (...args: any[]) => any>(handler: T): T {
+  const handlerRef = useRef(handler);
+  useEffect(() => {
+    handlerRef.current = handler;
+  }, [handler]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useCallback(
+    ((...args: any[]) => handlerRef.current(...args)) as T,
+    []
+  );
+}
+
 export function MapProvider({ children }: { children: React.ReactNode }) {
   const mapRef = useRef<LeafletMap | null>(null);
-  const layerRef = useRef<FeatureLayer | null>(null);
+
+  // Feature layers are purely imperative -> ref, not state
+  const featureLayersRef = useRef<Record<string, FeatureLayer>>({});
+
+  // Track metadata in a ref to avoid rerender churn on moveend
+  const metaRef = useRef<Record<string, LayerRegistry>>({});
+
+  // Cache legends per layer URL (or per id if you prefer)
+  const legendCacheRef = useRef<Map<string, Styles[]>>(new Map());
+
+  // Used to ignore stale async work (race conditions)
+  const opIdRef = useRef(0);
+
   const [results, setResults] = useState<SearchResult[]>([]);
   const [polygons, setPolygons] = useState<HazardPolygon[]>([]);
-  const [legends, setLegends] = useState<HazardLegendItem[]>([]);
+  const [legends, setLegends] = useState<Styles[]>([]);
   const [currentLayer, setCurrentLayer] = useState<Layers | undefined>();
   const [mapView, setMapView] = useState<MapViewType>("default");
 
@@ -76,120 +130,250 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setCenter = useCallback((coords: LatLng, zoom = 14) => {
-    mapRef.current?.setView([coords.lat, coords.lng], zoom, {
-      animate: true,
-    });
+    mapRef.current?.setView([coords.lat, coords.lng], zoom, { animate: true });
   }, []);
 
-  const setMapLayer = useCallback(async (layerId?: Layers) => {
-    if (!mapRef.current) {
-      toast.error("Map is not Loaded yet.");
-      return;
+  const removeAllLayers = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const layers = featureLayersRef.current;
+    for (const id of Object.keys(layers)) {
+      // esri-leaflet FeatureLayer is a Leaflet layer -> remove directly
+      try {
+        map.removeLayer(layers[id]);
+      } catch {
+        // ignore if already removed
+      }
+      delete layers[id];
     }
-    // Remove existing layer if any
-    if (layerRef.current) {
-      layerRef.current.remove();
-      mapRef.current.removeLayer(layerRef.current);
-      layerRef.current = null;
-      setCurrentLayer(undefined);
-      setLegends([]);
+
+    metaRef.current = {};
+    // Keep legend cache (good for perf), but reset currently active legends
+    setLegends([]);
+    setCurrentLayer(undefined);
+  }, []);
+
+  const removeLayerById = useCallback((layerId: string) => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const layer = featureLayersRef.current[layerId];
+    if (!layer) return;
+
+    map.removeLayer(layer);
+    delete featureLayersRef.current[layerId];
+
+    // remove metadata
+    const removed = metaRef.current[layerId];
+    delete metaRef.current[layerId];
+
+    // remove legends of that group (only UI state)
+    if (removed) {
+      setLegends((prev) => prev.filter((l) => l.groupName !== removed.name));
     }
-    if (!layerId) {
-      return; // if no layerId provided, just remove existing layer
-    }
-    const mapCenter = mapRef.current.getCenter();
-    const auState = coordToAUState(mapCenter.lat, mapCenter.lng);
-    console.log(`Setting Layer ${layerId} for State ${auState}`);
-    if (!auState) {
-      toast.error("Map out of supported area for this layer.");
-      return;
-    }
-    const toastId = toast.loading("Loading map layer...");
-    try {
-      const layerData = stateLayerMapping[auState][layerId];
-      setCurrentLayer(layerId);
-      const legendData = await handleLegendExtraction(layerData.url); // assuming layerId 2 for legend extraction
-      const layer: FeatureLayer = featureLayer({
-        url: layerData.url,
-        style: (feature) => styleLayer(feature, legendData),
+  }, []);
+
+  const getLegendsFor = useCallback(async (layer: LayerRegistry) => {
+    const cached = legendCacheRef.current.get(layer.url);
+    if (cached) return cached;
+
+    const extracted = await handleLegendExtraction(layer.url, layer.name);
+    legendCacheRef.current.set(layer.url, extracted);
+    return extracted;
+  }, []);
+
+  const addLayer = useCallback(
+    async (layerInfo: LayerRegistry) => {
+      const map = mapRef.current;
+      if (!map) throw new Error("Map not ready");
+
+      // if already exists, do nothing
+      if (featureLayersRef.current[layerInfo.id]) return;
+
+      const layerLegends = await getLegendsFor(layerInfo);
+
+      const lyr: FeatureLayer = featureLayer({
+        url: layerInfo.url,
+        style: (feature) =>
+          styleLayer(
+            feature,
+            layerLegends,
+            layerInfo.propertyKey,
+            layerInfo.labelKey
+          ),
+        onEachFeature: (feature, Layer) =>
+          stylePopupLayer(
+            feature,
+            layerInfo.propertyKey,
+            layerInfo.labelKey,
+            Layer
+          ),
         minZoom: 10,
         simplifyFactor: 0.4,
         cacheLayers: true,
         ignoreRenderer: true,
       });
-      layer.addTo(mapRef.current);
-      layerRef.current = layer;
-      setLegends(
-        legendData.map((item) => ({
-          label: item.label,
-          color: item.fillColor,
-        }))
-      );
-      console.log(`Map Layer set to: ${layerData.name}`);
-    } catch (error) {
-      console.error("Error setting map layer:", error);
-      toast.error("Failed to load map layer.");
-    } finally {
-      toast.dismiss(toastId);
-    }
-  }, []);
 
-  const setView = useCallback((view: MapViewType) => {
-    setMapView(view);
-  }, []);
+      lyr.addTo(map);
+      featureLayersRef.current[layerInfo.id] = lyr;
+      metaRef.current[layerInfo.id] = layerInfo;
 
-  useEffect(() => {
-    return () => {
-      layerRef.current?.remove();
-    };
-  }, []);
-
-  // 2️⃣ Spatially filter on moveend
-  useEffect(() => {
-    if (!mapRef.current || !layerRef.current) return;
-
-    const updateSpatialFilter = () => {
-      console.log("Updated Query");
-      const bounds = mapRef.current!.getBounds();
-
-      // Build spatial WHERE clause
-      layerRef.current!.query().bboxIntersects(bounds).where("1=1"); // keep attribute filters here
-
-      // Apply via setWhere (forces refresh)
-      layerRef.current!.setWhere("1=1");
-      layerRef.current!.refresh();
-
-      // NOTE: bboxIntersects affects internal queries automatically
-    };
-
-    mapRef.current.on("moveend", updateSpatialFilter);
-    updateSpatialFilter();
-
-    return () => {
-      mapRef.current?.off("moveend", updateSpatialFilter);
-    };
-  }, [layerRef.current]);
-
-  return (
-    <MapContext.Provider
-      value={{
-        currentView: mapView,
-        currentLayer,
-        setCenter,
-        registerMap,
-        setMapLayer,
-        results,
-        setResults,
-        polygons,
-        legends,
-        setPolygons,
-        setLegends,
-        setMapView: setView,
-      }}
-    >
-      {children}
-    </MapContext.Provider>
+      // update UI legends once per added layer
+      setLegends((prev) => {
+        // avoid duplicates if called twice
+        const next = prev.filter((l) => l.groupName !== layerInfo.name);
+        return next.concat(layerLegends);
+      });
+    },
+    [getLegendsFor]
   );
+
+  const refreshLayer = useCallback((layerId: string) => {
+    const lyr = featureLayersRef.current[layerId];
+    if (!lyr) return;
+    lyr.setWhere("1=1");
+    lyr.refresh();
+  }, []);
+
+  const setMapLayer = useCallback(
+    async (layerId?: Layers) => {
+      const map = mapRef.current;
+      if (!map) {
+        toast.error("Map is not Loaded yet.");
+        return;
+      }
+
+      // bump op id to invalidate previous async calls
+      const opId = ++opIdRef.current;
+
+      removeAllLayers();
+      if (!layerId) return;
+
+      const bbBox = bboxFromMap(map);
+      const auState = coordToAUStates(bbBox);
+
+      if (auState.length === 0) {
+        toast.error("Map out of supported area for this layer.");
+        return;
+      }
+
+      const toastId = toast.loading("Loading map layer...");
+      try {
+        const layerData = getLayersForView(bbBox, layerId);
+
+        // Set current layer early (UI), but everything else stays in refs
+        setCurrentLayer(layerId);
+
+        // Preload legends in parallel (cached)
+        // If user switches layers quickly, opId check will discard stale work
+        await Promise.all(layerData.map((l) => getLegendsFor(l)));
+
+        if (opIdRef.current !== opId) return;
+
+        // Add all layers (sequential add is fine; legend work already parallelized)
+        for (const l of layerData) {
+          if (opIdRef.current !== opId) return;
+          await addLayer(l);
+        }
+      } catch (e) {
+        console.error(e);
+        toast.error("Failed to load map layer.");
+      } finally {
+        toast.dismiss(toastId);
+      }
+    },
+    [addLayer, getLegendsFor, removeAllLayers]
+  );
+
+  // Moveend spatial filtering: stable handler, reads latest refs (no dependency reruns)
+  const onMoveEnd = useEvent(() => {
+    const map = mapRef.current;
+    const active = currentLayer;
+    if (!map || !active) return;
+
+    const bbBox = bboxFromMap(map);
+    const nextMeta = getLayersForView(bbBox, active);
+
+    const nextIds = new Set(nextMeta.map((m) => m.id));
+    const currentIds = new Set(Object.keys(featureLayersRef.current));
+
+    // Add missing
+    for (const m of nextMeta) {
+      if (!currentIds.has(m.id)) {
+        // fire-and-forget: addLayer is safe; it also dedupes.
+        void addLayer(m);
+      }
+    }
+
+    // Refresh kept
+    for (const id of currentIds) {
+      if (nextIds.has(id)) refreshLayer(id);
+    }
+
+    // Remove out-of-bounds
+    for (const id of currentIds) {
+      if (!nextIds.has(id)) {
+        console.log(`Removing Layer ${id}`);
+        removeLayerById(id);
+      };
+    }
+  });
+
+  // Debounced binding once
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const debounceMs = 250;
+    let t: ReturnType<typeof setTimeout> | null = null;
+
+    const schedule = () => {
+      if (t) clearTimeout(t);
+      t = setTimeout(() => onMoveEnd(), debounceMs);
+    };
+
+    map.on("moveend", schedule);
+    // optional: run once after bind
+    schedule();
+
+    return () => {
+      map.off("moveend", schedule);
+      if (t) clearTimeout(t);
+    };
+  }, [mapRef.current]);
+
+  // Cleanup on unmount
+  useEffect(() => removeAllLayers, [removeAllLayers]);
+
+  const value = useMemo<MapContextType>(
+    () => ({
+      currentView: mapView,
+      currentLayer,
+      setCenter,
+      registerMap,
+      setMapLayer,
+      results,
+      setResults,
+      polygons,
+      setPolygons,
+      legends,
+      setLegends,
+      setMapView,
+    }),
+    [
+      mapView,
+      currentLayer,
+      // setCenter,
+      // registerMap,
+      // setMapLayer,
+      results,
+      polygons,
+      legends,
+    ]
+  );
+
+  return <MapContext.Provider value={value}>{children}</MapContext.Provider>;
 }
 
 export function useMap() {

@@ -112,6 +112,88 @@ This is the central statewide ArcGIS REST directory (Version 11.3) with 50+ serv
 
 **Important**: This central portal provides **statewide foundational data** (cadastral, land use, boundaries, PDAs) but **NOT individual council planning zones**. Council-specific zoning must still be accessed from each council's own ArcGIS endpoint.
 
+#### Validated State-Level Planning Schema Endpoints (Priority Layers)
+
+The following endpoints have been validated for Propure's core planning data requirements:
+
+| Layer | Endpoint | Geometry | Description |
+|-------|----------|----------|-------------|
+| **Land Use Zones** | `https://spatial-gis.information.qld.gov.au/arcgis/rest/services/PlanningCadastre/LandUse/MapServer/0` | Polygon | Queensland Land Use - Current (ALUMC classification) |
+| **Fire Management Zone** | `https://spatial-gis.information.qld.gov.au/arcgis/rest/services/Boundaries/AdminBoundariesFramework/MapServer/14` | Polygon | Fire management zones in reserves (bushfire planning) |
+| **Floodplain Assessment** | `https://spatial-gis.information.qld.gov.au/arcgis/rest/services/Boundaries/AdminBoundariesFramework/MapServer/15` | Polygon | Floodplain assessment overlay (flood risk areas) |
+| **Heritage Register** | `https://spatial-gis.information.qld.gov.au/arcgis/rest/services/Boundaries/AdminBoundariesFramework/MapServer/78` | Polygon | Queensland Heritage Register boundaries |
+
+##### Land Use Zones (Layer 0 - PlanningCadastre/LandUse)
+
+**Purpose**: Provides statewide land use classification using the Australian Land Use and Management Classification (ALUMC).
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `qlump_code` | Integer | Queensland Land Use Mapping Program code |
+| `alum_code` | String | Australian Land Use Management code |
+| `year` | Integer | Data year |
+| `primary_` | String | Primary land use classification |
+| `secondary` | String | Secondary classification |
+| `tertiary` | String | Tertiary classification |
+| `commodity` | String | Associated commodity type |
+| `management` | String | Management practice details |
+| `ruleid` | Integer | Categorical identifier (30+ land use classes) |
+
+**Coverage**: 194 distinct land use categories including nature conservation, agriculture (cropping, grazing, horticulture), urban development (residential, industrial), and water bodies.
+
+**Note**: This is **land use classification**, not council planning zones. For formal zoning data, use council-specific endpoints.
+
+##### Fire Management Zone (Layer 14 - AdminBoundariesFramework)
+
+**Purpose**: Delineates fire management zones across Queensland reserves, supporting bushfire planning and reserve administration.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `zone` | String | Fire Management Zone name |
+| `subzone` | String | Fire Management Subzone |
+| `frequency` | String | Recommended fire frequency range |
+| `freqmin` | Integer | Minimum fire frequency (years) |
+| `freqmax` | Integer | Maximum fire frequency (years) |
+| `description` | String | Zone description |
+| `status` | String | Current status |
+| `source` | String | Data source |
+
+**Use Case**: Identify bushfire-prone areas and fire management requirements for properties in or near reserves.
+
+##### Floodplain Assessment Overlay (Layer 15 - AdminBoundariesFramework)
+
+**Purpose**: Identifies areas potentially at threat of inundation by flooding. A preliminary assessment tool for local government flood hazard planning.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `sub_name` | String | Drainage sub-basin name |
+| `sub_number` | String | Sub-basin identifier |
+| `sub_name2` | String | Extended sub-basin name |
+| `qra_supply` | String | QRA supply reference |
+| `version` | String | Data version |
+| `currency` | Date | Data currency/update date |
+
+**Methodology**: Based on analysis of contours, historical flood records, vegetation patterns, soils, and satellite imagery.
+
+**Use Case**: Preliminary flood risk assessment for properties. For detailed flood mapping, use council-specific flood overlays.
+
+##### Queensland Heritage Register Boundary (Layer 78 - AdminBoundariesFramework)
+
+**Purpose**: Boundaries of culturally significant places registered under the Queensland Heritage Act 1992.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `placename` | String (100) | Heritage place name |
+| `place_id` | Integer | Unique place identifier |
+| `entrydate` | Date | Heritage registration date |
+| `area_sqm` | Integer | Area in square metres |
+| `accuracy` | String (50) | Coordinate accuracy level |
+| `status` | String (50) | Registration status |
+
+**Legal Significance**: Places in this register are legally protected and require heritage approval for development.
+
+**Use Case**: Identify heritage constraints affecting development potential.
+
 #### PlanningCadastre Services (Statewide)
 
 | Service | Endpoint | Description |
@@ -128,17 +210,23 @@ This is the central statewide ArcGIS REST directory (Version 11.3) with 50+ serv
 
 **Endpoint**: `https://spatial-gis.information.qld.gov.au/arcgis/rest/services/Boundaries/AdminBoundariesFramework/MapServer`
 
-| Layer Group | Key Layers (Layer IDs) |
-|-------------|------------------------|
-| **LGA & Localities** | Local Government area (11), Locality boundary (26) |
-| **ShapingSEQ 2023** | Regional land use (157), Development areas (110), Major enterprise areas (130) |
-| **Planning Interests** | Priority agricultural area (33), Priority living area (34), Strategic environmental area (35) |
-| **State Development** | State development area (37), Priority development area (196) |
-| **MSES (Environmental)** | Protected areas (185), Nature refuges (186), Regulated vegetation (187-192), HES wetlands (195) |
-| **Flood & Hazards** | Floodplain overlay (15), Erosion prone (61), Acid sulfate soils (82) |
-| **Heritage** | Queensland heritage register (78), Ramsar sites (79) |
+| Layer Group | Key Layers (Layer IDs) | Status |
+|-------------|------------------------|--------|
+| **LGA & Localities** | Local Government area (11), Locality boundary (26) | Available |
+| **ShapingSEQ 2023** | Regional land use (157), Development areas (110), Major enterprise areas (130) | Available |
+| **Planning Interests** | Priority agricultural area (33), Priority living area (34), Strategic environmental area (35) | Available |
+| **State Development** | State development area (37), Priority development area (196) | Available |
+| **MSES (Environmental)** | Protected areas (185), Nature refuges (186), Regulated vegetation (187-192), HES wetlands (195) | Available |
+| **Fire Management** | **Fire management zone (14)** - Bushfire planning zones in reserves | **✅ Validated** |
+| **Flood & Hazards** | **Floodplain assessment overlay (15)**, Erosion prone (61), Acid sulfate soils (82) | **✅ Validated (15)** |
+| **Heritage** | **Queensland heritage register (78)**, Ramsar sites (79) | **✅ Validated (78)** |
 
 **Technical**: CRS EPSG:3857, MaxRecordCount 2000, Supports WMS/WFS
+
+**Priority Layers for Propure** (Validated January 2026):
+- **Layer 14**: Fire Management Zone - bushfire-prone land identification
+- **Layer 15**: Floodplain Assessment Overlay - flood risk areas
+- **Layer 78**: Queensland Heritage Register - heritage constraints
 
 #### Other State Government Endpoints
 
