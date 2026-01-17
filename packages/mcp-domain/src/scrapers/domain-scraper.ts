@@ -127,7 +127,9 @@ export async function getDomainPropertyDetails(
 
   // Domain property URLs are like: https://www.domain.com.au/{listingId}
   const url = `https://www.domain.com.au/${listingId}`;
-  const html = await scrapeDomain(url);
+  const html = await scrapeDomainWithWebScraper(url);
+
+  writeFileSync("reference/domain-property-details.html", html);
   return parseDomainPropertyListing(html);
 }
 
