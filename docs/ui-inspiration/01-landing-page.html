@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propure - AI-Powered Property Investment</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0D7377;
+            --primary-dark: #095456;
+            --primary-light: #1A9599;
+            --secondary: #D4AF37;
+            --secondary-light: #E6C65A;
+            --accent: #FF6B6B;
+            --bg-dark: #0F1419;
+            --bg-card: #1A1F26;
+            --bg-elevated: #242B33;
+            --text-primary: #F7F9FC;
+            --text-secondary: #9BA3AF;
+            --text-muted: #6B7280;
+            --border: rgba(255,255,255,0.08);
+            --success: #10B981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .hero-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(13, 115, 119, 0.2) 0%, transparent 70%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        .hero-bg::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -30%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+            animation: pulse 10s ease-in-out infinite reverse;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        /* Grid Pattern Overlay */
+        .grid-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 0;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 20px 60px;
+            background: rgba(15, 20, 25, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .nav.scrolled {
+            padding: 12px 60px;
+            background: rgba(15, 20, 25, 0.95);
+        }
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 22px;
+            color: white;
+        }
+
+        .logo-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-cta {
+            display: flex;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            background: rgba(13, 115, 119, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            color: white;
+            box-shadow: 0 4px 20px rgba(13, 115, 119, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(13, 115, 119, 0.5);
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 120px 60px 80px;
+        }
+
+        .hero-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .hero-text {
+            max-width: 600px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 30px;
+            margin-bottom: 32px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .hero-badge-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--secondary);
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .hero-badge span {
+            font-size: 13px;
+            color: var(--secondary);
+            font-weight: 500;
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 64px;
+            font-weight: 600;
+            line-height: 1.1;
+            margin-bottom: 28px;
+            animation: fadeInUp 0.8s ease-out 0.1s backwards;
+        }
+
+        .hero-title .highlight {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-description {
+            font-size: 20px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 40px;
+            animation: fadeInUp 0.8s ease-out 0.2s backwards;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 48px;
+            animation: fadeInUp 0.8s ease-out 0.3s backwards;
+        }
+
+        .btn-large {
+            padding: 18px 36px;
+            font-size: 17px;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 48px;
+            animation: fadeInUp 0.8s ease-out 0.4s backwards;
+        }
+
+        .hero-stat {
+            text-align: left;
+        }
+
+        .hero-stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--primary-light);
+            font-family: 'Playfair Display', serif;
+        }
+
+        .hero-stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Hero Visual */
+        .hero-visual {
+            position: relative;
+            animation: fadeInUp 0.8s ease-out 0.2s backwards;
+        }
+
+        .hero-mockup {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-mockup::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--bg-elevated);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .mockup-dots {
+            position: absolute;
+            top: 22px;
+            left: 24px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .mockup-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .mockup-dot.red { background: #FF5F56; }
+        .mockup-dot.yellow { background: #FFBD2E; }
+        .mockup-dot.green { background: #27C93F; }
+
+        .mockup-content {
+            margin-top: 48px;
+            display: grid;
+            grid-template-columns: 2fr 3fr;
+            gap: 16px;
+            height: 400px;
+        }
+
+        .mockup-chat {
+            background: var(--bg-elevated);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-message {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+            max-width: 90%;
+            animation: messageIn 0.5s ease-out backwards;
+        }
+
+        .chat-message.user {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-message.ai {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message:nth-child(1) { animation-delay: 1s; }
+        .chat-message:nth-child(2) { animation-delay: 1.5s; }
+        .chat-message:nth-child(3) { animation-delay: 2s; }
+
+        @keyframes messageIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .mockup-map {
+            background: linear-gradient(135deg, #1a2634 0%, #0d1620 100%);
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 30% 40%, rgba(13, 115, 119, 0.4) 0%, transparent 30%),
+                radial-gradient(circle at 70% 60%, rgba(212, 175, 55, 0.3) 0%, transparent 25%),
+                radial-gradient(circle at 50% 80%, rgba(13, 115, 119, 0.3) 0%, transparent 20%);
+        }
+
+        .map-marker {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.5);
+            animation: markerPulse 2s infinite;
+        }
+
+        .map-marker:nth-child(1) { top: 35%; left: 25%; animation-delay: 0s; }
+        .map-marker:nth-child(2) { top: 55%; left: 45%; animation-delay: 0.3s; }
+        .map-marker:nth-child(3) { top: 40%; left: 65%; animation-delay: 0.6s; }
+        .map-marker:nth-child(4) { top: 70%; left: 30%; animation-delay: 0.9s; }
+
+        @keyframes markerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* Floating Cards */
+        .float-card {
+            position: absolute;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .float-card-1 {
+            bottom: -30px;
+            left: -40px;
+            animation-delay: 0s;
+        }
+
+        .float-card-2 {
+            top: 40px;
+            right: -50px;
+            animation-delay: 1s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .float-card-title {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .float-card-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .float-card-value.warning {
+            color: var(--secondary);
+        }
+
+        /* Features Section */
+        .features {
+            position: relative;
+            z-index: 1;
+            padding: 120px 60px;
+            background: var(--bg-card);
+        }
+
+        .features-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .section-label {
+            display: inline-block;
+            padding: 8px 20px;
+            background: rgba(13, 115, 119, 0.1);
+            border-radius: 30px;
+            font-size: 13px;
+            color: var(--primary-light);
+            font-weight: 500;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .section-description {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            margin-bottom: 80px;
+        }
+
+        /* Spider Chart Preview */
+        .spider-preview {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 60px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .spider-preview-content h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .spider-preview-content p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+
+        .spider-features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .spider-feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .spider-feature-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(13, 115, 119, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .spider-chart-visual {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spider-chart-container {
+            position: relative;
+            width: 350px;
+            height: 350px;
+        }
+
+        .spider-web {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+        }
+
+        .spider-web circle {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 1;
+        }
+
+        .spider-web line {
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 1;
+        }
+
+        .spider-data {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+        }
+
+        .spider-data polygon {
+            fill: rgba(13, 115, 119, 0.2);
+            stroke: var(--primary-light);
+            stroke-width: 2;
+            animation: drawSpider 2s ease-out forwards;
+        }
+
+        @keyframes drawSpider {
+            from {
+                opacity: 0;
+                transform: scale(0);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .spider-label {
+            position: absolute;
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .spider-label.low { color: var(--success); }
+        .spider-label.medium { color: var(--secondary); }
+        .spider-label.high { color: var(--accent); }
+
+        .feature-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary);
+            box-shadow: 0 30px 60px rgba(13, 115, 119, 0.15);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 24px;
+        }
+
+        .feature-icon.strategy {
+            background: linear-gradient(135deg, rgba(13, 115, 119, 0.2) 0%, rgba(13, 115, 119, 0.1) 100%);
+        }
+
+        .feature-icon.ai {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.1) 100%);
+        }
+
+        .feature-icon.analysis {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2) 0%, rgba(255, 107, 107, 0.1) 100%);
+        }
+
+        .feature-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .feature-card p {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Strategies Section */
+        .strategies {
+            position: relative;
+            z-index: 1;
+            padding: 120px 60px;
+        }
+
+        .strategies-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .strategies-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .strategy-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.4s;
+            cursor: pointer;
+        }
+
+        .strategy-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--secondary);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.1);
+        }
+
+        .strategy-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: var(--bg-elevated);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .strategy-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .strategy-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .strategy-metrics {
+            display: flex;
+            gap: 24px;
+        }
+
+        .strategy-metric {
+            flex: 1;
+        }
+
+        .strategy-metric-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-light);
+        }
+
+        .strategy-metric-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            position: relative;
+            z-index: 1;
+            padding: 120px 60px;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--bg-dark) 100%);
+            text-align: center;
+        }
+
+        .cta-content {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .cta-section h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            margin-bottom: 24px;
+        }
+
+        .cta-section p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            line-height: 1.7;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            border: none;
+            color: var(--bg-dark);
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5);
+        }
+
+        /* Footer */
+        .footer {
+            position: relative;
+            z-index: 1;
+            padding: 60px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-dark);
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-copy {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Back Link */
+        .back-link {
+            position: fixed;
+            bottom: 32px;
+            left: 32px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .back-link:hover {
+            border-color: var(--primary);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-bg"></div>
+    <div class="grid-pattern"></div>
+
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+        <div class="nav-content">
+            <div class="logo">
+                <div class="logo-icon">P</div>
+                <span class="logo-text">Propure</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#strategies" class="nav-link">Strategies</a>
+                <a href="#" class="nav-link">Pricing</a>
+                <a href="#" class="nav-link">About</a>
+            </div>
+            <div class="nav-cta">
+                <a href="02-sign-up.html" class="btn btn-outline">Sign In</a>
+                <a href="02-sign-up.html" class="btn btn-primary">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <div class="hero-badge">
+                    <div class="hero-badge-dot"></div>
+                    <span>AI-Powered Property Intelligence</span>
+                </div>
+                <h1 class="hero-title">
+                    Find Your <span class="highlight">Perfect Investment</span> Property
+                </h1>
+                <p class="hero-description">
+                    Your personal AI investment assistant that guides you from strategy discovery to property selection. Get personalized recommendations backed by comprehensive risk analysis and real-time market insights.
+                </p>
+                <div class="hero-cta">
+                    <a href="02-sign-up.html" class="btn btn-primary btn-large">
+                        Start Free Trial
+                        <span>&rarr;</span>
+                    </a>
+                    <a href="#" class="btn btn-outline btn-large">
+                        Watch Demo
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">50K+</div>
+                        <div class="hero-stat-label">Properties Analyzed</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">2,000+</div>
+                        <div class="hero-stat-label">Investors Helped</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">98%</div>
+                        <div class="hero-stat-label">Satisfaction Rate</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-mockup">
+                    <div class="mockup-dots">
+                        <div class="mockup-dot red"></div>
+                        <div class="mockup-dot yellow"></div>
+                        <div class="mockup-dot green"></div>
+                    </div>
+                    <div class="mockup-content">
+                        <div class="mockup-chat">
+                            <div class="chat-message user">I'm looking to invest in property for cash flow</div>
+                            <div class="chat-message ai">Great choice! Based on your budget of $600K, I've identified high-yield suburbs in Brisbane and Perth...</div>
+                            <div class="chat-message user">Show me properties with 6%+ yield</div>
+                        </div>
+                        <div class="mockup-map">
+                            <div class="map-overlay"></div>
+                            <div class="map-marker"></div>
+                            <div class="map-marker"></div>
+                            <div class="map-marker"></div>
+                            <div class="map-marker"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="float-card float-card-1">
+                    <div class="float-card-title">Avg. Yield</div>
+                    <div class="float-card-value">6.2%</div>
+                </div>
+                <div class="float-card float-card-2">
+                    <div class="float-card-title">Properties Found</div>
+                    <div class="float-card-value warning">24</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="features-content">
+            <div class="section-header">
+                <span class="section-label">Features</span>
+                <h2 class="section-title">Intelligent Property Investment</h2>
+                <p class="section-description">Everything you need to make data-driven property investment decisions, guided by your unified AI assistant.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon strategy">
+                        <span>🤖</span>
+                    </div>
+                    <h3>Unified AI Assistant</h3>
+                    <p>Propure AI guides your entire investment journey from strategy discovery to property selection. One intelligent assistant that understands your goals and adapts to your needs.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon ai">
+                        <span>🕸️</span>
+                    </div>
+                    <h3>Spider Chart Risk Assessment</h3>
+                    <p>Visualize investment risk across 8 critical factors: Market Volatility, Liquidity, Tenant Demand, Economic Dependency, Natural Hazards, Regulatory, Financial Leverage, and Property Condition.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon analysis">
+                        <span>🎯</span>
+                    </div>
+                    <h3>Smart Property Matching</h3>
+                    <p>Strategy-specific scoring ranks properties based on your chosen investment approach. Each property gets a match score tailored to your unique criteria.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon strategy">
+                        <span>📊</span>
+                    </div>
+                    <h3>Market Health Indicators</h3>
+                    <p>Know exactly when to buy with real-time market health scores. Track suburb-level indicators including vacancy rates, growth trends, and supply-demand dynamics.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon ai">
+                        <span>🗺️</span>
+                    </div>
+                    <h3>Interactive Map Layers</h3>
+                    <p>Explore properties with rich context layers: planning zones, flood risks, school catchments, bushfire zones, heritage overlays, and infrastructure projects.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon analysis">
+                        <span>💰</span>
+                    </div>
+                    <h3>Financial Modeling</h3>
+                    <p>Deep cash flow projections, ROI scenarios, and sensitivity analysis help you understand exactly what you're buying and expected returns.</p>
+                </div>
+            </div>
+
+            <!-- Spider Chart Preview -->
+            <div class="spider-preview">
+                <div class="spider-preview-content">
+                    <h3>8-Factor Risk Assessment</h3>
+                    <p>Every property comes with a comprehensive risk visualization across 8 critical dimensions. Make informed decisions with instant clarity on where your investment stands.</p>
+                    <div class="spider-features">
+                        <div class="spider-feature">
+                            <div class="spider-feature-icon">📈</div>
+                            <span>Market Volatility</span>
+                        </div>
+                        <div class="spider-feature">
+                            <div class="spider-feature-icon">💧</div>
+                            <span>Liquidity Risk</span>
+                        </div>
+                        <div class="spider-feature">
+                            <div class="spider-feature-icon">👥</div>
+                            <span>Tenant Demand</span>
+                        </div>
+                        <div class="spider-feature">
+                            <div class="spider-feature-icon">🏭</div>
+                            <span>Economic Dependency</span>
+                        </div>
+                        <div class="spider-feature">
+                            <div class="spider-feature-icon">🌊</div>
+                            <span>Natural Hazards</span>
+                        </div>
+                        <div class="spider-feature">
+                            <div class="spider-feature-icon">📋</div>
+                            <span>Regulatory Risk</span>
+                        </div>
+                        <div class="spider-feature">
+                            <div class="spider-feature-icon">💰</div>
+                            <span>Financial Leverage</span>
+                        </div>
+                        <div class="spider-feature">
+                            <div class="spider-feature-icon">🏠</div>
+                            <span>Property Condition</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="spider-chart-visual">
+                    <div class="spider-chart-container">
+                        <svg class="spider-web" viewBox="0 0 350 350">
+                            <!-- Concentric circles -->
+                            <circle cx="175" cy="175" r="140" />
+                            <circle cx="175" cy="175" r="105" />
+                            <circle cx="175" cy="175" r="70" />
+                            <circle cx="175" cy="175" r="35" />
+                            <!-- Axis lines -->
+                            <line x1="175" y1="175" x2="175" y2="35" />
+                            <line x1="175" y1="175" x2="273.5" y2="74.5" />
+                            <line x1="175" y1="175" x2="315" y2="175" />
+                            <line x1="175" y1="175" x2="273.5" y2="275.5" />
+                            <line x1="175" y1="175" x2="175" y2="315" />
+                            <line x1="175" y1="175" x2="76.5" y2="275.5" />
+                            <line x1="175" y1="175" x2="35" y2="175" />
+                            <line x1="175" y1="175" x2="76.5" y2="74.5" />
+                        </svg>
+                        <svg class="spider-data" viewBox="0 0 350 350">
+                            <!-- Data polygon (example values) -->
+                            <polygon points="175,70 238,99 280,175 238,233 175,280 130,233 88,175 130,99" />
+                        </svg>
+                        <!-- Labels positioned around the chart -->
+                        <div class="spider-label low" style="top: 10px; left: 50%; transform: translateX(-50%);">Market Volatility</div>
+                        <div class="spider-label medium" style="top: 20%; right: 5%; transform: translateY(-50%);">Liquidity</div>
+                        <div class="spider-label low" style="top: 50%; right: -15%; transform: translateY(-50%);">Tenant Demand</div>
+                        <div class="spider-label medium" style="bottom: 20%; right: 5%; transform: translateY(50%);">Economic Dep.</div>
+                        <div class="spider-label high" style="bottom: 10px; left: 50%; transform: translateX(-50%);">Natural Hazards</div>
+                        <div class="spider-label low" style="bottom: 20%; left: 5%; transform: translateY(50%);">Regulatory</div>
+                        <div class="spider-label medium" style="top: 50%; left: -15%; transform: translateY(-50%);">Financial Lev.</div>
+                        <div class="spider-label low" style="top: 20%; left: 5%; transform: translateY(-50%);">Condition</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Strategies Section -->
+    <section class="strategies" id="strategies">
+        <div class="strategies-content">
+            <div class="section-header">
+                <span class="section-label">Investment Strategies</span>
+                <h2 class="section-title">Choose Your Path</h2>
+                <p class="section-description">Every investor is different. We help you find the strategy that matches your unique goals.</p>
+            </div>
+            <div class="strategies-grid">
+                <div class="strategy-card">
+                    <div class="strategy-icon">
+                        <span>$</span>
+                    </div>
+                    <h3>Cash Flow</h3>
+                    <p>Generate passive income with high-yield properties in regional areas.</p>
+                    <div class="strategy-metrics">
+                        <div class="strategy-metric">
+                            <div class="strategy-metric-value">5-7%</div>
+                            <div class="strategy-metric-label">Typical Yield</div>
+                        </div>
+                        <div class="strategy-metric">
+                            <div class="strategy-metric-value">Low</div>
+                            <div class="strategy-metric-label">Risk Level</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="strategy-card">
+                    <div class="strategy-icon">
+                        <span>G</span>
+                    </div>
+                    <h3>Capital Growth</h3>
+                    <p>Build wealth through property appreciation in high-growth corridors.</p>
+                    <div class="strategy-metrics">
+                        <div class="strategy-metric">
+                            <div class="strategy-metric-value">8-12%</div>
+                            <div class="strategy-metric-label">Growth Rate</div>
+                        </div>
+                        <div class="strategy-metric">
+                            <div class="strategy-metric-value">Med</div>
+                            <div class="strategy-metric-label">Risk Level</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="strategy-card">
+                    <div class="strategy-icon">
+                        <span>R</span>
+                    </div>
+                    <h3>Renovation</h3>
+                    <p>Add value through strategic renovations and quick flips.</p>
+                    <div class="strategy-metrics">
+                        <div class="strategy-metric">
+                            <div class="strategy-metric-value">15-25%</div>
+                            <div class="strategy-metric-label">ROI Target</div>
+                        </div>
+                        <div class="strategy-metric">
+                            <div class="strategy-metric-value">High</div>
+                            <div class="strategy-metric-label">Risk Level</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2>Ready to Start Investing?</h2>
+            <p>Join thousands of Australian investors who've found their perfect property with Propure. Start your free 14-day trial today.</p>
+            <div class="cta-buttons">
+                <a href="02-sign-up.html" class="btn btn-secondary btn-large">
+                    Start Free Trial
+                </a>
+                <a href="#" class="btn btn-outline btn-large">
+                    Talk to Sales
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="logo">
+                <div class="logo-icon">P</div>
+                <span class="logo-text">Propure</span>
+            </div>
+            <div class="footer-links">
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+                <a href="#">Contact</a>
+                <a href="#">Help</a>
+            </div>
+            <div class="footer-copy">
+                &copy; 2025 Propure. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Overview -->
+    <a href="00-journey-overview.html" class="back-link">
+        <span>&larr;</span>
+        Journey Overview
+    </a>
+
+    <script>
+        // Nav scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+    </script>
+</body>
+</html>

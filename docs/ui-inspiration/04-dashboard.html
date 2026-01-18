@@ -1,0 +1,3689 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0F1419" />
+  <meta name="color-scheme" content="dark" />
+  <title>Dashboard - Propure AI Property Investment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+  <!-- Chart.js for Spider Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #0d7377;
+      --primary-dark: #095456;
+      --primary-light: #1a9599;
+      --secondary: #d4af37;
+      --secondary-light: #e6c65a;
+      --accent: #ff6b6b;
+      --bg-dark: #0f1419;
+      --bg-card: #1a1f26;
+      --bg-elevated: #242b33;
+      --text-primary: #f7f9fc;
+      --text-secondary: #9ba3af;
+      --text-muted: #6b7280;
+      --border: rgba(255, 255, 255, 0.08);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "DM Sans", sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Focus Styles */
+    :focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    /* Main Layout */
+    .app-container {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* Left Panel - Chat (40%) */
+    .chat-panel {
+      width: 40%;
+      min-width: 450px;
+      max-width: 600px;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Chat Header */
+    .chat-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-elevated);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg,
+          var(--primary) 0%,
+          var(--primary-dark) 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Playfair Display", serif;
+      font-weight: 700;
+      font-size: 18px;
+      color: white;
+    }
+
+    .logo-text {
+      font-family: "Playfair Display", serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Strategy Selector Dropdown */
+    .strategy-selector {
+      position: relative;
+    }
+
+    .strategy-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(13, 115, 119, 0.2);
+      border: 1px solid var(--primary);
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--primary-light);
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: "DM Sans", sans-serif;
+    }
+
+    .strategy-badge:hover {
+      background: rgba(13, 115, 119, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .strategy-badge svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .strategy-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px;
+      min-width: 200px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      display: none;
+      z-index: 1000;
+    }
+
+    .strategy-dropdown.active {
+      display: block;
+      animation: fadeInDown 0.2s ease-out;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .strategy-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      width: 100%;
+      text-align: left;
+      font-family: "DM Sans", sans-serif;
+      font-size: 13px;
+    }
+
+    .strategy-option:hover,
+    .strategy-option:focus-visible {
+      background: rgba(13, 115, 119, 0.2);
+    }
+
+    .strategy-option.active {
+      background: rgba(13, 115, 119, 0.3);
+      color: var(--primary-light);
+    }
+
+    .strategy-option-icon {
+      font-size: 18px;
+    }
+
+    .strategy-option-details {
+      flex: 1;
+    }
+
+    .strategy-option-name {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .strategy-option-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--secondary) 0%, #b8941f 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    /* Chat Messages */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    /* Message Styles */
+    .message {
+      display: flex;
+      gap: 12px;
+      max-width: 98%;
+      animation: messageIn 0.4s ease-out;
+    }
+
+    @keyframes messageIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+      font-weight: 600;
+    }
+
+    .message.ai .message-avatar {
+      background: linear-gradient(135deg,
+          var(--primary) 0%,
+          var(--primary-dark) 100%);
+    }
+
+    .message.user .message-avatar {
+      background: linear-gradient(135deg, var(--secondary) 0%, #b8941f 100%);
+    }
+
+    .message-content {
+      background: var(--bg-elevated);
+      border-radius: 16px;
+      padding: 14px 18px;
+      max-width: calc(100% - 44px);
+    }
+
+    .message.user .message-content {
+      background: var(--primary);
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.ai .message-content {
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-text {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .message.user .message-text {
+      color: white;
+    }
+
+    /* AI Indicator (Unified) */
+    .ai-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .ai-indicator-icon {
+      width: 16px;
+      height: 16px;
+      color: #55d6be;
+    }
+
+    /* Tool Call Display */
+    .tool-call {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+
+    .tool-call-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: rgba(59, 130, 246, 0.1);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tool-call-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--info);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tool-call-icon svg {
+      width: 14px;
+      height: 14px;
+      color: white;
+    }
+
+    .tool-call-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--info);
+    }
+
+    .tool-call-status {
+      margin-left: auto;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+    }
+
+    /* Tool Activity Loading State */
+    .tool-activity {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 2px solid rgba(85, 214, 190, 0.3);
+      border-radius: 12px;
+      margin-top: 12px;
+      animation: pulseGlow 2s infinite;
+    }
+
+    @keyframes pulseGlow {
+
+      0%,
+      100% {
+        border-color: rgba(85, 214, 190, 0.3);
+        box-shadow: 0 0 0 0 rgba(85, 214, 190, 0.4);
+      }
+
+      50% {
+        border-color: rgba(85, 214, 190, 0.6);
+        box-shadow: 0 0 15px 0 rgba(85, 214, 190, 0.3);
+      }
+    }
+
+    .tool-activity-spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(85, 214, 190, 0.2);
+      border-top-color: #55d6be;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .tool-activity-text {
+      font-size: 13px;
+      color: #55d6be;
+      font-weight: 500;
+    }
+
+    .tool-call-body {
+      padding: 12px 14px;
+    }
+
+    .tool-call-params {
+      font-family: "SF Mono", Monaco, monospace;
+      font-size: 11px;
+      color: var(--text-secondary);
+      background: rgba(0, 0, 0, 0.2);
+      padding: 10px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+
+    .tool-call-result {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .tool-call-result-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    /* Strategy Card */
+    .strategy-card {
+      background: var(--bg-card);
+      border: 1px solid var(--primary);
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+
+    .strategy-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .strategy-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(13, 115, 119, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .strategy-card-title {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .strategy-card-subtitle {
+      font-size: 12px;
+      color: var(--primary-light);
+    }
+
+    .strategy-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .strategy-metric {
+      text-align: center;
+      padding: 10px;
+      background: var(--bg-elevated);
+      border-radius: 8px;
+    }
+
+    .strategy-metric-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary-light);
+    }
+
+    .strategy-metric-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* Property Result Cards in Chat */
+    .property-results {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .property-mini-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      text-align: left;
+      width: 100%;
+      font-family: inherit;
+      color: inherit;
+    }
+
+    .property-mini-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .property-mini-card.highlighted {
+      border-color: var(--secondary);
+      background: rgba(212, 175, 55, 0.05);
+    }
+
+    .property-mini-price {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .property-mini-address {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .property-mini-stats {
+      display: flex;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .property-mini-yield {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    /* Strategy Match Badge */
+    .strategy-match-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: linear-gradient(135deg,
+          rgba(85, 214, 190, 0.2) 0%,
+          rgba(13, 115, 119, 0.2) 100%);
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    .strategy-match-score {
+      font-size: 13px;
+      font-weight: 700;
+      color: #55d6be;
+    }
+
+    .strategy-match-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .strategy-match-progress {
+      flex: 1;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-left: 8px;
+    }
+
+    .strategy-match-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #55d6be 0%, var(--primary) 100%);
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+
+    /* Financial Analysis Card */
+    .financial-card {
+      background: var(--bg-card);
+      border: 1px solid var(--success);
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+
+    .financial-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .financial-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(16, 185, 129, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--success);
+    }
+
+    .financial-title {
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .financial-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .financial-item {
+      padding: 10px;
+      background: var(--bg-elevated);
+      border-radius: 8px;
+    }
+
+    .financial-item-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .financial-item-value {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .financial-item-value.positive {
+      color: var(--success);
+    }
+
+    .financial-item-value.negative {
+      color: var(--accent);
+    }
+
+    /* Map Update Notification */
+    .map-update-notification {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid var(--info);
+      border-radius: 10px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--info);
+    }
+
+    .map-update-notification svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border-radius: 16px;
+      border-bottom-left-radius: 4px;
+      width: fit-content;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--text-muted);
+      border-radius: 50%;
+      animation: typingBounce 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingBounce {
+
+      0%,
+      60%,
+      100% {
+        transform: translateY(0);
+      }
+
+      30% {
+        transform: translateY(-8px);
+      }
+    }
+
+    /* Chat Input */
+    .chat-input-container {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-elevated);
+    }
+
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .quick-action {
+      padding: 7px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: "DM Sans", sans-serif;
+    }
+
+    .quick-action:hover {
+      border-color: var(--primary);
+      color: var(--primary-light);
+    }
+
+    .chat-input-wrapper {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 14px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: "DM Sans", sans-serif;
+      resize: none;
+      min-height: 48px;
+      max-height: 120px;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .chat-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .send-btn {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg,
+          var(--primary) 0%,
+          var(--primary-dark) 100%);
+      border: none;
+      border-radius: 14px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .send-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(13, 115, 119, 0.4);
+    }
+
+    .send-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Right Panel - Map & Properties (60%) */
+    .map-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-dark);
+    }
+
+    /* Map Header */
+    .map-header {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-card);
+    }
+
+    .map-tabs {
+      display: flex;
+      gap: 6px;
+    }
+
+    .map-tab {
+      padding: 8px 16px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: "DM Sans", sans-serif;
+    }
+
+    .map-tab.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .map-tab:hover:not(.active) {
+      border-color: var(--primary);
+    }
+
+    .map-filters {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .filter-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(13, 115, 119, 0.15);
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--primary-light);
+    }
+
+    .filter-badge .count {
+      background: var(--primary);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      color: white;
+    }
+
+    /* Map Container */
+    .map-container {
+      flex: 1;
+      position: relative;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Custom Leaflet Styles */
+    .leaflet-container {
+      background: #0d1a26;
+      font-family: "DM Sans", sans-serif;
+    }
+
+    /* Push Zoom Control down to avoid Market Health Indicator */
+    .leaflet-top.leaflet-left {
+      margin-top: 60px;
+    }
+
+    .custom-marker {
+      background: var(--accent);
+      border: 3px solid white;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.5);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .custom-marker:hover,
+    .custom-marker:focus-visible {
+      transform: scale(1.2);
+    }
+
+    .custom-marker.selected {
+      background: var(--primary);
+      box-shadow: 0 4px 12px rgba(13, 115, 119, 0.5);
+    }
+
+    .custom-marker.best-match {
+      background: var(--secondary);
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.5);
+    }
+
+    .leaflet-popup-content-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-primary);
+      padding: 0;
+    }
+
+    .leaflet-popup-tip {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+    }
+
+    .leaflet-popup-content {
+      margin: 0;
+      min-width: 220px;
+    }
+
+    .popup-content {
+      padding: 14px;
+    }
+
+    .popup-image {
+      height: 100px;
+      background: linear-gradient(135deg, #1a2634 0%, #0d1620 100%);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .popup-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      padding: 4px 10px;
+      background: var(--primary);
+      border-radius: 12px;
+      font-size: 10px;
+      color: white;
+    }
+
+    .popup-price {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .popup-address {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+
+    .popup-stats {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .popup-yield {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .popup-yield-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .popup-yield-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--success);
+    }
+
+    /* Market Health Indicator (top-left of map) */
+    .market-health-indicator {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: rgba(15, 20, 25, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .market-health-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .market-health-icon.buyers {
+      background: rgba(16, 185, 129, 0.2);
+    }
+
+    .market-health-icon.balanced {
+      background: rgba(245, 158, 11, 0.2);
+    }
+
+    .market-health-icon.sellers {
+      background: rgba(255, 107, 107, 0.2);
+    }
+
+    .market-health-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .market-health-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .market-health-status {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .market-health-status.buyers {
+      color: var(--success);
+    }
+
+    .market-health-status.balanced {
+      color: var(--warning);
+    }
+
+    .market-health-status.sellers {
+      color: var(--accent);
+    }
+
+    /* Layer Toggle Control (top-right of map) */
+    .layer-toggle-control {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 1001;
+      background: rgba(15, 20, 25, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      width: 240px;
+      backdrop-filter: blur(10px);
+    }
+
+    .layer-toggle-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .layer-toggle-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .layer-toggle-item:last-child {
+      border-bottom: none;
+    }
+
+    .layer-toggle-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .layer-toggle-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .layer-toggle-icon.planning {
+      background: rgba(59, 130, 246, 0.2);
+      color: var(--info);
+    }
+
+    .layer-toggle-icon.flood {
+      background: rgba(59, 130, 246, 0.2);
+      color: var(--info);
+    }
+
+    .layer-toggle-icon.school {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--warning);
+    }
+
+    .layer-toggle-icon.bushfire {
+      background: rgba(255, 107, 107, 0.2);
+      color: var(--accent);
+    }
+
+    .layer-toggle-icon.heritage {
+      background: rgba(212, 175, 55, 0.2);
+      color: var(--secondary);
+    }
+
+    .layer-toggle-label {
+      font-size: 12px;
+      color: var(--text-primary);
+    }
+
+    .layer-toggle-switch {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 11px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .layer-toggle-switch:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .layer-toggle-switch[aria-checked="true"] {
+      background: var(--primary);
+    }
+
+    .layer-toggle-switch::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      transition: all 0.3s;
+    }
+
+    .layer-toggle-switch[aria-checked="true"]::after {
+      left: 21px;
+    }
+
+    /* Suburb Stats Overlay */
+    .suburb-stats-overlay {
+      position: absolute;
+      top: 150px;
+      left: 16px;
+      z-index: 1002;
+      background: rgba(15, 20, 25, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      width: 220px;
+      backdrop-filter: blur(10px);
+    }
+
+    .suburb-stats-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .suburb-stats-title::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+    }
+
+    .suburb-stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+
+    .suburb-stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .suburb-stat-label {
+      color: var(--text-muted);
+    }
+
+    .suburb-stat-value {
+      font-weight: 600;
+    }
+
+    .suburb-stat-value.positive {
+      color: var(--success);
+    }
+
+    /* Property List Overlay */
+    .property-list {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1003;
+      background: linear-gradient(180deg, transparent 0%, var(--bg-dark) 30%);
+      padding: 50px 20px 20px;
+    }
+
+    .property-list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .property-list-title {
+      font-family: "Playfair Display", serif;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .property-list-count {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .property-cards {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .property-cards::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .property-cards::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .property-cards::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    .property-card {
+      flex-shrink: 0;
+      width: 280px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .property-card:hover,
+    .property-card:focus-visible {
+      transform: translateY(-4px);
+      border-color: var(--primary);
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .property-card.highlighted {
+      border-color: var(--secondary);
+    }
+
+    .property-image {
+      height: 120px;
+      background: linear-gradient(135deg, #1a2634 0%, #0d1620 100%);
+      position: relative;
+    }
+
+    .property-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 5px 10px;
+      background: var(--primary);
+      border-radius: 16px;
+      font-size: 10px;
+      color: white;
+      font-weight: 500;
+    }
+
+    .property-badge.best {
+      background: var(--secondary);
+      color: #1a1a1a;
+    }
+
+    /* Strategy Match Badge on Property Cards */
+    .property-match-badge {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      padding: 6px 10px;
+      background: rgba(85, 214, 190, 0.95);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(10px);
+    }
+
+    .property-match-score {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--bg-dark);
+    }
+
+    .property-match-progress-mini {
+      flex: 1;
+      height: 3px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .property-match-progress-mini-bar {
+      height: 100%;
+      background: var(--bg-dark);
+      border-radius: 2px;
+    }
+
+    .property-favorite {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 30px;
+      height: 30px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+
+    .property-favorite:hover,
+    .property-favorite:focus-visible {
+      background: var(--accent);
+    }
+
+    .property-info {
+      padding: 14px;
+    }
+
+    .property-price {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .property-address {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .property-stats {
+      display: flex;
+      gap: 14px;
+    }
+
+    .property-stat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .property-yield {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .yield-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .yield-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--success);
+    }
+
+    /* AI Confidence Explanation */
+    .confidence-explanation {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 10px;
+      margin-top: 12px;
+      font-size: 12px;
+    }
+
+    .confidence-score {
+      font-weight: 700;
+      color: var(--success);
+    }
+
+    .confidence-factors {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .confidence-factor {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-secondary);
+    }
+
+    .confidence-factor.positive {
+      color: var(--success);
+    }
+
+    .confidence-factor svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Onboarding Hint Tooltip */
+    .onboarding-hint {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1001;
+      max-width: 280px;
+      padding: 14px 18px;
+      background: rgba(13, 115, 119, 0.95);
+      border: 1px solid var(--primary);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      animation: slideInUp 0.4s ease-out;
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .onboarding-hint-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .onboarding-hint-icon {
+      width: 20px;
+      height: 20px;
+      color: #55d6be;
+    }
+
+    .onboarding-hint-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .onboarding-hint-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: white;
+    }
+
+    /* Back Link */
+    .back-link {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 13px;
+      transition: all 0.3s;
+    }
+
+    .back-link:hover,
+    .back-link:focus-visible {
+      border-color: var(--primary);
+      color: var(--text-primary);
+    }
+
+    /* Leaflet Control Styles */
+    .leaflet-control-zoom {
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    .leaflet-control-zoom a {
+      background: var(--bg-card) !important;
+      color: var(--text-primary) !important;
+      border: 1px solid var(--border) !important;
+      width: 36px !important;
+      height: 36px !important;
+      line-height: 34px !important;
+      font-size: 18px !important;
+    }
+
+    .leaflet-control-zoom a:hover {
+      background: var(--bg-elevated) !important;
+      border-color: var(--primary) !important;
+    }
+
+    .leaflet-control-zoom-in {
+      border-radius: 8px 8px 0 0 !important;
+    }
+
+    .leaflet-control-zoom-out {
+      border-radius: 0 0 8px 8px !important;
+    }
+
+    /* Spider Chart Risk Visualization */
+    .risk-chart-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+
+    .risk-chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .risk-chart-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .risk-chart-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(59, 130, 246, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--info);
+    }
+
+    .risk-score-badge {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .risk-score-badge.low {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+    }
+
+    .risk-score-badge.moderate {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--warning);
+    }
+
+    .risk-score-badge.high {
+      background: rgba(255, 107, 107, 0.2);
+      color: var(--accent);
+    }
+
+    .risk-chart-canvas {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    /* Property Comparison Modal */
+    .comparison-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .comparison-modal.active {
+      display: flex;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .comparison-content {
+      background: var(--bg-card);
+      border-radius: 16px;
+      max-width: 1200px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .comparison-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: var(--bg-card);
+      z-index: 10;
+    }
+
+    .comparison-title {
+      font-family: "Playfair Display", serif;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .comparison-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: all 0.2s;
+    }
+
+    .comparison-close:hover,
+    .comparison-close:focus-visible {
+      background: var(--bg-dark);
+      color: var(--text-primary);
+    }
+
+    .comparison-body {
+      padding: 24px;
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .comparison-property {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .comparison-property-header {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .comparison-metric {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 13px;
+    }
+
+    .comparison-metric:last-child {
+      border-bottom: none;
+    }
+
+    .comparison-metric-label {
+      color: var(--text-muted);
+    }
+
+    .comparison-metric-value {
+      font-weight: 600;
+    }
+
+    .comparison-metric-value.positive {
+      color: var(--success);
+    }
+
+    .comparison-metric-value.negative {
+      color: var(--accent);
+    }
+
+    .comparison-charts {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .comparison-chart-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .property-checkbox {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 24px;
+      height: 24px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid white;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .property-checkbox input {
+      display: none;
+    }
+
+    .property-checkbox svg {
+      display: none;
+      width: 14px;
+      height: 14px;
+      color: white;
+    }
+
+    .property-checkbox input:checked~svg {
+      display: block;
+    }
+
+    .property-checkbox input:checked~.checkbox-bg {
+      background: var(--primary);
+    }
+
+    /* Property List View */
+    .property-list-view {
+      display: none;
+      padding: 20px;
+      height: 100%;
+      overflow-y: auto;
+      background: var(--bg-dark);
+    }
+
+    .property-list-view.active {
+      display: block;
+    }
+
+    .property-list-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+      display: grid;
+      grid-template-columns: 200px 1fr auto;
+      gap: 20px;
+      align-items: start;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .property-list-item:hover {
+      border-color: var(--primary);
+      transform: translateX(4px);
+    }
+
+    .property-list-image {
+      width: 200px;
+      height: 150px;
+      background: linear-gradient(135deg, #1a2634 0%, #0d1620 100%);
+      border-radius: 10px;
+      position: relative;
+    }
+
+    .property-list-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 6px 12px;
+      background: var(--primary);
+      border-radius: 16px;
+      font-size: 11px;
+      color: white;
+      font-weight: 500;
+    }
+
+    .property-list-badge.best {
+      background: var(--secondary);
+      color: #1a1a1a;
+    }
+
+    .property-list-details {
+      flex: 1;
+    }
+
+    .property-list-header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .property-list-price {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .property-list-address {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .property-list-stats {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+
+    .property-list-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .property-list-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .property-list-stat-value {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .property-list-stat-value.positive {
+      color: var(--success);
+    }
+
+    .property-list-match {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(13, 115, 119, 0.2);
+      border-radius: 20px;
+      font-size: 13px;
+    }
+
+    .property-list-match-score {
+      font-weight: 700;
+      color: var(--primary-light);
+    }
+
+    .property-list-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .property-list-btn {
+      padding: 10px 20px;
+      background: var(--primary);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: "DM Sans", sans-serif;
+    }
+
+    .property-list-btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .property-list-btn.secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+
+    .property-list-btn.secondary:hover {
+      border-color: var(--primary);
+      background: rgba(13, 115, 119, 0.1);
+    }
+
+    .checkbox-bg {
+      position: absolute;
+      inset: 0;
+      border-radius: 4px;
+      background: transparent;
+      transition: all 0.2s;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Left Panel - Chat -->
+    <div class="chat-panel">
+      <div class="chat-header">
+        <div class="logo">
+          <div class="logo-icon">P</div>
+          <span class="logo-text">Propure</span>
+        </div>
+        <div class="header-actions">
+          <div class="strategy-selector">
+            <button class="strategy-badge" id="strategyBadge" onclick="toggleStrategyDropdown()" aria-expanded="false"
+              aria-haspopup="true" aria-label="Select investment strategy">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+              <span id="currentStrategy">Cash Flow Strategy</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="strategy-dropdown" id="strategyDropdown" role="menu">
+              <button class="strategy-option active" data-strategy="cash-flow"
+                onclick="selectStrategy('cash-flow', 'Cash Flow Strategy')" role="menuitem">
+                <span class="strategy-option-icon" aria-hidden="true">💰</span>
+                <div class="strategy-option-details">
+                  <div class="strategy-option-name">Cash Flow</div>
+                  <div class="strategy-option-desc">Positive income from day one</div>
+                </div>
+              </button>
+              <button class="strategy-option" data-strategy="growth"
+                onclick="selectStrategy('growth', 'Growth Strategy')" role="menuitem">
+                <span class="strategy-option-icon" aria-hidden="true">📈</span>
+                <div class="strategy-option-details">
+                  <div class="strategy-option-name">Growth</div>
+                  <div class="strategy-option-desc">Capital appreciation focused</div>
+                </div>
+              </button>
+              <button class="strategy-option" data-strategy="renovation"
+                onclick="selectStrategy('renovation', 'Renovation Strategy')" role="menuitem">
+                <span class="strategy-option-icon" aria-hidden="true">🔨</span>
+                <div class="strategy-option-details">
+                  <div class="strategy-option-name">Renovation</div>
+                  <div class="strategy-option-desc">Add value through improvements</div>
+                </div>
+              </button>
+            </div>
+          </div>
+          <div class="user-avatar" role="button" aria-label="User Profile" tabindex="0">
+            M
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-label="Chat History">
+        <!-- Message 1: AI Welcome -->
+        <div class="message ai">
+          <div class="message-avatar" aria-label="Propure AI">P</div>
+          <div class="message-content">
+            <div class="ai-indicator">
+              <svg class="ai-indicator-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+              Propure AI
+            </div>
+            <div class="message-text">
+              Welcome back, Mike! Based on your investment profile, I've
+              prepared some insights for you. Let me help you find your next
+              property investment.
+            </div>
+          </div>
+        </div>
+
+        <!-- Message 2: User Question -->
+        <div class="message user">
+          <div class="message-avatar" aria-label="You">M</div>
+          <div class="message-content">
+            <div class="message-text">
+              I'm looking for cash flow positive properties in Brisbane under
+              $600K. What suburbs should I be looking at?
+            </div>
+          </div>
+        </div>
+
+        <!-- Message 3: AI Processing -->
+        <div class="message ai">
+          <div class="message-avatar" aria-label="Propure AI">P</div>
+          <div class="message-content">
+            <div class="ai-indicator">
+              <svg class="ai-indicator-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+              Propure AI
+            </div>
+            <div class="message-text">
+              Great question! Let me analyze your strategy alignment and
+              search for the best properties in Brisbane under $600K.
+            </div>
+            <!-- Tool Activity Loading State -->
+            <div class="tool-activity" role="status">
+              <div class="tool-activity-spinner"></div>
+              <div class="tool-activity-text">
+                Analyzing strategy alignment...
+              </div>
+            </div>
+            <!-- Tool Call: Route to Strategist -->
+            <div class="tool-call">
+              <div class="tool-call-header">
+                <div class="tool-call-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path
+                      d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                  </svg>
+                </div>
+                <span class="tool-call-name">routeToAgent</span>
+                <span class="tool-call-status">Completed</span>
+              </div>
+              <div class="tool-call-body">
+                <div class="tool-call-params" aria-label="Tool parameters">
+                  { "agent": "strategist", "context": { "budget": 600000,
+                  "location": "Brisbane", "strategy": "cash_flow" } }
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message 4: AI Strategy Analysis -->
+        <div class="message ai">
+          <div class="message-avatar" aria-label="Propure AI">P</div>
+          <div class="message-content">
+            <div class="ai-indicator">
+              <svg class="ai-indicator-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+              Propure AI
+            </div>
+            <div class="message-text">
+              I've analyzed your profile against current Brisbane market
+              conditions. Your <strong>Cash Flow</strong> strategy is
+              well-suited for the current market, with Brisbane offering
+              strong rental yields in growth corridors.
+            </div>
+            <!-- AI Confidence Explanation -->
+            <div class="confidence-explanation">
+              <span class="confidence-score">92% match:</span>
+              <div class="confidence-factors">
+                <span class="confidence-factor positive">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  Strong yield
+                </span>
+                <span class="confidence-factor positive">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  Low vacancy
+                </span>
+                <span class="confidence-factor positive">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  Growth corridor
+                </span>
+              </div>
+            </div>
+            <!-- Strategy Card -->
+            <div class="strategy-card">
+              <div class="strategy-card-header">
+                <div class="strategy-icon" aria-hidden="true">💰</div>
+                <div>
+                  <div class="strategy-card-title">Cash Flow Strategy</div>
+                  <div class="strategy-card-subtitle">
+                    Optimized for Brisbane under $600K
+                  </div>
+                </div>
+              </div>
+              <div class="strategy-metrics">
+                <div class="strategy-metric">
+                  <div class="strategy-metric-value">5.5%+</div>
+                  <div class="strategy-metric-label">Target Yield</div>
+                </div>
+                <div class="strategy-metric">
+                  <div class="strategy-metric-value">&lt;2%</div>
+                  <div class="strategy-metric-label">Vacancy Rate</div>
+                </div>
+                <div class="strategy-metric">
+                  <div class="strategy-metric-value">Low</div>
+                  <div class="strategy-metric-label">Risk Profile</div>
+                </div>
+              </div>
+            </div>
+            <!-- Tool Call: Capture Strategy -->
+            <div class="tool-call">
+              <div class="tool-call-header">
+                <div class="tool-call-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M9 11l3 3L22 4" />
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                  </svg>
+                </div>
+                <span class="tool-call-name">recommendStrategy</span>
+                <span class="tool-call-status">Completed</span>
+              </div>
+              <div class="tool-call-body">
+                <div class="tool-call-params" aria-label="Tool parameters">
+                  { "strategy": "cash_flow", "confidence": 0.92,
+                  "targetYield": 5.5, "maxBudget": 600000, "preferredSuburbs":
+                  ["Morningside", "Cannon Hill", "Coorparoo", "Woolloongabba"]
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message 5: AI Property Search -->
+        <div class="message ai">
+          <div class="message-avatar" aria-label="Propure AI">P</div>
+          <div class="message-content">
+            <div class="ai-indicator">
+              <svg class="ai-indicator-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+              Propure AI
+            </div>
+            <div class="message-text">
+              I've searched the Brisbane market and found
+              <strong>8 properties</strong> matching your criteria. I've
+              highlighted <strong>Morningside</strong> and
+              <strong>Cannon Hill</strong> as top suburbs based on rental
+              yield and growth potential.
+            </div>
+            <!-- Tool Activity Loading State -->
+            <div class="tool-activity" role="status">
+              <div class="tool-activity-spinner"></div>
+              <div class="tool-activity-text">Searching properties...</div>
+            </div>
+            <!-- Tool Call: Search Properties -->
+            <div class="tool-call">
+              <div class="tool-call-header">
+                <div class="tool-call-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </div>
+                <span class="tool-call-name">searchProperties</span>
+                <span class="tool-call-status">8 results</span>
+              </div>
+              <div class="tool-call-body">
+                <div class="tool-call-params" aria-label="Tool parameters">
+                  { "location": "Brisbane, QLD", "maxPrice": 600000,
+                  "minYield": 5.5, "propertyTypes": ["house", "townhouse"],
+                  "suburbs": ["Morningside", "Cannon Hill", "Coorparoo",
+                  "Woolloongabba"] }
+                </div>
+                <div class="tool-call-result">
+                  <div class="tool-call-result-label">
+                    API Response (Domain.com.au)
+                  </div>
+                  <div class="tool-call-params" aria-label="API Response">
+                    { "totalResults": 8, "avgYield": 5.8, "priceRange": {
+                    "min": 485000, "max": 595000 }, "topSuburb":
+                    "Morningside", "avgDaysOnMarket": 24 }
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Map Update Notification -->
+            <div class="map-update-notification">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+                <line x1="8" y1="2" x2="8" y2="18" />
+                <line x1="16" y1="6" x2="16" y2="22" />
+              </svg>
+              Map updated with 8 properties in Brisbane
+            </div>
+            <!-- Property Results -->
+            <div class="property-results">
+              <button class="property-mini-card highlighted" onclick="selectProperty(0)">
+                <div class="property-mini-price">$485,000</div>
+                <div class="property-mini-address">
+                  42 Norman St, Morningside
+                </div>
+                <div class="property-mini-stats">
+                  <span>3 bed • 2 bath</span>
+                  <span class="property-mini-yield">6.4% yield</span>
+                </div>
+                <div class="strategy-match-badge">
+                  <span class="strategy-match-score">92%</span>
+                  <div class="strategy-match-progress" role="progressbar" aria-valuenow="92" aria-valuemin="0"
+                    aria-valuemax="100" aria-label="Strategy Match Score">
+                    <div class="strategy-match-progress-bar" style="width: 92%"></div>
+                  </div>
+                  <span class="strategy-match-label">Cash Flow Match</span>
+                </div>
+              </button>
+              <button class="property-mini-card" onclick="selectProperty(1)">
+                <div class="property-mini-price">$520,000</div>
+                <div class="property-mini-address">
+                  15 Vista Ave, Cannon Hill
+                </div>
+                <div class="property-mini-stats">
+                  <span>3 bed • 2 bath</span>
+                  <span class="property-mini-yield">6.1% yield</span>
+                </div>
+                <div class="strategy-match-badge">
+                  <span class="strategy-match-score">87%</span>
+                  <div class="strategy-match-progress" role="progressbar" aria-valuenow="87" aria-valuemin="0"
+                    aria-valuemax="100" aria-label="Strategy Match Score">
+                    <div class="strategy-match-progress-bar" style="width: 87%"></div>
+                  </div>
+                  <span class="strategy-match-label">Cash Flow Match</span>
+                </div>
+              </button>
+              <button class="property-mini-card" onclick="selectProperty(2)">
+                <div class="property-mini-price">$465,000</div>
+                <div class="property-mini-address">8 Creek Rd, Coorparoo</div>
+                <div class="property-mini-stats">
+                  <span>2 bed • 1 bath</span>
+                  <span class="property-mini-yield">5.9% yield</span>
+                </div>
+                <div class="strategy-match-badge">
+                  <span class="strategy-match-score">84%</span>
+                  <div class="strategy-match-progress" role="progressbar" aria-valuenow="84" aria-valuemin="0"
+                    aria-valuemax="100" aria-label="Strategy Match Score">
+                    <div class="strategy-match-progress-bar" style="width: 84%"></div>
+                  </div>
+                  <span class="strategy-match-label">Cash Flow Match</span>
+                </div>
+              </button>
+              <button class="property-mini-card" onclick="selectProperty(3)">
+                <div class="property-mini-price">$545,000</div>
+                <div class="property-mini-address">
+                  23 Main St, Woolloongabba
+                </div>
+                <div class="property-mini-stats">
+                  <span>3 bed • 1 bath</span>
+                  <span class="property-mini-yield">5.7% yield</span>
+                </div>
+                <div class="strategy-match-badge">
+                  <span class="strategy-match-score">81%</span>
+                  <div class="strategy-match-progress" role="progressbar" aria-valuenow="81" aria-valuemin="0"
+                    aria-valuemax="100" aria-label="Strategy Match Score">
+                    <div class="strategy-match-progress-bar" style="width: 81%"></div>
+                  </div>
+                  <span class="strategy-match-label">Cash Flow Match</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message 6: User Request Analysis -->
+        <div class="message user">
+          <div class="message-avatar" aria-label="You">M</div>
+          <div class="message-content">
+            <div class="message-text">
+              The Morningside property looks interesting. Can you analyze the
+              cash flow for me?
+            </div>
+          </div>
+        </div>
+
+        <!-- Message 7: AI Financial Analysis -->
+        <div class="message ai">
+          <div class="message-avatar" aria-label="Propure AI">P</div>
+          <div class="message-content">
+            <div class="ai-indicator">
+              <svg class="ai-indicator-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+              Propure AI
+            </div>
+            <div class="message-text">
+              I've run a comprehensive cash flow analysis on
+              <strong>42 Norman St, Morningside</strong>. This property is
+              <strong>cash flow positive</strong> with strong fundamentals.
+            </div>
+            <!-- Tool Activity Loading State -->
+            <div class="tool-activity" role="status">
+              <div class="tool-activity-spinner"></div>
+              <div class="tool-activity-text">
+                Analyzing suburb metrics...
+              </div>
+            </div>
+            <!-- Tool Call: Calculate Cash Flow -->
+            <div class="tool-call">
+              <div class="tool-call-header">
+                <div class="tool-call-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <line x1="12" y1="1" x2="12" y2="23" />
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                  </svg>
+                </div>
+                <span class="tool-call-name">calculateCashFlow</span>
+                <span class="tool-call-status">Completed</span>
+              </div>
+              <div class="tool-call-body">
+                <div class="tool-call-params" aria-label="Tool parameters">
+                  { "propertyId": "DOM-4829371", "purchasePrice": 485000,
+                  "estimatedRent": 600, "loanAmount": 388000, "interestRate":
+                  6.24, "assumptions": { "deposit": 20, "vacancy": 2,
+                  "managementFee": 7, "maintenance": 0.5 } }
+                </div>
+              </div>
+            </div>
+            <!-- Financial Card -->
+            <div class="financial-card">
+              <div class="financial-header">
+                <div class="financial-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    aria-hidden="true">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                  </svg>
+                </div>
+                <div class="financial-title">
+                  42 Norman St, Morningside - Cash Flow Analysis
+                </div>
+              </div>
+              <div class="financial-grid">
+                <div class="financial-item">
+                  <div class="financial-item-label">Weekly Rent</div>
+                  <div class="financial-item-value">$600/wk</div>
+                </div>
+                <div class="financial-item">
+                  <div class="financial-item-label">Gross Yield</div>
+                  <div class="financial-item-value positive">6.4%</div>
+                </div>
+                <div class="financial-item">
+                  <div class="financial-item-label">Annual Income</div>
+                  <div class="financial-item-value">$31,200</div>
+                </div>
+                <div class="financial-item">
+                  <div class="financial-item-label">Annual Expenses</div>
+                  <div class="financial-item-value">$28,640</div>
+                </div>
+                <div class="financial-item">
+                  <div class="financial-item-label">Net Cash Flow</div>
+                  <div class="financial-item-value positive">+$2,560/yr</div>
+                </div>
+                <div class="financial-item">
+                  <div class="financial-item-label">Weekly Cash Flow</div>
+                  <div class="financial-item-value positive">+$49/wk</div>
+                </div>
+              </div>
+            </div>
+            <!-- Spider Chart Risk Visualization -->
+            <div class="risk-chart-container">
+              <div class="risk-chart-header">
+                <div class="risk-chart-title">
+                  <div class="risk-chart-icon" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                  </div>
+                  Risk Assessment
+                </div>
+                <span class="risk-score-badge low">Low Risk</span>
+              </div>
+              <div class="risk-chart-canvas">
+                <canvas id="riskChart" aria-label="Spider chart showing 8 risk factors"></canvas>
+              </div>
+            </div>
+            <!-- Tool Call: Risk Assessment -->
+            <div class="tool-call">
+              <div class="tool-call-header">
+                <div class="tool-call-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                </div>
+                <span class="tool-call-name">assessRisk</span>
+                <span class="tool-call-status">Low Risk</span>
+              </div>
+              <div class="tool-call-body">
+                <div class="tool-call-params" aria-label="Tool parameters">
+                  { "riskScore": 28, "riskLevel": "Low", "factors": {
+                  "vacancyRisk": "Low (1.8% suburb average)",
+                  "marketVolatility": "Moderate", "infrastructureGrowth":
+                  "High (Cross River Rail)", "demographicTrend": "Positive
+                  (young professionals)" } }
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message 8: AI Summary -->
+        <div class="message ai">
+          <div class="message-avatar" aria-label="Propure AI">P</div>
+          <div class="message-content">
+            <div class="ai-indicator">
+              <svg class="ai-indicator-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+              Propure AI
+            </div>
+            <div class="message-text">
+              <strong>Summary:</strong> 42 Norman St, Morningside is an
+              excellent match for your Cash Flow strategy. It's cash flow
+              positive from day one (+$49/wk) with low vacancy risk and
+              benefits from the Cross River Rail infrastructure project. Would
+              you like me to add it to your shortlist or compare it with other
+              properties?
+            </div>
+            <!-- AI Confidence Explanation -->
+            <div class="confidence-explanation">
+              <span class="confidence-score">92% match:</span>
+              <div class="confidence-factors">
+                <span class="confidence-factor positive">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  Cash flow positive
+                </span>
+                <span class="confidence-factor positive">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  Low risk
+                </span>
+                <span class="confidence-factor positive">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  Infrastructure growth
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-container">
+        <div class="quick-actions">
+          <button class="quick-action">Add to shortlist</button>
+          <button class="quick-action" onclick="showComparisonModal()" data-action="compare">Compare properties</button>
+          <button class="quick-action">Show suburb stats</button>
+          <button class="quick-action">5-year projection</button>
+          <button class="quick-action">More like this</button>
+        </div>
+        <div class="chat-input-wrapper">
+          <textarea class="chat-input" placeholder="Ask about properties, strategies, or market data..." rows="1"
+            aria-label="Chat input"></textarea>
+          <button class="send-btn" aria-label="Send message">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Map & Properties -->
+    <div class="map-panel">
+      <div class="map-header">
+        <div class="map-tabs" role="tablist">
+          <button class="map-tab active" role="tab" aria-selected="true">
+            Map View
+          </button>
+          <button class="map-tab" role="tab" aria-selected="false">
+            List View
+          </button>
+          <button class="map-tab" role="tab" aria-selected="false">
+            Suburb Stats
+          </button>
+        </div>
+        <div class="map-filters">
+          <div class="filter-badge">
+            <span>Brisbane, QLD</span>
+            <span class="count">8</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Property List View Container -->
+      <div class="property-list-view" id="propertyListView">
+        <div class="property-list-item">
+          <div class="property-list-image">
+            <span class="property-list-badge best">Best Match</span>
+          </div>
+          <div class="property-list-details">
+            <div class="property-list-header">
+              <div class="property-list-price">$485,000</div>
+              <div class="property-list-match">
+                <span class="property-list-match-score">92%</span> Cash Flow Match
+              </div>
+            </div>
+            <div class="property-list-address">42 Norman St, Morningside QLD</div>
+            <div class="property-list-stats">
+              <div class="property-list-stat">
+                <div class="property-list-stat-label">Beds</div>
+                <div class="property-list-stat-value">3</div>
+              </div>
+              <div class="property-list-stat">
+                <div class="property-list-stat-label">Baths</div>
+                <div class="property-list-stat-value">2</div>
+              </div>
+              <div class="property-list-stat">
+                <div class="property-list-stat-label">Cars</div>
+                <div class="property-list-stat-value">1</div>
+              </div>
+              <div class="property-list-stat">
+                <div class="property-list-stat-label">Yield</div>
+                <div class="property-list-stat-value positive">6.4%</div>
+              </div>
+            </div>
+          </div>
+          <div class="property-list-actions">
+            <button class="property-list-btn">View Details</button>
+            <button class="property-list-btn secondary">Compare</button>
+          </div>
+        </div>
+        <div class="property-list-item">
+          <div class="property-list-image">
+            <span class="property-list-badge">High Yield</span>
+          </div>
+          <div class="property-list-details">
+            <div class="property-list-header">
+              <div class="property-list-price">$520,000</div>
+              <div class="property-list-match">
+                <span class="property-list-match-score">87%</span> Cash Flow Match
+              </div>
+            </div>
+            <div class="property-list-address">15 Vista Ave, Cannon Hill QLD</div>
+            <div class="property-list-stats">
+              <div class="property-list-stat">
+                <div class="property-list-stat-label">Beds</div>
+                <div class="property-list-stat-value">3</div>
+              </div>
+              <div class="property-list-stat">
+                <div class="property-list-stat-label">Baths</div>
+                <div class="property-list-stat-value">2</div>
+              </div>
+              <div class="property-list-stat">
+                <div class="property-list-stat-label">Cars</div>
+                <div class="property-list-stat-value">2</div>
+              </div>
+              <div class="property-list-stat">
+                <div class="property-list-stat-label">Yield</div>
+                <div class="property-list-stat-value positive">6.1%</div>
+              </div>
+            </div>
+          </div>
+          <div class="property-list-actions">
+            <button class="property-list-btn">View Details</button>
+            <button class="property-list-btn secondary">Compare</button>
+          </div>
+        </div>
+        <div class="property-list-item">
+          <div class="property-list-image">
+            <span class="property-list-badge" style="background: var(--secondary); color: #1a1a1a">Growth Area</span>
+          </div>
+          <div class="property-list-details">
+            <div class="property-list-header">
+              <div class="property-list-price">$465,000</div>
+              <div class="property-list-match">
+                <span class="property-list-match-score">84%</span> Cash Flow Match
+              </div>
+            </div>
+            <div class="property-list-address">8 Creek Rd, Coorparoo QLD</div>
+            <div class="property-list-stats">
+              <div class="property-list-stat">
+                <div class="property-list-stat-label">Beds</div>
+                <div class="property-list-stat-value">2</div>
+              </div>
+              <div class="property-list-stat">
+                <div class="property-list-stat-label">Baths</div>
+                <div class="property-list-stat-value">1</div>
+              </div>
+              <div class="property-list-stat">
+                <div class="property-list-stat-label">Cars</div>
+                <div class="property-list-stat-value">1</div>
+              </div>
+              <div class="property-list-stat">
+                <div class="property-list-stat-label">Yield</div>
+                <div class="property-list-stat-value positive">5.9%</div>
+              </div>
+            </div>
+          </div>
+          <div class="property-list-actions">
+            <button class="property-list-btn">View Details</button>
+            <button class="property-list-btn secondary">Compare</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="map-container active">
+        <div id="map" class="active" aria-label="Interactive map of properties in Brisbane"></div>
+
+        <!-- Market Health Indicator (top-left) -->
+        <div class="market-health-indicator">
+          <div class="market-health-icon buyers" aria-hidden="true">📈</div>
+          <div class="market-health-content">
+            <div class="market-health-label">Market Status</div>
+            <div class="market-health-status buyers">Buyer's Market</div>
+          </div>
+        </div>
+
+        <!-- Layer Toggle Control (top-right) -->
+        <div class="layer-toggle-control">
+          <div class="layer-toggle-title">Map Layers</div>
+          <div class="layer-toggle-item">
+            <div class="layer-toggle-info">
+              <div class="layer-toggle-icon planning" aria-hidden="true">
+                🏗️
+              </div>
+              <div class="layer-toggle-label">Planning Zones</div>
+            </div>
+            <div class="layer-toggle-switch" role="switch" aria-checked="false" aria-label="Toggle Planning Zones layer"
+              onclick="toggleLayer(this)"></div>
+          </div>
+          <div class="layer-toggle-item">
+            <div class="layer-toggle-info">
+              <div class="layer-toggle-icon flood" aria-hidden="true">💧</div>
+              <div class="layer-toggle-label">Flood Zones</div>
+            </div>
+            <div class="layer-toggle-switch" role="switch" aria-checked="false" aria-label="Toggle Flood Zones layer"
+              onclick="toggleLayer(this)"></div>
+          </div>
+          <div class="layer-toggle-item">
+            <div class="layer-toggle-info">
+              <div class="layer-toggle-icon school" aria-hidden="true">
+                🎓
+              </div>
+              <div class="layer-toggle-label">School Catchments</div>
+            </div>
+            <div class="layer-toggle-switch active" role="switch" aria-checked="true"
+              aria-label="Toggle School Catchments layer" onclick="toggleLayer(this)"></div>
+          </div>
+          <div class="layer-toggle-item">
+            <div class="layer-toggle-info">
+              <div class="layer-toggle-icon bushfire" aria-hidden="true">
+                🔥
+              </div>
+              <div class="layer-toggle-label">Bushfire Risk</div>
+            </div>
+            <div class="layer-toggle-switch" role="switch" aria-checked="false" aria-label="Toggle Bushfire Risk layer"
+              onclick="toggleLayer(this)"></div>
+          </div>
+          <div class="layer-toggle-item">
+            <div class="layer-toggle-info">
+              <div class="layer-toggle-icon heritage" aria-hidden="true">
+                🏛️
+              </div>
+              <div class="layer-toggle-label">Heritage Listings</div>
+            </div>
+            <div class="layer-toggle-switch" role="switch" aria-checked="false"
+              aria-label="Toggle Heritage Listings layer" onclick="toggleLayer(this)"></div>
+          </div>
+        </div>
+
+        <!-- Suburb Stats Overlay -->
+        <div class="suburb-stats-overlay">
+          <div class="suburb-stats-title">Morningside, QLD 4170</div>
+          <div class="suburb-stat-row">
+            <span class="suburb-stat-label">Median Price</span>
+            <span class="suburb-stat-value">$892,000</span>
+          </div>
+          <div class="suburb-stat-row">
+            <span class="suburb-stat-label">Rental Yield</span>
+            <span class="suburb-stat-value positive">5.8%</span>
+          </div>
+          <div class="suburb-stat-row">
+            <span class="suburb-stat-label">Vacancy Rate</span>
+            <span class="suburb-stat-value positive">1.8%</span>
+          </div>
+          <div class="suburb-stat-row">
+            <span class="suburb-stat-label">5yr Growth</span>
+            <span class="suburb-stat-value positive">+32%</span>
+          </div>
+          <div class="suburb-stat-row">
+            <span class="suburb-stat-label">Days on Market</span>
+            <span class="suburb-stat-value">24 days</span>
+          </div>
+        </div>
+
+        <!-- Property List -->
+        <div class="property-list">
+          <div class="property-list-header">
+            <h3 class="property-list-title">Matching Properties</h3>
+            <span class="property-list-count">8 properties • Cash Flow strategy</span>
+          </div>
+          <div class="property-cards">
+            <a href="05-property-analysis.html" class="property-card highlighted">
+              <div class="property-image">
+                <span class="property-badge best">Best Match</span>
+                <button class="property-favorite" aria-label="Add to favorites">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path
+                      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                    </path>
+                  </svg>
+                </button>
+                <div class="property-match-badge">
+                  <span class="property-match-score">92% Match</span>
+                  <div class="property-match-progress-mini" role="progressbar" aria-valuenow="92" aria-valuemin="0"
+                    aria-valuemax="100" aria-label="Match score">
+                    <div class="property-match-progress-mini-bar" style="width: 92%"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="property-info">
+                <div class="property-price">$485,000</div>
+                <div class="property-address">
+                  42 Norman St, Morningside QLD
+                </div>
+                <div class="property-stats">
+                  <div class="property-stat"><span>3</span> Beds</div>
+                  <div class="property-stat"><span>2</span> Bath</div>
+                  <div class="property-stat"><span>1</span> Car</div>
+                </div>
+                <div class="property-yield">
+                  <span class="yield-label">Gross Yield</span>
+                  <span class="yield-value">6.4%</span>
+                </div>
+              </div>
+            </a>
+
+            <a href="05-property-analysis.html" class="property-card">
+              <div class="property-image">
+                <span class="property-badge">High Yield</span>
+                <button class="property-favorite" aria-label="Add to favorites">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path
+                      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                    </path>
+                  </svg>
+                </button>
+                <div class="property-match-badge">
+                  <span class="property-match-score">87% Match</span>
+                  <div class="property-match-progress-mini" role="progressbar" aria-valuenow="87" aria-valuemin="0"
+                    aria-valuemax="100" aria-label="Match score">
+                    <div class="property-match-progress-mini-bar" style="width: 87%"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="property-info">
+                <div class="property-price">$520,000</div>
+                <div class="property-address">
+                  15 Vista Ave, Cannon Hill QLD
+                </div>
+                <div class="property-stats">
+                  <div class="property-stat"><span>3</span> Beds</div>
+                  <div class="property-stat"><span>2</span> Bath</div>
+                  <div class="property-stat"><span>2</span> Car</div>
+                </div>
+                <div class="property-yield">
+                  <span class="yield-label">Gross Yield</span>
+                  <span class="yield-value">6.1%</span>
+                </div>
+              </div>
+            </a>
+
+            <a href="05-property-analysis.html" class="property-card">
+              <div class="property-image">
+                <span class="property-badge" style="background: var(--secondary); color: #1a1a1a">Growth Area</span>
+                <button class="property-favorite" aria-label="Add to favorites">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path
+                      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                    </path>
+                  </svg>
+                </button>
+                <div class="property-match-badge">
+                  <span class="property-match-score">84% Match</span>
+                  <div class="property-match-progress-mini" role="progressbar" aria-valuenow="84" aria-valuemin="0"
+                    aria-valuemax="100" aria-label="Match score">
+                    <div class="property-match-progress-mini-bar" style="width: 84%"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="property-info">
+                <div class="property-price">$465,000</div>
+                <div class="property-address">8 Creek Rd, Coorparoo QLD</div>
+                <div class="property-stats">
+                  <div class="property-stat"><span>2</span> Beds</div>
+                  <div class="property-stat"><span>1</span> Bath</div>
+                  <div class="property-stat"><span>1</span> Car</div>
+                </div>
+                <div class="property-yield">
+                  <span class="yield-label">Gross Yield</span>
+                  <span class="yield-value">5.9%</span>
+                </div>
+              </div>
+            </a>
+
+            <a href="05-property-analysis.html" class="property-card">
+              <div class="property-image">
+                <button class="property-favorite" aria-label="Add to favorites">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path
+                      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                    </path>
+                  </svg>
+                </button>
+                <div class="property-match-badge">
+                  <span class="property-match-score">81% Match</span>
+                  <div class="property-match-progress-mini" role="progressbar" aria-valuenow="81" aria-valuemin="0"
+                    aria-valuemax="100" aria-label="Match score">
+                    <div class="property-match-progress-mini-bar" style="width: 81%"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="property-info">
+                <div class="property-price">$545,000</div>
+                <div class="property-address">
+                  23 Main St, Woolloongabba QLD
+                </div>
+                <div class="property-stats">
+                  <div class="property-stat"><span>3</span> Beds</div>
+                  <div class="property-stat"><span>1</span> Bath</div>
+                  <div class="property-stat"><span>1</span> Car</div>
+                </div>
+                <div class="property-yield">
+                  <span class="yield-label">Gross Yield</span>
+                  <span class="yield-value">5.7%</span>
+                </div>
+              </div>
+            </a>
+
+            <a href="05-property-analysis.html" class="property-card">
+              <div class="property-image">
+                <button class="property-favorite" aria-label="Add to favorites">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path
+                      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                    </path>
+                  </svg>
+                </button>
+                <div class="property-match-badge">
+                  <span class="property-match-score">78% Match</span>
+                  <div class="property-match-progress-mini" role="progressbar" aria-valuenow="78" aria-valuemin="0"
+                    aria-valuemax="100" aria-label="Match score">
+                    <div class="property-match-progress-mini-bar" style="width: 78%"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="property-info">
+                <div class="property-price">$498,000</div>
+                <div class="property-address">
+                  17 Park Ave, Morningside QLD
+                </div>
+                <div class="property-stats">
+                  <div class="property-stat"><span>2</span> Beds</div>
+                  <div class="property-stat"><span>2</span> Bath</div>
+                  <div class="property-stat"><span>1</span> Car</div>
+                </div>
+                <div class="property-yield">
+                  <span class="yield-label">Gross Yield</span>
+                  <span class="yield-value">6.0%</span>
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Onboarding Hint Tooltip -->
+  <div class="onboarding-hint" id="onboardingHint" role="tooltip">
+    <div class="onboarding-hint-header">
+      <svg class="onboarding-hint-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        aria-hidden="true">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+      <button class="onboarding-hint-close" onclick="
+            document.getElementById('onboardingHint').style.display = 'none'
+          " aria-label="Close hint">
+        &times;
+      </button>
+    </div>
+    <div class="onboarding-hint-text">
+      💡 Try clicking a property marker on the map to view detailed
+      information and compare prices.
+    </div>
+  </div>
+
+  <!-- Back to Overview -->
+  <a href="00-journey-overview.html" class="back-link">
+    <span aria-hidden="true">&larr;</span>
+    Journey Overview
+  </a>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+  <script>
+    function toggleLayer(element) {
+      element.classList.toggle("active");
+      const isChecked = element.classList.contains("active");
+      element.setAttribute("aria-checked", isChecked);
+    }
+
+    // Brisbane property data
+    const properties = [
+      {
+        id: 0,
+        lat: -27.4554,
+        lng: 153.0684,
+        price: "$485,000",
+        address: "42 Norman St, Morningside",
+        beds: 3,
+        baths: 2,
+        cars: 1,
+        yield: "6.4%",
+        badge: "Best Match",
+        highlighted: true,
+      },
+      {
+        id: 1,
+        lat: -27.4642,
+        lng: 153.0789,
+        price: "$520,000",
+        address: "15 Vista Ave, Cannon Hill",
+        beds: 3,
+        baths: 2,
+        cars: 2,
+        yield: "6.1%",
+        badge: "High Yield",
+      },
+      {
+        id: 2,
+        lat: -27.4901,
+        lng: 153.0456,
+        price: "$465,000",
+        address: "8 Creek Rd, Coorparoo",
+        beds: 2,
+        baths: 1,
+        cars: 1,
+        yield: "5.9%",
+        badge: "Growth Area",
+      },
+      {
+        id: 3,
+        lat: -27.4834,
+        lng: 153.0312,
+        price: "$545,000",
+        address: "23 Main St, Woolloongabba",
+        beds: 3,
+        baths: 1,
+        cars: 1,
+        yield: "5.7%",
+      },
+      {
+        id: 4,
+        lat: -27.4512,
+        lng: 153.0723,
+        price: "$498,000",
+        address: "17 Park Ave, Morningside",
+        beds: 2,
+        baths: 2,
+        cars: 1,
+        yield: "6.0%",
+      },
+      {
+        id: 5,
+        lat: -27.4678,
+        lng: 153.0856,
+        price: "$510,000",
+        address: "5 River Rd, Cannon Hill",
+        beds: 3,
+        baths: 2,
+        cars: 1,
+        yield: "5.8%",
+      },
+      {
+        id: 6,
+        lat: -27.4789,
+        lng: 153.0534,
+        price: "$475,000",
+        address: "31 Hill St, Coorparoo",
+        beds: 2,
+        baths: 1,
+        cars: 1,
+        yield: "6.2%",
+      },
+      {
+        id: 7,
+        lat: -27.4923,
+        lng: 153.0401,
+        price: "$595,000",
+        address: "12 Stadium Dr, Woolloongabba",
+        beds: 4,
+        baths: 2,
+        cars: 2,
+        yield: "5.5%",
+      },
+    ];
+
+    // Suburb boundaries (simplified polygons)
+    const suburbs = [
+      {
+        name: "Morningside",
+        coordinates: [
+          [-27.445, 153.06],
+          [-27.445, 153.08],
+          [-27.46, 153.08],
+          [-27.46, 153.06],
+        ],
+        color: "#0D7377",
+        yield: "5.8%",
+      },
+      {
+        name: "Cannon Hill",
+        coordinates: [
+          [-27.455, 153.075],
+          [-27.455, 153.095],
+          [-27.475, 153.095],
+          [-27.475, 153.075],
+        ],
+        color: "#1A9599",
+        yield: "5.6%",
+      },
+      {
+        name: "Coorparoo",
+        coordinates: [
+          [-27.48, 153.035],
+          [-27.48, 153.06],
+          [-27.5, 153.06],
+          [-27.5, 153.035],
+        ],
+        color: "#D4AF37",
+        yield: "5.4%",
+      },
+      {
+        name: "Woolloongabba",
+        coordinates: [
+          [-27.475, 153.02],
+          [-27.475, 153.045],
+          [-27.495, 153.045],
+          [-27.495, 153.02],
+        ],
+        color: "#3B82F6",
+        yield: "5.2%",
+      },
+    ];
+
+    // Initialize map centered on Brisbane
+    const map = L.map("map", {
+      center: [-27.4698, 153.0251],
+      zoom: 13,
+      zoomControl: true,
+    });
+
+    // OpenStreetMap tiles (free, no API key required)
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    // Add suburb overlays
+    suburbs.forEach((suburb) => {
+      const polygon = L.polygon(suburb.coordinates, {
+        color: suburb.color,
+        weight: 2,
+        fillColor: suburb.color,
+        fillOpacity: 0.15,
+        dashArray: "5, 5",
+      }).addTo(map);
+
+      polygon.bindTooltip(
+        `<strong>${suburb.name}</strong><br>Avg Yield: ${suburb.yield}`,
+        {
+          permanent: false,
+          direction: "center",
+          className: "suburb-tooltip",
+        },
+      );
+    });
+
+    // Custom marker icon
+    function createMarkerIcon(property, isSelected = false) {
+      const colorClass = property.highlighted
+        ? "best-match"
+        : isSelected
+          ? "selected"
+          : "";
+      // Using a standard marker instead of divIcon for accessibility support if needed, but custom divIcon is requested
+      // We add aria-label to the container div
+      return L.divIcon({
+        className: "custom-marker-wrapper",
+        html: `<div class="custom-marker ${colorClass}" role="button" aria-label="Property at ${property.address}, Price ${property.price}" tabindex="0">${property.id + 1}</div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -20],
+      });
+    }
+
+    // Add markers
+    let markers = [];
+    let selectedMarker = null;
+
+    properties.forEach((property) => {
+      const marker = L.marker([property.lat, property.lng], {
+        icon: createMarkerIcon(property),
+      }).addTo(map);
+
+      // Popup content
+      const popupContent = `
+                <div class="popup-content">
+                    <div class="popup-image">
+                        ${property.badge ? `<span class="popup-badge">${property.badge}</span>` : ""}
+                    </div>
+                    <div class="popup-price">${property.price}</div>
+                    <div class="popup-address">${property.address}</div>
+                    <div class="popup-stats">
+                        <span>${property.beds} bed</span> •
+                        <span>${property.baths} bath</span> •
+                        <span>${property.cars} car</span>
+                    </div>
+                    <div class="popup-yield">
+                        <span class="popup-yield-label">Gross Yield</span>
+                        <span class="popup-yield-value">${property.yield}</span>
+                    </div>
+                </div>
+            `;
+
+      marker.bindPopup(popupContent, {
+        maxWidth: 280,
+        className: "custom-popup",
+      });
+
+      marker.on("click", function () {
+        selectProperty(property.id);
+      });
+
+      // Keyboard support for marker
+      marker.on("keydown", function (e) {
+        if (e.originalEvent.key === "Enter" || e.originalEvent.key === " ") {
+          selectProperty(property.id);
+        }
+      });
+
+      markers.push({ marker, property });
+    });
+
+    // Select property function
+    function selectProperty(id) {
+      // Update markers
+      markers.forEach((m) => {
+        const isSelected = m.property.id === id;
+        m.marker.setIcon(createMarkerIcon(m.property, isSelected));
+        if (isSelected) {
+          m.marker.openPopup();
+          map.panTo([m.property.lat, m.property.lng]);
+        }
+      });
+
+      // Update property cards
+      const cards = document.querySelectorAll(".property-mini-card");
+      cards.forEach((card, index) => {
+        card.classList.toggle("highlighted", index === id);
+      });
+    }
+
+    // Pan to first property (best match)
+    setTimeout(() => {
+      map.setView([-27.4554, 153.0684], 14);
+      markers[0].marker.openPopup();
+    }, 500);
+
+    // Tab switching
+    document.querySelectorAll(".map-tab").forEach((tab, index) => {
+      tab.addEventListener("click", function () {
+        document.querySelectorAll(".map-tab").forEach((t) => {
+          t.classList.remove("active");
+          t.setAttribute("aria-selected", "false");
+        });
+        this.classList.add("active");
+        this.setAttribute("aria-selected", "true");
+
+        // Toggle between map and list view
+        const mapContainer = document.getElementById("map");
+        const listView = document.getElementById("propertyListView");
+
+        if (index === 0) {
+          // Map View
+          if (mapContainer) mapContainer.style.display = "block";
+          if (listView) listView.classList.remove("active");
+        } else if (index === 1) {
+          // List View
+          if (mapContainer) mapContainer.style.display = "none";
+          if (listView) listView.classList.add("active");
+        } else {
+          // Suburb Stats - hide both for now
+          if (mapContainer) mapContainer.style.display = "none";
+          if (listView) listView.classList.remove("active");
+        }
+      });
+    });
+
+    // Auto-resize textarea
+    const textarea = document.querySelector(".chat-input");
+    textarea.addEventListener("input", function () {
+      this.style.height = "auto";
+      this.style.height = Math.min(this.scrollHeight, 120) + "px";
+    });
+
+    // Quick actions
+    document.querySelectorAll(".quick-action").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        textarea.value = this.textContent;
+        textarea.focus();
+      });
+    });
+
+    // Scroll chat to bottom
+    const chatMessages = document.getElementById("chatMessages");
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // Strategy Dropdown
+    function toggleStrategyDropdown() {
+      const dropdown = document.getElementById("strategyDropdown");
+      const badge = document.getElementById("strategyBadge");
+      const isExpanded = dropdown.classList.toggle("active");
+      badge.setAttribute("aria-expanded", isExpanded);
+    }
+
+    function selectStrategy(strategyType, strategyName) {
+      // Update badge text
+      document.getElementById("currentStrategy").textContent = strategyName;
+
+      // Update active state in dropdown
+      document.querySelectorAll(".strategy-option").forEach(opt => {
+        opt.classList.remove("active");
+      });
+      event.target.closest(".strategy-option").classList.add("active");
+
+      // Close dropdown
+      document.getElementById("strategyDropdown").classList.remove("active");
+      document.getElementById("strategyBadge").setAttribute("aria-expanded", "false");
+
+      console.log(`Switched to ${strategyName}`);
+    }
+
+    // Click outside to close dropdown
+    document.addEventListener("click", (e) => {
+      const selector = document.querySelector(".strategy-selector");
+      if (selector && !selector.contains(e.target)) {
+        document.getElementById("strategyDropdown").classList.remove("active");
+        document.getElementById("strategyBadge").setAttribute("aria-expanded", "false");
+      }
+    });
+
+    // Initialize Spider Chart
+    function initRiskChart() {
+      const ctx = document.getElementById("riskChart");
+      if (!ctx) return;
+
+      new Chart(ctx, {
+        type: "radar",
+        data: {
+          labels: [
+            "Vacancy Risk",
+            "Market Volatility",
+            "Infrastructure",
+            "Demographics",
+            "Capital Growth",
+            "Cash Flow",
+            "Liquidity",
+            "Economic Sensitivity"
+          ],
+          datasets: [{
+            label: "Risk Score",
+            data: [92, 68, 88, 85, 75, 95, 70, 72],
+            fill: true,
+            backgroundColor: "rgba(13, 115, 119, 0.2)",
+            borderColor: "rgba(13, 115, 119, 1)",
+            borderWidth: 2,
+            pointBackgroundColor: "rgba(13, 115, 119, 1)",
+            pointBorderColor: "#fff",
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            r: {
+              min: 0,
+              max: 100,
+              ticks: {
+                stepSize: 20,
+                color: "#6b7280",
+                backdropColor: "transparent"
+              },
+              grid: {
+                color: "rgba(255, 255, 255, 0.08)"
+              },
+              pointLabels: {
+                color: "#9ba3af",
+                font: {
+                  size: 11,
+                  family: "'DM Sans', sans-serif"
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: "#242b33",
+              titleColor: "#f7f9fc",
+              bodyColor: "#9ba3af",
+              borderColor: "rgba(255, 255, 255, 0.08)",
+              borderWidth: 1,
+              padding: 12,
+              displayColors: false,
+              callbacks: {
+                label: function (context) {
+                  return context.parsed.r + "/100";
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Initialize chart on page load
+    if (typeof Chart !== "undefined") {
+      setTimeout(initRiskChart, 100);
+    }
+
+    // Property Comparison State
+    let selectedProperties = [];
+
+    function togglePropertySelection(propertyId) {
+      const index = selectedProperties.indexOf(propertyId);
+      if (index > -1) {
+        selectedProperties.splice(index, 1);
+      } else {
+        if (selectedProperties.length >= 3) {
+          alert("You can compare up to 3 properties at a time");
+          return;
+        }
+        selectedProperties.push(propertyId);
+      }
+      updateComparisonButton();
+    }
+
+    function updateComparisonButton() {
+      const compareBtn = document.querySelector('[data-action="compare"]');
+      if (compareBtn) {
+        compareBtn.textContent = selectedProperties.length > 0
+          ? `Compare properties (${selectedProperties.length})`
+          : 'Compare properties';
+      }
+    }
+
+    function showComparisonModal() {
+      if (selectedProperties.length < 2) {
+        alert("Please select at least 2 properties to compare");
+        return;
+      }
+      document.getElementById("comparisonModal").classList.add("active");
+    }
+
+    function closeComparisonModal() {
+      document.getElementById("comparisonModal").classList.remove("active");
+    }
+
+    // Keyboard navigation
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeComparisonModal();
+        document.getElementById("strategyDropdown").classList.remove("active");
+      }
+    });
+  </script>
+
+  <!-- Comparison Modal -->
+  <div class="comparison-modal" id="comparisonModal" role="dialog" aria-labelledby="comparisonTitle" aria-modal="true">
+    <div class="comparison-content">
+      <div class="comparison-header">
+        <h2 class="comparison-title" id="comparisonTitle">Property Comparison</h2>
+        <button class="comparison-close" onclick="closeComparisonModal()" aria-label="Close comparison">
+          ×
+        </button>
+      </div>
+      <div class="comparison-body">
+        <div class="comparison-grid">
+          <!-- Property 1 -->
+          <div class="comparison-property">
+            <div class="comparison-property-header">42 Norman St, Morningside</div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Price</span>
+              <span class="comparison-metric-value">$485,000</span>
+            </div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Yield</span>
+              <span class="comparison-metric-value positive">6.4%</span>
+            </div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Cash Flow (weekly)</span>
+              <span class="comparison-metric-value positive">+$49/wk</span>
+            </div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Strategy Match</span>
+              <span class="comparison-metric-value">92%</span>
+            </div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Risk Level</span>
+              <span class="comparison-metric-value positive">Low</span>
+            </div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Beds/Baths</span>
+              <span class="comparison-metric-value">3/2</span>
+            </div>
+          </div>
+          <!-- Property 2 -->
+          <div class="comparison-property">
+            <div class="comparison-property-header">15 Vista Ave, Cannon Hill</div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Price</span>
+              <span class="comparison-metric-value">$520,000</span>
+            </div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Yield</span>
+              <span class="comparison-metric-value positive">6.1%</span>
+            </div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Cash Flow (weekly)</span>
+              <span class="comparison-metric-value positive">+$38/wk</span>
+            </div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Strategy Match</span>
+              <span class="comparison-metric-value">87%</span>
+            </div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Risk Level</span>
+              <span class="comparison-metric-value positive">Low</span>
+            </div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Beds/Baths</span>
+              <span class="comparison-metric-value">3/2</span>
+            </div>
+          </div>
+          <!-- Property 3 -->
+          <div class="comparison-property">
+            <div class="comparison-property-header">8 Creek Rd, Coorparoo</div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Price</span>
+              <span class="comparison-metric-value">$465,000</span>
+            </div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Yield</span>
+              <span class="comparison-metric-value positive">5.9%</span>
+            </div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Cash Flow (weekly)</span>
+              <span class="comparison-metric-value positive">+$28/wk</span>
+            </div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Strategy Match</span>
+              <span class="comparison-metric-value">84%</span>
+            </div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Risk Level</span>
+              <span class="comparison-metric-value">Moderate</span>
+            </div>
+            <div class="comparison-metric">
+              <span class="comparison-metric-label">Beds/Baths</span>
+              <span class="comparison-metric-value">2/1</span>
+            </div>
+          </div>
+        </div>
+        <div class="comparison-charts">
+          <div class="comparison-chart-title">Risk Factor Comparison</div>
+          <p style="text-align: center; color: var(--text-muted); font-size: 13px;">
+            Side-by-side spider charts would appear here for detailed risk factor comparison
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,290 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.0.6 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36" version="28.0.6">
+  <diagram name="Propure Customer Journey Map" id="4RsLTP5c_KzI0oOd9b3T">
+    <mxGraphModel dx="2159" dy="810" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title-main" value="PROPURE DETAILED PRODUCT BLUEPRINT" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=32;fontStyle=1;fontColor=#006699;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="560" y="24" width="800" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="title-subtitle" value="End-to-End Architectural Flow | AI Orchestration | MCP Data Layer | UX Micro-Interactions" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=16;fontColor=#666666;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="560" y="72" width="800" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="header-label" value="PHASES &amp;&#xa;SUB-STEPS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=none;fontColor=#FFFFFF;fontSize=14;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="120" width="120" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="phase-1" value="1. DISCOVERY (ZMOT)&#xa;1.1 Awareness → 1.2 Interest" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#003366;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="168" y="120" width="200" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="phase-2" value="2. SIGN-UP&#xa;2.1 Auth → 2.2 Profile" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#003366;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="376" y="120" width="160" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="phase-3" value="3. ONBOARDING&#xa;3.1 Wizard → 3.2 Context" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#003366;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="544" y="120" width="200" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="phase-4" value="4. AI STRATEGY (FMOT)&#xa;4.1 Chat → 4.2 Formulation" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#003366;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="752" y="120" width="240" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="phase-5" value="5. SEARCH &amp; RESEARCH&#xa;5.1 Map → 5.2 Filter" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#003366;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1000" y="120" width="240" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="phase-6" value="6. ANALYSIS (SMOT)&#xa;6.1 Sim → 6.2 Risk" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#003366;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1248" y="120" width="200" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="phase-7" value="7. DECISION (UMOT)&#xa;7.1 Compare → 7.2 Act" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#003366;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1456" y="120" width="200" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="touchpoints-label" value="UI TOUCHPOINTS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="192" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="touch-1a" value="Landing Page&#xa;(Parallax Hero)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#006699;strokeColor=none;fontColor=#FFFFFF;fontSize=11;fontStyle=1;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="176" y="200" width="184" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="touch-1b" value="Video Auto-play | Typewriter Text" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3399CC;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="176" y="240" width="184" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="touch-2a" value="Clerk Auth Modal" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#006699;strokeColor=none;fontColor=#FFFFFF;fontSize=11;fontStyle=1;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="384" y="200" width="144" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="touch-2b" value="Social Login | Magic Link" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3399CC;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="384" y="240" width="144" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="touch-3a" value="Investment Wizard" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#006699;strokeColor=none;fontColor=#FFFFFF;fontSize=11;fontStyle=1;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="552" y="200" width="184" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="touch-3b" value="Smooth Progress Bar | Card Snap" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3399CC;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="552" y="240" width="184" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="touch-4a" value="Split-Screen Chat UI" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#006699;strokeColor=none;fontColor=#FFFFFF;fontSize=11;fontStyle=1;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="760" y="200" width="216" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="touch-4b" value="Typing Dots (...) | Streamed Text" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3399CC;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="760" y="240" width="216" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="touch-5a" value="Leaflet Interactive Map" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#006699;strokeColor=none;fontColor=#FFFFFF;fontSize=11;fontStyle=1;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="1008" y="200" width="216" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="touch-5b" value="Spiderfy Cluster | Hover Cards" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3399CC;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="1008" y="240" width="216" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="touch-6a" value="Financial Detail Dashboard" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#006699;strokeColor=none;fontColor=#FFFFFF;fontSize=11;fontStyle=1;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="1256" y="200" width="184" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="touch-6b" value="Growing Charts | Number Roll-up" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3399CC;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="1256" y="240" width="184" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="touch-7a" value="Comparison Matrix" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#006699;strokeColor=none;fontColor=#FFFFFF;fontSize=11;fontStyle=1;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="1464" y="200" width="184" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="touch-7b" value="Drag-drop Compare | PDF Ring" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3399CC;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="1464" y="240" width="184" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="innov-label" value="UX&#xa;INNOVATIONS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1FCBA7;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="280" width="120" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="inn-2" value="✨ Smart Ingest&#xa;(Parse LinkedIn/Bank PDF)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1FCBA7;strokeColor=none;fontColor=#FFFFFF;fontSize=11;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="384" y="288" width="144" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="inn-4" value="✨ Live Strategy Canvas&#xa;(Right panel updates realtime)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1FCBA7;strokeColor=none;fontColor=#FFFFFF;fontSize=11;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="760" y="288" width="216" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="inn-5" value="✨ Commute Isochrones&#xa;(Search by 30-min drive poly)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1FCBA7;strokeColor=none;fontColor=#FFFFFF;fontSize=11;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1008" y="288" width="216" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="inn-6" value="✨ Scenario Playground&#xa;(Instant Interest Rate Sliders)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1FCBA7;strokeColor=none;fontColor=#FFFFFF;fontSize=11;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1256" y="288" width="184" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="inn-7" value="✨ AI Deal Memo&#xa;(One-click Pitch PDF)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1FCBA7;strokeColor=none;fontColor=#FFFFFF;fontSize=11;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1464" y="288" width="184" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="actions-label" value="USER&#xa;ACTIONS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="336" width="120" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="action-1" value="• Scans value prop&#xa;• Plays demo video&#xa;• Clicks &#39;Start Free&#39;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#006699;strokeWidth=1;fontColor=#006699;fontSize=10;fontFamily=Segoe UI;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="176" y="344" width="184" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="action-2" value="• Selects Google Auth&#xa;• Uploads Documents&#xa;• Grants Permissions" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#006699;strokeWidth=1;fontColor=#006699;fontSize=10;fontFamily=Segoe UI;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="384" y="344" width="144" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="action-3" value="• Inputs Budget ($)&#xa;• Sets Risk Level&#xa;• Defines Goals" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#006699;strokeWidth=1;fontColor=#006699;fontSize=10;fontFamily=Segoe UI;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="552" y="344" width="184" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="action-4" value="• Converses with AI&#xa;• Refines Strategy&#xa;• Approves Direction" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#006699;strokeWidth=1;fontColor=#006699;fontSize=10;fontFamily=Segoe UI;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="768" y="344" width="216" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="action-5" value="• Pans/Zooms Map&#xa;• Clicks &#39;High Yield&#39;&#xa;• Saves Favorites" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#006699;strokeWidth=1;fontColor=#006699;fontSize=10;fontFamily=Segoe UI;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1016" y="344" width="216" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="action-6" value="• Adjusts Mortage %&#xa;• Checks Cashflow&#xa;• Reads Risk Audit" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#006699;strokeWidth=1;fontColor=#006699;fontSize=10;fontFamily=Segoe UI;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1264" y="344" width="168" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="action-7" value="• Ranks Top 3&#xa;• Exports Report&#xa;• Clicks &#39;Enquire&#39;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#006699;strokeWidth=1;fontColor=#006699;fontSize=10;fontFamily=Segoe UI;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1472" y="344" width="168" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="thoughts-label" value="USER&#xa;THOUGHTS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="408" width="120" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="thought-1" value="&quot;Can AI really help me invest?&quot;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;strokeWidth=1;fontColor=#666666;fontSize=10;fontStyle=2;fontFamily=Segoe UI;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="176" y="412" width="184" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="thought-2" value="&quot;Document upload saved me 20 mins.&quot;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;strokeWidth=1;fontColor=#666666;fontSize=10;fontStyle=2;fontFamily=Segoe UI;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="384" y="412" width="144" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="thought-3" value="&quot;It understands my goals better than I do.&quot;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;strokeWidth=1;fontColor=#666666;fontSize=10;fontStyle=2;fontFamily=Segoe UI;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="552" y="412" width="184" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="thought-4" value="&quot;Wow, the strategy builds itself!&quot;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;strokeWidth=1;fontColor=#666666;fontSize=10;fontStyle=2;fontFamily=Segoe UI;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="768" y="412" width="216" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="thought-5" value="&quot;I see where the growth corridors are.&quot;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;strokeWidth=1;fontColor=#666666;fontSize=10;fontStyle=2;fontFamily=Segoe UI;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1016" y="412" width="216" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="thought-6" value="&quot;Simulating scenarios gives me peace.&quot;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;strokeWidth=1;fontColor=#666666;fontSize=10;fontStyle=2;fontFamily=Segoe UI;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1264" y="412" width="168" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="thought-7" value="&quot;I&#39;m ready to make an offer.&quot;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;strokeWidth=1;fontColor=#666666;fontSize=10;fontStyle=2;fontFamily=Segoe UI;align=center;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1472" y="412" width="168" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ai-label" value="AI AGENTS &amp;&#xa;TOOLS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="472" width="120" height="144" as="geometry" />
+        </mxCell>
+        <mxCell id="ai-orch-banner" value="ORCHESTRATOR (Claude Sonnet 4) - Context Manager, Router, Synthesizer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1FCBA7;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="176" y="480" width="1464" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="ai-none-1" value="No Active Agent&#xa;(Static Web Flow)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E6E6E6;strokeColor=none;fontColor=#666666;fontSize=11;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="176" y="520" width="560" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ai-strat" value="&lt;b&gt;STRATEGIST AGENT (Sonnet)&lt;/b&gt;&#xa;&#xa;Tools:&#xa;• captureDiscoveryInput()&#xa;• recommendStrategy()&#xa;• updateUIState(canvas)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#006699;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontStyle=0;fontFamily=Segoe UI;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+          <mxGeometry x="752" y="520" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ai-res" value="&lt;b&gt;RESEARCHER AGENT (Haiku)&lt;/b&gt;&#xa;&#xa;MCP Tools:&#xa;• domain.search_properties&#xa;• market.get_suburb_stats&#xa;• geo.get_isochrone" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#006699;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontStyle=0;fontFamily=Segoe UI;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+          <mxGeometry x="1000" y="520" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ai-analyst" value="&lt;b&gt;ANALYST AGENT (Haiku)&lt;/b&gt;&#xa;&#xa;Tools:&#xa;• calculateROI(cashflow)&#xa;• assessRisk(volatility)&#xa;• generateDealMemo(pdf)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#006699;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontStyle=0;fontFamily=Segoe UI;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+          <mxGeometry x="1248" y="520" width="400" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="backend-label" value="BACKEND&#xa;STACK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="632" width="120" height="96" as="geometry" />
+        </mxCell>
+        <mxCell id="be-1" value="&lt;b&gt;Infra&lt;/b&gt;&#xa;Vercel Edge&#xa;PostHog" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontFamily=Segoe UI;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="168" y="640" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="be-2" value="&lt;b&gt;Identity&lt;/b&gt;&#xa;Clerk Auth&#xa;Prisma (Neon)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontFamily=Segoe UI;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="376" y="640" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="be-3" value="&lt;b&gt;State&lt;/b&gt;&#xa;Upstash Redis&#xa;(Session Context)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontFamily=Segoe UI;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="544" y="640" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="be-4" value="&lt;b&gt;AI &amp; Realtime&lt;/b&gt;&#xa;Vercel AI SDK&#xa;Pusher (WS)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontFamily=Segoe UI;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="752" y="640" width="240" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="be-5" value="&lt;b&gt;Data &amp; Geo&lt;/b&gt;&#xa;MCP (Domain/REA)&#xa;PostGIS (Spatial)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontFamily=Segoe UI;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="1000" y="640" width="240" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="be-6" value="&lt;b&gt;Analytics&lt;/b&gt;&#xa;TimescaleDB&#xa;Python Engine" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontFamily=Segoe UI;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="1248" y="640" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="be-7" value="&lt;b&gt;Transactional&lt;/b&gt;&#xa;Stripe Payments&#xa;SendGrid Email" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontFamily=Segoe UI;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="1456" y="640" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="emotion-label" value="EMOTION&#xa;CURVE" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="744" width="120" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="emotion-scale-3" value="+3 Delighted" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=10;fontColor=#666666;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="168" y="752" width="80" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="emotion-scale-2" value="+2 Excited" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=10;fontColor=#666666;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="168" y="784" width="80" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="emotion-scale-1" value="+1 Positive" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=10;fontColor=#666666;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="168" y="816" width="80" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="emotion-scale-0" value="0 Neutral" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=10;fontColor=#666666;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="168" y="848" width="80" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="grid-line-3" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#CCCCCC;strokeWidth=1;dashed=1;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="256" y="760" as="sourcePoint" />
+            <mxPoint x="1656" y="760" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="grid-line-2" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#CCCCCC;strokeWidth=1;dashed=1;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="256" y="792" as="sourcePoint" />
+            <mxPoint x="1656" y="792" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="grid-line-1" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#CCCCCC;strokeWidth=1;dashed=1;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="256" y="824" as="sourcePoint" />
+            <mxPoint x="1656" y="824" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="grid-line-0" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#666666;strokeWidth=1;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="256" y="856" as="sourcePoint" />
+            <mxPoint x="1656" y="856" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="emotion-curve" value="" style="endArrow=none;html=1;rounded=1;strokeColor=#006699;strokeWidth=3;curved=1;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="456" y="856" />
+              <mxPoint x="644" y="824" />
+              <mxPoint x="872" y="792" />
+              <mxPoint x="1120" y="792" />
+              <mxPoint x="1348" y="824" />
+            </Array>
+            <mxPoint x="288" y="824" as="sourcePoint" />
+            <mxPoint x="1576" y="760" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="emotion-point-1" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1FCBA7;strokeColor=#006699;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="280" y="816" width="16" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="emotion-point-2" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFB96B;strokeColor=#006699;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="448" y="848" width="16" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="emotion-point-3" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1FCBA7;strokeColor=#006699;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="636" y="816" width="16" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="emotion-point-4" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1FCBA7;strokeColor=#006699;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="864" y="784" width="16" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="emotion-point-5" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1FCBA7;strokeColor=#006699;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="1112" y="784" width="16" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="emotion-point-6" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFB96B;strokeColor=#006699;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="1340" y="810" width="16" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="emotion-point-7" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1FCBA7;strokeColor=#006699;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="1568" y="752" width="16" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="persona-container" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#006699;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="1696" y="120" width="200" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="persona-header" value="PERSONA" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#006699;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1696" y="120" width="200" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="persona-name" value="Mike - First-time&lt;br&gt;Property Investor" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#003366;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="1696" y="160" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="persona-details" value="Age: 35 | Sydney&#xa;IT Manager&#xa;&#xa;Goals:&#xa;- Build wealth&#xa;- Data-driven decisions&#xa;- Right strategy&#xa;&#xa;Frustrations:&#xa;- Market complexity&#xa;- Limited time&#xa;- Fear of mistakes" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=10;fontColor=#666666;fontFamily=Segoe UI;spacingLeft=8;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="1696" y="200" width="200" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="metrics-container" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#006699;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="1696" y="376" width="200" height="176" as="geometry" />
+        </mxCell>
+        <mxCell id="metrics-header" value="KEY METRICS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#003366;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontStyle=1;fontFamily=Segoe UI;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="1696" y="376" width="200" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="metrics-details" value="Onboarding Time: ~5 min&lt;br&gt;Strategy Discovery: ~20 min&lt;br&gt;Property Search: ~45 mins&lt;br&gt;Decision Time: ~20 mins&lt;br&gt;&lt;br&gt;Total Journey: ~90 mins&lt;br&gt;&lt;br&gt;Conversion Milestone:&lt;br&gt;Strategy Identified" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=10;fontColor=#666666;fontFamily=Segoe UI;spacingLeft=8;spacingTop=8;" parent="1" vertex="1">
+          <mxGeometry x="1696" y="408" width="200" height="144" as="geometry" />
+        </mxCell>
+        <mxCell id="footer" value="Propure Customer Journey Map | AI-Powered Property Investment Platform | Version 2.0" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontColor=#999999;fontFamily=Segoe UI;" parent="1" vertex="1">
+          <mxGeometry x="560" y="870" width="800" height="24" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
