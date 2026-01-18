@@ -2,7 +2,11 @@ import type {
   PropertyListing,
   PropertyAddress,
   PropertyFeatures,
+  ListingStatus,
+  ListingType,
+  DataSource,
 } from "../schemas";
+import * as cheerio from "cheerio";
 
 interface DomainNextData {
   props: {
@@ -88,87 +92,287 @@ export function extractDomainNextData(html: string): DomainNextData | null {
 /**
  * Parse Domain.com.au property listing from HTML
  */
-export function parseDomainPropertyListing(
-  html: string,
-): PropertyListing | null {
-  const nextData = extractDomainNextData(html);
-  if (!nextData?.props?.pageProps?.componentProps) {
+function parseNumber(value: string): number | undefined {
+  const n = Number(value.replace(/[^\d]/g, ""));
+  return isNaN(n) ? undefined : n;
+}
+
+export function parseAustralianAddress(
+  rawAddress: string
+): PropertyAddress | null {
+  try {
+    const displayAddress = rawAddress.trim();
+
+    const parts = rawAddress.split(",").map(p => p.trim());
+    if (parts.length < 2) return null;
+
+    const streetPart = parts[0];
+    const suburbStatePostcode = parts[1];
+
+    // Remove unit/level prefixes (Level 29/, Unit 3/, Apt 4/)
+    const cleanedStreet = streetPart.replace(
+      /^(Level|Lvl|Unit|Apartment|Apt|Suite)\s+\d+\/?/i,
+      ""
+    );
+
+    // Street number
+    const streetNumberMatch = cleanedStreet.match(/\d+/);
+    const streetNumber = streetNumberMatch?.[0];
+
+    // Street name & type
+    const streetMatch = cleanedStreet
+      .replace(streetNumber ?? "", "")
+      .trim()
+      .match(/^(.+?)\s+(Street|St|Road|Rd|Avenue|Ave|Boulevard|Blvd|Drive|Dr|Lane|Ln|Way|Court|Ct|Place|Pl|Terrace|Tce)$/i);
+
+    const streetName = streetMatch?.[1];
+    const streetType = streetMatch?.[2];
+
+    // Suburb / state / postcode
+    const suburbMatch = suburbStatePostcode.match(
+      /^(.+)\s+(NSW|VIC|QLD|WA|SA|TAS|NT|ACT)\s+(\d{4})$/i
+    );
+
+    if (!suburbMatch) return null;
+
+    const suburb = suburbMatch[1];
+    const state = suburbMatch[2].toUpperCase() as AustralianState;
+    const postcode = suburbMatch[3];
+
+    return {
+      streetNumber,
+      streetName,
+      streetType,
+      suburb,
+      state,
+      postcode,
+      displayAddress
+    };
+  } catch {
     return null;
   }
+}
 
-  const props = nextData.props.pageProps.componentProps;
-  const listing = props.listingDetails;
-  const addr = props.address;
-  const feat = props.features;
-  const agents = props.agents;
+function extractNumber(value?: string): number | undefined {
+  if (!value) return undefined;
+  const match = value.replace(/,/g, "").match(/\d+/);
+  return match ? Number(match[0]) : undefined;
+}
 
-  if (!listing?.id || !addr?.suburb || !addr?.state || !addr?.postcode) {
-    return null;
-  }
-
-  const address: PropertyAddress = {
-    streetNumber: addr.streetNumber,
-    streetName: addr.streetName,
-    streetType: addr.streetType,
-    suburb: addr.suburb,
-    state: addr.state as PropertyAddress["state"],
-    postcode: addr.postcode,
-    displayAddress:
-      addr.displayAddress ||
-      `${addr.streetNumber || ""} ${addr.streetName || ""} ${addr.streetType || ""}, ${addr.suburb}`.trim(),
-    latitude: addr.lat,
-    longitude: addr.lng,
-  };
-
-  const features: PropertyFeatures = {
-    bedrooms: feat?.beds,
-    bathrooms: feat?.baths,
-    parkingSpaces: feat?.parking,
-    landSize: feat?.landSize,
-    buildingSize: feat?.buildingSize,
-    propertyType: normalizePropertyType(feat?.propertyType),
-    features: feat?.features,
-  };
-
-  const agent = agents?.[0];
-
-  // Determine listing type
-  let listingType: PropertyListing["listingType"] = "sale";
-  if (listing.listingType?.toLowerCase().includes("rent")) {
-    listingType = "rent";
-  } else if (
-    listing.status?.toLowerCase().includes("sold") ||
-    listing.saleMode?.toLowerCase().includes("sold")
-  ) {
-    listingType = "sold";
-  }
-
+export function parsePropertyFeatures(input: {
+  bedrooms?: string;
+  bathrooms?: string;
+  carSpaces?: string;
+  size?: string;
+  features?: string[];
+  propertyType?: string;
+}): PropertyFeatures {
   return {
-    externalId: `domain-${listing.id}`,
-    source: "DOMAIN",
-    sourceUrl: `https://www.domain.com.au/${listing.id}`,
-    address,
-    features,
-    price: listing.priceDetails?.displayPrice,
-    listingType,
-    listingStatus: normalizeListingStatus(listing.status),
-    headline: listing.headline,
-    description: listing.description,
-    images: listing.media
-      ?.filter((m) => m.type === "photo" || m.type === "image")
-      .map((m) => m.url)
-      .filter((url): url is string => !!url),
-    agentName: agent?.name,
-    agentPhone: agent?.phone,
-    agencyName: agent?.agencyName,
-    listedDate: listing.dateListed,
-    auctionDate: listing.auctionSchedule?.time,
-    inspectionTimes: listing.inspections
-      ?.map((i) => i.time)
-      .filter((t): t is string => !!t),
-    scrapedAt: new Date().toISOString(),
+    bedrooms: extractNumber(input.bedrooms),
+    bathrooms: extractNumber(input.bathrooms),
+    parkingSpaces: extractNumber(input.carSpaces),
+    buildingSize: extractNumber(input.size),
+    features: input.features,
+    propertyType: mapPropertyType(input.propertyType)
   };
 }
+export function parsePrice(price?: string): {
+  priceValue?: number;
+  priceFrom?: number;
+  priceTo?: number;
+} {
+  if (!price) return {};
+
+  const cleaned = price.replace(/,/g, "");
+
+  // Range: $800 - $900
+  const rangeMatch = cleaned.match(/\$(\d+)\s*-\s*\$(\d+)/);
+  if (rangeMatch) {
+    return {
+      priceFrom: Number(rangeMatch[1]),
+      priceTo: Number(rangeMatch[2])
+    };
+  }
+
+  // Single price
+  const valueMatch = cleaned.match(/\$(\d+)/);
+  if (valueMatch) {
+    return {
+      priceValue: Number(valueMatch[1])
+    };
+  }
+
+  return {};
+}
+export function mapPropertyType(raw?: string): PropertyType | undefined {
+  if (!raw) return undefined;
+
+  const value = raw.toLowerCase();
+
+  if (value.includes("house")) return "house";
+  if (value.includes("apartment") || value.includes("flat"))
+    return "apartment";
+  if (value.includes("unit")) return "unit";
+  if (value.includes("townhouse")) return "townhouse";
+  if (value.includes("villa")) return "villa";
+  if (value.includes("land")) return "land";
+  if (value.includes("rural")) return "rural";
+  if (value.includes("commercial")) return "commercial";
+
+  return "other";
+}
+export function deriveListingStatus(
+  listingType: ListingType
+): ListingStatus {
+  if (listingType === "sold") return "SOLD";
+  return "ACTIVE";
+}
+
+export function parseDomainPropertyListing(
+  html: string,
+  listingType: ListingType,
+  sourceUrl?: string
+): PropertyListing | null {
+  try {
+    const $ = cheerio.load(html);
+
+    // -----------------------------
+    // HEADLINE (USED AS ADDRESS SOURCE)
+    // -----------------------------
+
+    const headline =
+      $("div[data-testid=listing-details__button-copy-wrapper] h1")
+        .first()
+        .text()
+        .trim();
+
+    if (!headline) return null;
+
+    // -----------------------------
+    // ADDRESS
+    // -----------------------------
+
+    const address = parseAustralianAddress(headline);
+    if (!address) return null;
+
+    // -----------------------------
+    // PRICE
+    // -----------------------------
+
+    const price =
+      $("div[data-testid='listing-details__summary-title'] span")
+        .first()
+        .text()
+        .trim() || undefined;
+
+    const { priceValue, priceFrom, priceTo } = parsePrice(price);
+
+    // -----------------------------
+    // FEATURES (CORE)
+    // -----------------------------
+
+    const featureEls = $(
+      "div[data-testid='property-features'] span[data-testid='property-features-text-container']"
+    );
+
+    const features = parsePropertyFeatures({
+      bedrooms: featureEls.eq(0).text(),
+      bathrooms: featureEls.eq(1).text(),
+      carSpaces: featureEls.eq(2).text(),
+      size: featureEls.eq(3).text()
+    });
+
+    // -----------------------------
+    // FEATURE LIST
+    // -----------------------------
+
+    const featureList: string[] = [];
+    $("li[data-testid^='listing-details__additional-']").each((_, el) => {
+      featureList.push($(el).text().trim());
+    });
+
+    if (featureList.length) {
+      features.features = featureList;
+    }
+
+    // -----------------------------
+    // DESCRIPTION
+    // -----------------------------
+
+    let description: string | undefined;
+    const descContainer = $("div[data-testid='listing-details__description']");
+
+    if (descContainer.length) {
+      descContainer.find("button").remove();
+      description = descContainer
+      .find("p")
+      .map((_index: number, el: cheerio.Element) => $(el).text().trim())
+      .get()
+      .join(" ");
+
+
+    // -----------------------------
+    // AGENT
+    // -----------------------------
+
+    const agentName =
+      $("[data-testid=listing-details__agent-details-agent-name]")
+        .first()
+        .text()
+        .trim() || undefined;
+
+    const phoneHref = $(
+      "a[data-testid='listing-details__phone-cta-button']"
+    ).attr("href");
+
+    const agentPhone = phoneHref?.replace("tel:", "");
+
+    const agencyName =
+      $("a[data-testid=listing-details__agent-details-agency-name] > div")
+        .first()
+        .text()
+        .trim() || undefined;
+
+    // -----------------------------
+    // EXTERNAL ID
+    // -----------------------------
+
+    const externalId =
+      sourceUrl?.split("/").pop() ??
+      `domain-${Buffer.from(headline).toString("base64")}`;
+
+    // -----------------------------
+    // FINAL LISTING
+    // -----------------------------
+
+    const listing: PropertyListing = {
+      externalId,
+      source: "DOMAIN",
+      sourceUrl,
+      address,
+      features,
+      price,
+      priceValue,
+      priceFrom,
+      priceTo,
+      listingType,
+      listingStatus: listingType === "sold" ? "SOLD" : "ACTIVE",
+      headline,
+      description,
+      agentName,
+      agentPhone,
+      agencyName,
+      scrapedAt: new Date().toISOString()
+    };
+
+    return listing;
+  } 
+}
+catch {
+    return null;
+  }
+}
+
 
 function normalizePropertyType(
   type?: string,
