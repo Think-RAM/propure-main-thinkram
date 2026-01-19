@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propure Customer Journey - Interactive Overview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0D7377;
+            --primary-dark: #095456;
+            --primary-light: #1A9599;
+            --secondary: #D4AF37;
+            --secondary-light: #E6C65A;
+            --accent: #FF6B6B;
+            --accent-light: #FF8A8A;
+            --bg-dark: #0F1419;
+            --bg-card: #1A1F26;
+            --bg-elevated: #242B33;
+            --text-primary: #F7F9FC;
+            --text-secondary: #9BA3AF;
+            --text-muted: #6B7280;
+            --border: rgba(255,255,255,0.08);
+            --success: #10B981;
+            --warning: #F59E0B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(13, 115, 119, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(255, 107, 107, 0.05) 0%, transparent 50%);
+        }
+
+        /* Header */
+        .header {
+            position: relative;
+            z-index: 10;
+            padding: 40px 60px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(15, 20, 25, 0.8);
+            backdrop-filter: blur(20px);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 24px;
+            color: white;
+        }
+
+        .logo-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Main Content */
+        .main {
+            position: relative;
+            z-index: 1;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 60px;
+        }
+
+        /* Title Section */
+        .title-section {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .title-section h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 56px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--secondary) 50%, var(--primary-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .title-section p {
+            font-size: 20px;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Persona Card */
+        .persona-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 60px;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .persona-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--secondary) 0%, var(--primary) 100%);
+        }
+
+        .persona-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            flex-shrink: 0;
+        }
+
+        .persona-info {
+            flex: 1;
+        }
+
+        .persona-info h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .persona-info .subtitle {
+            color: var(--secondary);
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .persona-info p {
+            color: var(--text-secondary);
+            font-style: italic;
+            font-size: 16px;
+        }
+
+        .persona-stats {
+            display: flex;
+            gap: 32px;
+        }
+
+        .persona-stat {
+            text-align: center;
+        }
+
+        .persona-stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary-light);
+        }
+
+        .persona-stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Journey Timeline */
+        .journey-timeline {
+            position: relative;
+            margin-bottom: 80px;
+        }
+
+        /* Timeline Line */
+        .timeline-line {
+            position: absolute;
+            top: 80px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--border);
+            z-index: 0;
+        }
+
+        .timeline-line-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+            width: 0%;
+            transition: width 2s ease-out;
+            border-radius: 2px;
+        }
+
+        /* Phase Cards */
+        .phases-container {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .phase-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .phase-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .phase-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(13, 115, 119, 0.2);
+        }
+
+        .phase-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .phase-card:hover::before {
+            opacity: 1;
+        }
+
+        .phase-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-elevated);
+            border: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--primary-light);
+            transition: all 0.3s;
+        }
+
+        .phase-card:hover .phase-number {
+            background: var(--primary);
+            color: white;
+        }
+
+        .phase-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .phase-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .phase-touchpoint {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(13, 115, 119, 0.15);
+            border-radius: 20px;
+            font-size: 11px;
+            color: var(--primary-light);
+            font-weight: 500;
+        }
+
+        .phase-emotion {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .emotion-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .emotion-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .emotion-dot.positive { background: var(--success); }
+        .emotion-dot.neutral { background: var(--warning); }
+        .emotion-dot.high { background: var(--secondary); }
+
+        .emotion-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Emotion Curve Section */
+        .emotion-curve-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 48px;
+            margin-bottom: 60px;
+        }
+
+        .emotion-curve-section h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .emotion-curve-section .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+        }
+
+        .emotion-chart {
+            position: relative;
+            height: 300px;
+            background: var(--bg-elevated);
+            border-radius: 16px;
+            padding: 40px;
+        }
+
+        .chart-grid {
+            position: absolute;
+            top: 40px;
+            left: 80px;
+            right: 40px;
+            bottom: 60px;
+        }
+
+        .chart-grid-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .chart-y-labels {
+            position: absolute;
+            left: 20px;
+            top: 40px;
+            bottom: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .chart-y-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .chart-x-labels {
+            position: absolute;
+            left: 80px;
+            right: 40px;
+            bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .chart-x-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            width: 100px;
+        }
+
+        /* SVG Curve */
+        .emotion-svg {
+            position: absolute;
+            top: 40px;
+            left: 80px;
+            right: 40px;
+            bottom: 60px;
+        }
+
+        .curve-path {
+            fill: none;
+            stroke: url(#curveGradient);
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawCurve 3s ease-out forwards;
+            animation-delay: 1s;
+        }
+
+        .curve-area {
+            fill: url(#areaGradient);
+            opacity: 0;
+            animation: fadeIn 1s ease-out forwards;
+            animation-delay: 2s;
+        }
+
+        @keyframes drawCurve {
+            to { stroke-dashoffset: 0; }
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 0.3; }
+        }
+
+        .curve-point {
+            fill: var(--bg-card);
+            stroke: var(--primary-light);
+            stroke-width: 3;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0;
+            animation: popIn 0.5s ease-out forwards;
+        }
+
+        .curve-point:hover {
+            fill: var(--primary);
+            r: 12;
+        }
+
+        .curve-point:nth-child(1) { animation-delay: 1.2s; }
+        .curve-point:nth-child(2) { animation-delay: 1.4s; }
+        .curve-point:nth-child(3) { animation-delay: 1.6s; }
+        .curve-point:nth-child(4) { animation-delay: 1.8s; }
+        .curve-point:nth-child(5) { animation-delay: 2.0s; }
+        .curve-point:nth-child(6) { animation-delay: 2.2s; }
+        .curve-point:nth-child(7) { animation-delay: 2.4s; }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* AI Section */
+        .ai-section {
+            margin-bottom: 60px;
+        }
+
+        .ai-section h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .ai-section .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+        }
+
+        .propure-ai-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 48px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .propure-ai-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(13, 115, 119, 0.15) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        .ai-icon {
+            width: 96px;
+            height: 96px;
+            border-radius: 24px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 50%, var(--secondary) 100%);
+            box-shadow: 0 10px 40px rgba(13, 115, 119, 0.3);
+        }
+
+        .ai-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .ai-description {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 40px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .ai-capabilities {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 40px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .ai-capability {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: left;
+            transition: all 0.3s;
+        }
+
+        .ai-capability:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+        }
+
+        .ai-capability h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .ai-capability p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .ai-tools {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .ai-tool {
+            padding: 8px 16px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 12px;
+            color: var(--primary-light);
+            font-family: monospace;
+            transition: all 0.3s;
+        }
+
+        .ai-tool:hover {
+            border-color: var(--primary);
+            background: rgba(13, 115, 119, 0.1);
+        }
+
+        /* Navigation Links */
+        .nav-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .nav-link {
+            display: block;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            text-decoration: none;
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(13, 115, 119, 0.15);
+        }
+
+        .nav-link-number {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+            line-height: 32px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .nav-link h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .nav-link p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .nav-link-arrow {
+            position: absolute;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: var(--primary-light);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover .nav-link-arrow {
+            opacity: 1;
+            right: 20px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid var(--border);
+            margin-top: 80px;
+        }
+
+        .footer p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">P</div>
+                <span class="logo-text">Propure</span>
+            </div>
+            <div class="header-subtitle">Customer Journey Map</div>
+        </div>
+    </header>
+
+    <main class="main">
+        <!-- Title Section -->
+        <section class="title-section">
+            <h1>The Investment Discovery Journey</h1>
+            <p>From curious first-time investor to confident property owner. Experience how Propure's AI guides users through every step of their property investment journey.</p>
+        </section>
+
+        <!-- Persona Card -->
+        <section class="persona-card">
+            <div class="persona-avatar floating">
+                <span>M</span>
+            </div>
+            <div class="persona-info">
+                <h3>Meet Mike</h3>
+                <div class="subtitle">First-time Property Investor | Sydney, Australia</div>
+                <p>"I want to invest in property but don't know where to start. The market feels overwhelming, and I'm afraid of making expensive mistakes."</p>
+            </div>
+            <div class="persona-stats">
+                <div class="persona-stat">
+                    <div class="persona-stat-value">35</div>
+                    <div class="persona-stat-label">Age</div>
+                </div>
+                <div class="persona-stat">
+                    <div class="persona-stat-value">~90</div>
+                    <div class="persona-stat-label">Minutes</div>
+                </div>
+                <div class="persona-stat">
+                    <div class="persona-stat-value">7</div>
+                    <div class="persona-stat-label">Phases</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Journey Timeline -->
+        <section class="journey-timeline">
+            <div class="timeline-line">
+                <div class="timeline-line-progress" id="timelineProgress"></div>
+            </div>
+            <div class="phases-container">
+                <div class="phase-card" data-phase="1">
+                    <div class="phase-number">1</div>
+                    <div class="phase-title">Discovery</div>
+                    <div class="phase-description">User lands on platform, explores value proposition</div>
+                    <div class="phase-touchpoint">Landing Page</div>
+                    <div class="phase-emotion">
+                        <div class="emotion-indicator">
+                            <div class="emotion-dot positive"></div>
+                            <span class="emotion-label">+1 Curious</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase-card" data-phase="2">
+                    <div class="phase-number">2</div>
+                    <div class="phase-title">Sign-Up</div>
+                    <div class="phase-description">Quick authentication via OAuth providers</div>
+                    <div class="phase-touchpoint">Clerk Auth</div>
+                    <div class="phase-emotion">
+                        <div class="emotion-indicator">
+                            <div class="emotion-dot neutral"></div>
+                            <span class="emotion-label">0 Neutral</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase-card" data-phase="3">
+                    <div class="phase-number">3</div>
+                    <div class="phase-title">Onboarding</div>
+                    <div class="phase-description">5-step wizard captures investment preferences</div>
+                    <div class="phase-touchpoint">Investment Wizard</div>
+                    <div class="phase-emotion">
+                        <div class="emotion-indicator">
+                            <div class="emotion-dot positive"></div>
+                            <span class="emotion-label">+1 Engaged</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase-card" data-phase="4">
+                    <div class="phase-number">4</div>
+                    <div class="phase-title">AI Strategy</div>
+                    <div class="phase-description">AI agent discovers and recommends strategy</div>
+                    <div class="phase-touchpoint">Chat Interface</div>
+                    <div class="phase-emotion">
+                        <div class="emotion-indicator">
+                            <div class="emotion-dot high"></div>
+                            <span class="emotion-label">+2 Excited</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase-card" data-phase="5">
+                    <div class="phase-number">5</div>
+                    <div class="phase-title">Property Search</div>
+                    <div class="phase-description">Interactive map with matching properties</div>
+                    <div class="phase-touchpoint">Map + List</div>
+                    <div class="phase-emotion">
+                        <div class="emotion-indicator">
+                            <div class="emotion-dot high"></div>
+                            <span class="emotion-label">+2 Discovery</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase-card" data-phase="6">
+                    <div class="phase-number">6</div>
+                    <div class="phase-title">Analysis</div>
+                    <div class="phase-description">Deep financial modeling and risk assessment</div>
+                    <div class="phase-touchpoint">Property Detail</div>
+                    <div class="phase-emotion">
+                        <div class="emotion-indicator">
+                            <div class="emotion-dot positive"></div>
+                            <span class="emotion-label">+1 Informed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase-card" data-phase="7">
+                    <div class="phase-number">7</div>
+                    <div class="phase-title">Decision</div>
+                    <div class="phase-description">Shortlist, compare, and take action</div>
+                    <div class="phase-touchpoint">Shortlist</div>
+                    <div class="phase-emotion">
+                        <div class="emotion-indicator">
+                            <div class="emotion-dot high"></div>
+                            <span class="emotion-label">+3 Confident</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Emotion Curve Section -->
+        <section class="emotion-curve-section">
+            <h2>Emotional Journey</h2>
+            <p class="subtitle">How users feel as they progress through the platform</p>
+            <div class="emotion-chart">
+                <div class="chart-y-labels">
+                    <span class="chart-y-label">+3 Delighted</span>
+                    <span class="chart-y-label">+2 Excited</span>
+                    <span class="chart-y-label">+1 Positive</span>
+                    <span class="chart-y-label">0 Neutral</span>
+                    <span class="chart-y-label">-1 Frustrated</span>
+                </div>
+                <div class="chart-x-labels">
+                    <span class="chart-x-label">Discovery</span>
+                    <span class="chart-x-label">Sign-Up</span>
+                    <span class="chart-x-label">Onboarding</span>
+                    <span class="chart-x-label">AI Strategy</span>
+                    <span class="chart-x-label">Property Search</span>
+                    <span class="chart-x-label">Analysis</span>
+                    <span class="chart-x-label">Decision</span>
+                </div>
+                <svg class="emotion-svg" viewBox="0 0 800 200" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="curveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#0D7377"/>
+                            <stop offset="50%" style="stop-color:#D4AF37"/>
+                            <stop offset="100%" style="stop-color:#FF6B6B"/>
+                        </linearGradient>
+                        <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#0D7377;stop-opacity:0.3"/>
+                            <stop offset="100%" style="stop-color:#0D7377;stop-opacity:0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Emotion curve: +1, 0, +1, +2, +2, +1, +3 -->
+                    <!-- Y scale: +3=20, +2=60, +1=100, 0=140, -1=180 -->
+                    <path class="curve-area" d="M0,100 L114,140 L228,100 L342,60 L456,60 L570,100 L684,20 L800,20 L800,200 L0,200 Z"/>
+                    <path class="curve-path" d="M0,100 Q57,120 114,140 Q171,120 228,100 Q285,80 342,60 Q399,60 456,60 Q513,80 570,100 Q627,60 684,20"/>
+                    <circle class="curve-point" cx="0" cy="100" r="8"/>
+                    <circle class="curve-point" cx="114" cy="140" r="8"/>
+                    <circle class="curve-point" cx="228" cy="100" r="8"/>
+                    <circle class="curve-point" cx="342" cy="60" r="8"/>
+                    <circle class="curve-point" cx="456" cy="60" r="8"/>
+                    <circle class="curve-point" cx="570" cy="100" r="8"/>
+                    <circle class="curve-point" cx="684" cy="20" r="8"/>
+                </svg>
+            </div>
+        </section>
+
+        <!-- AI Section -->
+        <section class="ai-section">
+            <h2>Propure AI Capabilities</h2>
+            <p class="subtitle">Intelligent investment guidance powered by AI</p>
+            <div class="propure-ai-card">
+                <div class="ai-icon">
+                    <span>P</span>
+                </div>
+                <h1 class="ai-title">Propure AI</h1>
+                <p class="ai-description">Your intelligent property investment advisor that combines strategy discovery, market research, financial analysis, and risk assessment to guide you to the perfect investment opportunity.</p>
+
+                <div class="ai-capabilities">
+                    <div class="ai-capability">
+                        <h4>Strategy Discovery</h4>
+                        <p>Guides conversations to understand your investment goals, risk tolerance, and preferences to recommend the optimal strategy.</p>
+                    </div>
+                    <div class="ai-capability">
+                        <h4>Property Search</h4>
+                        <p>Searches properties, retrieves suburb statistics, and fetches real-time market data across Australia.</p>
+                    </div>
+                    <div class="ai-capability">
+                        <h4>Financial Analysis</h4>
+                        <p>Calculates cash flow projections, ROI scenarios, and comprehensive financial modeling for every property.</p>
+                    </div>
+                    <div class="ai-capability">
+                        <h4>Risk Assessment</h4>
+                        <p>Evaluates investment risk factors, market conditions, and provides confidence scores for informed decisions.</p>
+                    </div>
+                </div>
+
+                <div class="ai-tools">
+                    <span class="ai-tool">searchProperties()</span>
+                    <span class="ai-tool">getSuburbStats()</span>
+                    <span class="ai-tool">calculateCashFlow()</span>
+                    <span class="ai-tool">calculateROI()</span>
+                    <span class="ai-tool">assessRisk()</span>
+                    <span class="ai-tool">recommendStrategy()</span>
+                    <span class="ai-tool">updateMapView()</span>
+                    <span class="ai-tool">updatePropertyList()</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation to Other Pages -->
+        <section class="nav-section">
+            <h2 style="font-family: 'Playfair Display', serif; font-size: 32px; margin-bottom: 8px; color: var(--text-primary);">Explore Each Phase</h2>
+            <p class="subtitle" style="color: var(--text-secondary); margin-bottom: 40px;">Dive deeper into the UI mockups for each journey phase</p>
+            <div class="nav-links">
+                <a href="01-landing-page.html" class="nav-link">
+                    <span class="nav-link-number">01</span>
+                    <h3>Landing Page</h3>
+                    <p>Hero section, value proposition, and call-to-action</p>
+                    <span class="nav-link-arrow">&rarr;</span>
+                </a>
+                <a href="02-sign-up.html" class="nav-link">
+                    <span class="nav-link-number">02</span>
+                    <h3>Sign-Up</h3>
+                    <p>Clerk-style OAuth authentication flow</p>
+                    <span class="nav-link-arrow">&rarr;</span>
+                </a>
+                <a href="03-onboarding-wizard.html" class="nav-link">
+                    <span class="nav-link-number">03</span>
+                    <h3>Onboarding Wizard</h3>
+                    <p>5-step investment questionnaire</p>
+                    <span class="nav-link-arrow">&rarr;</span>
+                </a>
+                <a href="04-dashboard.html" class="nav-link">
+                    <span class="nav-link-number">04</span>
+                    <h3>Dashboard</h3>
+                    <p>Core chat + map split-panel interface</p>
+                    <span class="nav-link-arrow">&rarr;</span>
+                </a>
+                <a href="05-property-analysis.html" class="nav-link">
+                    <span class="nav-link-number">05</span>
+                    <h3>Property Analysis</h3>
+                    <p>Financial modeling and risk assessment</p>
+                    <span class="nav-link-arrow">&rarr;</span>
+                </a>
+                <a href="06-shortlist-decision.html" class="nav-link">
+                    <span class="nav-link-number">06</span>
+                    <h3>Shortlist & Decision</h3>
+                    <p>Compare properties and take action</p>
+                    <span class="nav-link-arrow">&rarr;</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>Propure Customer Journey UI Inspiration | Version 1.0</p>
+    </footer>
+
+    <script>
+        // Animate phase cards on scroll
+        const phaseCards = document.querySelectorAll('.phase-card');
+        const timelineProgress = document.getElementById('timelineProgress');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 100);
+                }
+            });
+        }, { threshold: 0.2 });
+
+        phaseCards.forEach(card => observer.observe(card));
+
+        // Animate timeline progress
+        setTimeout(() => {
+            timelineProgress.style.width = '100%';
+        }, 500);
+
+        // Phase card click handlers
+        phaseCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const phase = card.dataset.phase;
+                const pages = {
+                    '1': '01-landing-page.html',
+                    '2': '02-sign-up.html',
+                    '3': '03-onboarding-wizard.html',
+                    '4': '04-dashboard.html',
+                    '5': '04-dashboard.html',
+                    '6': '05-property-analysis.html',
+                    '7': '06-shortlist-decision.html'
+                };
+                if (pages[phase]) {
+                    window.location.href = pages[phase];
+                }
+            });
+        });
+    </script>
+</body>
+</html>

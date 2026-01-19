@@ -141,20 +141,9 @@ We will use the following **Victorian Government ArcGIS REST endpoints** as the 
 
 ---
 
-## Key Differences from NSW and QLD
-
-| Aspect | VIC | NSW | QLD |
-|--------|-----|-----|-----|
-| Layer structure | Group layers | Feature layers | Feature layers |
-| CRS | EPSG:3111 | EPSG:4326 | EPSG:3857 |
-| Zone codes | Abbreviations (GRZ) | Alphanumeric (R2) | Descriptive |
-| Flood data | Statistical + Historical | LEP-based | Preliminary |
-| Bushfire data | Historical + BMO overlay | RFS categories | Fire management zones |
-| Legal framework | P&E Act 1987 | EP&A Act 1979 | Planning Act 2016 |
-
----
-
 ## Alternatives Considered
+
+See [ADR README](./README.md#common-alternatives-rejected) for common rejected approaches.
 
 ### 1. DataVic Open Data
 

@@ -127,19 +127,7 @@ We will use the following **ACT Government ArcGIS REST endpoints** as the primar
 
 ---
 
-## Key Differences from Other States
-
-| Aspect | ACT | NSW | QLD | VIC | WA |
-|--------|-----|-----|-----|-----|-----|
-| Planning framework | Territory Plan | LEPs | Planning Schemes | Planning Schemes | Local Schemes |
-| Planning authority | Single (EPSDD) | 128 councils | 77 councils | 79 councils | 139 councils |
-| Zone codes | RZ1, CZ1 | R2, B3 | Descriptive | GRZ, NRZ | Descriptive |
-| CRS | EPSG:7855 | EPSG:4326 | EPSG:3857 | EPSG:3111 | EPSG:4326 |
-| Max records | 2,000 | 2,000 | 2,000 | 1,000 | 10,000 |
-| Bushfire system | Fire Mgmt Zones | RFS Categories | FMZ | BMO/History | OBRM |
-| Heritage Act | 2004 | Part of EP&A | 1992 | P&E 1987 | 2018 |
-
-### ACT-Specific: Single Planning Authority
+## ACT-Specific: Single Planning Authority
 
 Unlike all other Australian states/territories, ACT has:
 - One Territory Plan covering all land
@@ -149,9 +137,13 @@ Unlike all other Australian states/territories, ACT has:
 
 This simplifies integration but requires understanding the ACT-specific zone nomenclature.
 
+For cross-state comparisons, see [PLANNING_DATA_LAYER.md](../PLANNING_DATA_LAYER.md#quick-reference).
+
 ---
 
 ## Alternatives Considered
+
+See [ADR README](./README.md#common-alternatives-rejected) for common rejected approaches.
 
 ### 1. ACTmapi Portal
 

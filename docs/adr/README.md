@@ -2,6 +2,33 @@
 
 This directory contains Architecture Decision Records (ADRs) for the Propure project.
 
+---
+
+## Common Context: Planning Data Requirements
+
+All state-level planning data ADRs (001-006) address the same four data requirements for property investment analysis:
+
+1. **Land zoning** - To understand permitted uses and development potential
+2. **Bushfire hazard** - To assess fire risk for properties
+3. **Flood hazard** - To assess flood risk for properties
+4. **Heritage listings** - To identify development constraints
+
+For cross-state comparisons and endpoint details, see **[PLANNING_DATA_LAYER.md](../PLANNING_DATA_LAYER.md)**.
+
+---
+
+## Common Alternatives Rejected
+
+The following approaches were evaluated and rejected for all states:
+
+| Approach | Rejected Because |
+|----------|------------------|
+| **Shapefile/ETL download** | Requires pipeline infrastructure, less current than live APIs |
+| **Council-specific endpoints** | Inconsistent availability, duplicates state-level data |
+| **Third-party aggregators** | Additional cost, data freshness concerns, dependency risk |
+
+---
+
 ## Index
 
 | ADR | Title | Status | Date |

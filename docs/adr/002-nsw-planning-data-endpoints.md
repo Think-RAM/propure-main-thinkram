@@ -106,22 +106,9 @@ We will use the following **NSW Planning Portal ArcGIS REST endpoints** as the p
 
 ---
 
-## Comparison with Queensland
-
-| Aspect | NSW | QLD |
-|--------|-----|-----|
-| Zoning source | LEPs (formal zones) | ALUMC (land use classification) |
-| Zone codes | Alphanumeric (R2, B3) | Descriptive names |
-| Bushfire data | RFS-certified categories | Fire management zones (reserves) |
-| Flood data | LEP flood planning | Preliminary assessment |
-| Heritage | EPI-based | Heritage Act register |
-| CRS | EPSG:4326 | EPSG:3857 |
-
-**Key Difference**: NSW provides formal planning data from Environmental Planning Instruments, while QLD endpoints provide indicative/preliminary data. NSW data is more authoritative for development assessment purposes.
-
----
-
 ## Alternatives Considered
+
+See [ADR README](./README.md#common-alternatives-rejected) for common rejected approaches.
 
 ### 1. SEED NSW Open Data
 

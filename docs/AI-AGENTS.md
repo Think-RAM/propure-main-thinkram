@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-Propure uses a **multi-agent orchestration pattern** where specialized Claude agents work together to:
+Propure uses a **multi-agent orchestration pattern** where specialized Gemini agents work together to:
 1. **Discover** user circumstances through natural conversation
 2. **Recommend** investment strategies based on profile
 3. **Research** market data and suburb analytics
@@ -25,7 +25,7 @@ Propure uses a **multi-agent orchestration pattern** where specialized Claude ag
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         ORCHESTRATOR AGENT                                   │
-│                        (Claude Sonnet 4)                                     │
+│                        (Gemini 2.5 Flash)                                    │
 │                                                                              │
 │  • Routes requests to specialist agents                                      │
 │  • Maintains conversation context                                            │
@@ -36,7 +36,7 @@ Propure uses a **multi-agent orchestration pattern** where specialized Claude ag
            ▼                    ▼                    ▼
 ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
 │   STRATEGIST    │  │    ANALYST      │  │   RESEARCHER    │
-│  (Sonnet 4)     │  │    (Haiku)      │  │    (Haiku)      │
+│  (Gemini 2.5)   │  │  (Gemini 2.5)   │  │  (Gemini 2.5)   │
 │                 │  │                 │  │                 │
 │ Strategy        │  │ Financial       │  │ Market data     │
 │ discovery &     │  │ calculations    │  │ retrieval &     │
@@ -64,7 +64,7 @@ Propure uses a **multi-agent orchestration pattern** where specialized Claude ag
 
 ### 1.1 Orchestrator Agent
 
-**Model**: Claude Sonnet 4
+**Model**: Gemini 2.5 Flash
 **Role**: Central coordinator and router
 
 **System Prompt**:
@@ -116,7 +116,7 @@ synthesizeResponse(outputs: AgentResponse[]): string
 
 ### 1.2 Strategist Agent
 
-**Model**: Claude Sonnet 4 (high quality for nuanced discovery)
+**Model**: Gemini 2.5 Flash (high quality for nuanced discovery)
 **Role**: Strategy discovery and recommendation
 
 **System Prompt**:
@@ -236,7 +236,7 @@ summarizeProfile(): DiscoveryProfile
 
 ### 1.3 Analyst Agent
 
-**Model**: Claude Haiku (fast, cost-effective for calculations)
+**Model**: Gemini 2.5 Flash (fast, cost-effective for calculations)
 **Role**: Financial modeling and risk assessment
 
 **System Prompt**:
@@ -405,7 +405,7 @@ evaluateStrategyFit(
 
 ### 1.4 Researcher Agent
 
-**Model**: Claude Haiku (fast for data lookups)
+**Model**: Gemini 2.5 Flash (fast for data lookups)
 **Role**: Market research and data retrieval
 
 **System Prompt**:
@@ -991,10 +991,10 @@ export function registerTools(context: Context) {
 
 | Agent | Model | Why |
 |-------|-------|-----|
-| Orchestrator | Sonnet 4 | Needs intelligence for routing & synthesis |
-| Strategist | Sonnet 4 | Nuanced conversation, empathetic discovery |
-| Analyst | Haiku | Fast calculations, structured output |
-| Researcher | Haiku | Fast lookups, data formatting |
+| Orchestrator | Gemini 2.5 Flash | Needs intelligence for routing & synthesis |
+| Strategist | Gemini 2.5 Flash | Nuanced conversation, empathetic discovery |
+| Analyst | Gemini 2.5 Flash | Fast calculations, structured output |
+| Researcher | Gemini 2.5 Flash | Fast lookups, data formatting |
 
 ### 6.2 Cost Estimates
 
