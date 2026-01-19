@@ -40,9 +40,50 @@ export const seededColor = (key: string): string => {
     return `hsl(${hue}, 60%, 55%)`;
 };
 
+// Helper: parse labels out of a SQL-ish where clause.
+// For now focuses on patterns like:  POITYPE IN ('Academy','University')
+// Also supports: POITYPE = 'Academy'  (nice fallback)
+const extractLabelsFromWhereClause = (whereClause?: string): string[] => {
+  if (!whereClause) return [];
+
+  const wc = whereClause.trim();
+
+  // 1) IN (...) pattern (case-insensitive)
+  //    Captures whatever is inside the parentheses.
+  const inMatch = wc.match(/\bIN\s*\(([^)]*)\)/i);
+  if (inMatch?.[1]) {
+    const inside = inMatch[1];
+
+    // Prefer quoted strings: 'Academy', "University"
+    const quoted: string[] = [];
+    const quotedRe = /'([^']*)'|"([^"]*)"/g;
+    let m: RegExpExecArray | null;
+    while ((m = quotedRe.exec(inside)) !== null) {
+      const val = (m[1] ?? m[2] ?? "").trim();
+      if (val) quoted.push(val);
+    }
+
+    // If nothing was quoted, fall back to splitting by comma
+    if (quoted.length) return quoted;
+
+    return inside
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
+  // 2) Equality pattern: FIELD = 'Value'
+  const eqMatch = wc.match(/=\s*('([^']*)'|"([^"]*)"|([^\s)]+))/i);
+  if (eqMatch) {
+    const val = (eqMatch[2] ?? eqMatch[3] ?? eqMatch[4] ?? "").trim();
+    return val ? [val] : [];
+  }
+
+  return [];
+};
 
 
-export const handleLegendExtraction = async (url: string, groupName: string): Promise<Styles[]> => {
+export const handleLegendExtraction = async (url: string, groupName: string, whereClause?: string): Promise<Styles[]> => {
     try {
         // Check if this is a FeatureServer or MapServer endpoint
         const isFeatureServer = url.includes("/FeatureServer/");
@@ -103,6 +144,7 @@ export const handleLegendExtraction = async (url: string, groupName: string): Pr
         const legendUrl = url.replace(/\/\d+$/, "/legend?f=pjson");
         const layerIdMatch = url.match(/\/(\d+)$/);
         const layerId = layerIdMatch ? parseInt(layerIdMatch[1], 10) : 0;
+        const allowed = new Set(extractLabelsFromWhereClause(whereClause));
 
         const legendsData = await fetch(legendUrl)
         if (!legendsData.ok) {
@@ -117,6 +159,10 @@ export const handleLegendExtraction = async (url: string, groupName: string): Pr
         }
         const stylesData = layerLegend.legend.map(item => {
             {
+                if (allowed.size > 0 && !allowed.has(item.label)) {
+                    // Skip items not in the allowed set
+                    return null;
+                }
                 const style: Styles = {
                     idKey: item.values?.flatMap(v => v.split(",")).map(v => v.trim()) ?? [],
                     label: item.label.length ? item.label : layerLegend.layerName, // Clean label if needed
@@ -125,7 +171,7 @@ export const handleLegendExtraction = async (url: string, groupName: string): Pr
                 };
                 return style;
             }
-        });
+        }).filter(Boolean) as Styles[];
 
         return stylesData
     } catch (error) {
@@ -226,3 +272,12 @@ export const stylePopupLayer = (
      `
     );
 };
+
+export const styleMarker = (
+    feature: any,
+    legends: Styles[],
+    propertyKeys: string[],
+    labelKey: string
+) => {
+    const key = getLabelValue(feature, labelKey);
+}

@@ -16,7 +16,7 @@ export const enum Jurisdiction {
     MAKAYE = "Mackay Regional Council",
 }
 
-export type Layers = "LANDIND_ZONES" | "FLOOD_HAZARD" | "BUSHFIRE_HAZARD" | "LANDSLIDE_HAZARD" | "STORM_TIDE_HAZARD" | "HERITAGE_ZONES";
+export type Layers = "LANDIND_ZONES" | "FLOOD_HAZARD" | "BUSHFIRE_HAZARD" | "LANDSLIDE_HAZARD" | "STORM_TIDE_HAZARD" | "HERITAGE_ZONES" | "SCHOOL_ZONES";
 
 export type Styles = {
     label: string;
@@ -42,6 +42,7 @@ export type LayerRegistry = {
     labelKey: string;
     jurisdiction?: Jurisdiction;
     coverageCords?: BBBox;
+    whereClause?: string;
 }
 
 
@@ -204,6 +205,33 @@ const NSW_LAYER_INFO: LayerInfo = {
             "SHAPE",
         ],
         labelKey: "LAY_CLASS",
+    },
+    SCHOOL_ZONES: {
+        id: "NSW_SCHOOL_ZONES",
+        name: "NSW School Zones",
+        url: "https://mapprod3.environment.nsw.gov.au/arcgis/rest/services/HMS/Heritage/MapServer/0",
+        coverage: "state",
+        propertyKey: [
+            "OBJECTID",
+            "TOPOID",
+            "POIGROUP",
+            "POITYPE",
+            "POINAME",
+            "POILABEL",
+            "POILABELTYPE",
+            "POIALTLABEL",
+            "POISOURCEFEATUREOID",
+            "STARTDATE",
+            "ENDDATE",
+            "LASTUPDATE",
+            "ACCESSCONTROL",
+            "PACKETID",
+            "ISPROCESSED",
+            "RECORDSTATUS",
+            "SHAPE",
+        ],
+        labelKey: "POITYPE",
+        whereClause: "POITYPE IN ('Academy','University')"
     }
 }
 
@@ -312,7 +340,89 @@ const QLD_LAYER_INFO: LayerInfo = {
             "shape",
         ],
         labelKey: "placename",
-    }
+    },
+    SCHOOL_ZONES: [
+        {
+            id: "QLD_SCHOOL_ZONES_PRIMARY_STATE_SCHOOLS",
+            name: "QLD School Zones - Primary State Schools",
+            url: "https://spatial-gis.information.qld.gov.au/arcgis/rest/services/Society/SchoolsAndSchoolCatchments/MapServer/4",
+            coverage: "state",
+            propertyKey: [
+                "centre_name",
+                "centre_code",
+                "source",
+                "data_currency",
+                "disclaimer",
+                "shape",
+                "objectid",
+            ],
+            labelKey: "centre_name",
+        },
+        {
+            id: "QLD_SCHOOL_ZONES_JUNIOR_SECONDARY_STATE_SCHOOLS",
+            name: "QLD School Zones - Junior Secondary State Schools",
+            url: "https://spatial-gis.information.qld.gov.au/arcgis/rest/services/Society/SchoolsAndSchoolCatchments/MapServer/5",
+            coverage: "state",
+            propertyKey: [
+                "centre_name",
+                "centre_code",
+                "source",
+                "data_currency",
+                "disclaimer",
+                "shape",
+                "objectid",
+            ],
+            labelKey: "centre_name",
+        },
+        {
+            id: "QLD_SCHOOL_ZONES_SENIOR_SECONDARY_STATE_SCHOOLS",
+            name: "QLD School Zones - Senior Secondary State Schools",
+            url: "https://spatial-gis.information.qld.gov.au/arcgis/rest/services/Society/SchoolsAndSchoolCatchments/MapServer/6",
+            coverage: "state",
+            propertyKey: [
+                "centre_name",
+                "centre_code",
+                "source",
+                "data_currency",
+                "disclaimer",
+                "shape",
+                "objectid",
+            ],
+            labelKey: "centre_name",
+        },
+        {
+            id: "QLD_SCHOOL_ZONES_SPECIAL_STATE_SCHOOLS",
+            name: "QLD School Zones - Special State Schools",
+            url: "https://spatial-gis.information.qld.gov.au/arcgis/rest/services/Society/SchoolsAndSchoolCatchments/MapServer/8",
+            coverage: "state",
+            propertyKey: [
+                "centre_name",
+                "centre_code",
+                "source",
+                "data_currency",
+                "disclaimer",
+                "shape",
+                "objectid",
+            ],
+            labelKey: "centre_name",
+        },
+        {
+            id: "QLD_SCHOOL_ZONES_NON_STATE_SCHOOLS",
+            name: "QLD School Zones - Non-State Schools",
+            url: "https://spatial-gis.information.qld.gov.au/arcgis/rest/services/Society/SchoolsAndSchoolCatchments/MapServer/9",
+            coverage: "state",
+            propertyKey: [
+                "centre_name",
+                "centre_code",
+                "source",
+                "data_currency",
+                "disclaimer",
+                "shape",
+                "objectid",
+            ],
+            labelKey: "centre_name",
+        }
+    ]
 }
 
 // Western Australia Layer Configuration
@@ -419,6 +529,30 @@ const WA_LAYER_INFO: LayerInfo = {
             "st_perimeter(shape)",
         ],
         labelKey: "place_name",
+    },
+    SCHOOL_ZONES: {
+        id: "WA_SCHOOL_ZONES",
+        name: "WA School Zones",
+        url: "https://public-services.slip.wa.gov.au/public/rest/services/SLIP_Public_Services/Property_and_Planning/MapServer/112",
+        coverage: "state",
+        propertyKey: [
+            "objectid",
+            "zone_numbe",
+            "zone",
+            "add_label",
+            "rest_label",
+            "specadd_la",
+            "special_la",
+            "label",
+            "label_desc",
+            "gazettal_d",
+            "scheme_nam",
+            "lga",
+            "scheme_no",
+            "shape",
+        ],
+        labelKey: "zone",
+        whereClause: "zone in ('Education', 'School', 'Educational')",
     }
 }
 
@@ -573,6 +707,26 @@ const SA_LAYER_INFO: LayerInfo = {
             "st_length(shape)",
         ],
         labelKey: "name",
+    },
+    SCHOOL_ZONES: {
+        id: "SA_SCHOOL_ZONES",
+        name: "SA School Zones",
+        coverage: "state",
+        url: "https://location.sa.gov.au/server6/rest/services/Transport/ElectricalAssets/MapServer/4",
+        propertyKey: [
+            "objectid",
+            "site_type",
+            "site_no",
+            "site_desc",
+            "road_no",
+            "rrd_ul",
+            "rrd_r",
+            "suburb",
+            "school_name",
+            "shape",
+            "resp",
+        ],
+        labelKey: "school_name",
     }
 }
 
@@ -688,6 +842,33 @@ const ACT_LAYER_INFO: LayerInfo = {
             "Shape__Length",
         ],
         labelKey: "NAME",
+    },
+    SCHOOL_ZONES: {
+        id: "ACT_SCHOOL_ZONES",
+        name: "ACT School Zones",
+        url: "https://services1.arcgis.com/E5n4f1VY84i0xSjy/ArcGIS/rest/services/ACTGOV_School_Location_Current/FeatureServer/0",
+        coverage: "state",
+        propertyKey: [
+            "id",
+            "ACTmapi_FeatureName",
+            "SCHOOL_NAME",
+            "DESCRIPTION",
+            "WEBSITE",
+            "EMAIL",
+            "PHONE",
+            "MY_SCHOOL_WEBSITE",
+            "YEAR_LEVEL",
+            "APPLY_NOW",
+            "GOVERNMENT",
+            "TYPE",
+            "PEA",
+            "STREET",
+            "SUBURB",
+            "STATE",
+            "POSTCODE",
+            "SCHOOL_CODE",
+        ],
+        labelKey: "SCHOOL_NAME",
     }
 }
 
@@ -947,6 +1128,33 @@ const VIC_LAYER_INFO: LayerInfo = {
             "Shape_Area",
         ],
         labelKey: "SCHEME_CODE",
+    },
+    SCHOOL_ZONES: {
+        id: "VIC_SCHOOL_ZONES",
+        name: "VIC School Zones",
+        url: "https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/Vicplan_PlanningSchemeZones/MapServer/31",
+        coverage: "state",
+        propertyKey: [
+            "OBJECTID",
+            "Shape",
+            "PFI",
+            "SCHEME_CODE",
+            "LGA_CODE",
+            "LGA",
+            "ZONE_NUM",
+            "ZONE_STATUS",
+            "ZONE_CODE",
+            "ZONE_DESCRIPTION",
+            "GAZ_BEGIN_DATE",
+            "PFI_CREATED",
+            "UFI",
+            "UFI_CREATED",
+            "ZONE_CODE_GROUP",
+            "ZONE_CODE_GROUP_LABEL",
+            "Shape_Length",
+            "Shape_Area",
+        ],
+        labelKey: "ZONE_CODE_GROUP_LABEL",
     }
 }
 
@@ -957,6 +1165,7 @@ export const LayerInfoLabelNames: Record<Layers, string[]> = {
     LANDSLIDE_HAZARD: ["LAY_CLASS"],
     STORM_TIDE_HAZARD: ["LAY_CLASS"],
     HERITAGE_ZONES: ["LAY_CLASS", "placename"],
+    SCHOOL_ZONES: ["POITYPE", "centre_name", "SCHOOL_NAME"],
 }
 
 export const stateLayerMapping: Record<AustralianState, LayerInfo> = {

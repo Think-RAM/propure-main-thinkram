@@ -27,6 +27,7 @@ import {
   Styles,
 } from "@/lib/map/layers";
 import { coordToAUStates } from "@/lib/utils";
+import L from "leaflet";
 
 type LatLng = { lat: number; lng: number };
 export type MapViewType = "default" | "satellite" | "terrain";
@@ -178,7 +179,11 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
     const cached = legendCacheRef.current.get(layer.url);
     if (cached) return cached;
 
-    const extracted = await handleLegendExtraction(layer.url, layer.name);
+    const extracted = await handleLegendExtraction(
+      layer.url,
+      layer.name,
+      layer.whereClause
+    );
     legendCacheRef.current.set(layer.url, extracted);
     return extracted;
   }, []);
@@ -209,10 +214,25 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
             layerInfo.labelKey,
             Layer
           ),
+        pointToLayer: (feature, latlng) => {
+          const pathStyle = styleLayer(
+            feature,
+            layerLegends,
+            layerInfo.propertyKey,
+            layerInfo.labelKey
+          );
+
+          // CircleMarker expects radius + path options
+          return L.circleMarker(latlng, {
+            radius: 6,
+            ...pathStyle,
+          });
+        },
         minZoom: 10,
         simplifyFactor: 0.4,
         cacheLayers: true,
         ignoreRenderer: true,
+        where: layerInfo.whereClause ?? "1=1",
       });
 
       lyr.addTo(map);
@@ -231,8 +251,9 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
 
   const refreshLayer = useCallback((layerId: string) => {
     const lyr = featureLayersRef.current[layerId];
-    if (!lyr) return;
-    lyr.setWhere("1=1");
+    const lyrMeta = metaRef.current[layerId];
+    if (!lyr || !lyrMeta) return;
+    lyr.setWhere(lyrMeta?.whereClause ?? "1=1");
     lyr.refresh();
   }, []);
 
@@ -316,7 +337,7 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
       if (!nextIds.has(id)) {
         console.log(`Removing Layer ${id}`);
         removeLayerById(id);
-      };
+      }
     }
   });
 
