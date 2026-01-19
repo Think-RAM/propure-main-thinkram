@@ -121,48 +121,48 @@ export function createDomainServer(): McpServer {
   );
 
   // Tool: Get Suburb Stats
-  server.registerTool(
-    "get_suburb_stats",
-    {
-      title: "Get Suburb Statistics",
-      description:
-        "Get market statistics for a suburb including median price, yield, growth rates, and days on market",
-      inputSchema: {
-        suburb: z.string().describe("Suburb name"),
-        state: AustralianState.describe("Australian state"),
-        postcode: z.string().describe("Postcode"),
-      },
-    },
-    async ({ suburb, state, postcode }) => {
-      try {
-        const stats = await getDomainSuburbStats(suburb, state, postcode);
-        if (!stats) {
-          return {
-            content: [
-              { type: "text" as const, text: "Suburb statistics not found" },
-            ],
-            isError: true,
-          };
-        }
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(stats, null, 2),
-            },
-          ],
-          structuredContent: stats,
-        };
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Unknown error occurred";
-        return {
-          content: [{ type: "text" as const, text: `Error: ${message}` }],
-          isError: true,
-        };
-      }
-    },
-  );
+  // server.registerTool(
+  //   "get_suburb_stats",
+  //   {
+  //     title: "Get Suburb Statistics",
+  //     description:
+  //       "Get market statistics for a suburb including median price, yield, growth rates, and days on market",
+  //     inputSchema: {
+  //       suburb: z.string().describe("Suburb name"),
+  //       state: AustralianState.describe("Australian state"),
+  //       postcode: z.string().describe("Postcode"),
+  //     },
+  //   },
+  //   async ({ suburb, state, postcode }) => {
+  //     try {
+  //       const stats = await getDomainSuburbStats(suburb, state, postcode);
+  //       if (!stats) {
+  //         return {
+  //           content: [
+  //             { type: "text" as const, text: "Suburb statistics not found" },
+  //           ],
+  //           isError: true,
+  //         };
+  //       }
+  //       return {
+  //         content: [
+  //           {
+  //             type: "text" as const,
+  //             text: JSON.stringify(stats, null, 2),
+  //           },
+  //         ],
+  //         structuredContent: stats,
+  //       };
+  //     } catch (error) {
+  //       const message =
+  //         error instanceof Error ? error.message : "Unknown error occurred";
+  //       return {
+  //         content: [{ type: "text" as const, text: `Error: ${message}` }],
+  //         isError: true,
+  //       };
+  //     }
+  //   },
+  // );
 
   // Tool: Get Sales History
   server.registerTool(
@@ -201,44 +201,44 @@ export function createDomainServer(): McpServer {
   );
 
   // Tool: Get Agent Info
-  server.registerTool(
-    "get_agent_info",
-    {
-      title: "Get Agent Information",
-      description:
-        "Get details about a real estate agent including contact info, sales count, and ratings",
-      inputSchema: {
-        agentId: z.string().describe("The Domain.com.au agent ID"),
-      },
-    },
-    async ({ agentId }) => {
-      try {
-        const agent = await getDomainAgentInfo(agentId);
-        if (!agent) {
-          return {
-            content: [{ type: "text" as const, text: "Agent not found" }],
-            isError: true,
-          };
-        }
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(agent, null, 2),
-            },
-          ],
-          structuredContent: agent,
-        };
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Unknown error occurred";
-        return {
-          content: [{ type: "text" as const, text: `Error: ${message}` }],
-          isError: true,
-        };
-      }
-    },
-  );
+  // server.registerTool(
+  //   "get_agent_info",
+  //   {
+  //     title: "Get Agent Information",
+  //     description:
+  //       "Get details about a real estate agent including contact info, sales count, and ratings",
+  //     inputSchema: {
+  //       agentId: z.string().describe("The Domain.com.au agent ID"),
+  //     },
+  //   },
+  //   async ({ agentId }) => {
+  //     try {
+  //       const agent = await getDomainAgentInfo(agentId);
+  //       if (!agent) {
+  //         return {
+  //           content: [{ type: "text" as const, text: "Agent not found" }],
+  //           isError: true,
+  //         };
+  //       }
+  //       return {
+  //         content: [
+  //           {
+  //             type: "text" as const,
+  //             text: JSON.stringify(agent, null, 2),
+  //           },
+  //         ],
+  //         structuredContent: agent,
+  //       };
+  //     } catch (error) {
+  //       const message =
+  //         error instanceof Error ? error.message : "Unknown error occurred";
+  //       return {
+  //         content: [{ type: "text" as const, text: `Error: ${message}` }],
+  //         isError: true,
+  //       };
+  //     }
+  //   },
+  // );
 
   // Tool: Get Auction Results
   server.registerTool(

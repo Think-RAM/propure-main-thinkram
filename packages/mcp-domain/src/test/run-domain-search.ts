@@ -4,7 +4,7 @@ import { searchDomainProperties } from "@propure/mcp-domain";
 async function main() {
   if (!process.env.OXYLABS_USERNAME || !process.env.OXYLABS_PASSWORD) {
     throw new Error(
-      "Missing OXYLABS_USERNAME or OXYLABS_PASSWORD in environment"
+      "Missing OXYLABS_USERNAME or OXYLABS_PASSWORD in environment",
     );
   }
 
@@ -14,10 +14,10 @@ async function main() {
     state: "NSW",
     page: 1,
     postcode: "2000",
-    pageSize: 5,
   });
+  // "sydney-nsw-2000"
 
-  console.log("Domain search result: ", result);
+  // console.log("Domain search result: ", result);
 
   const listings = result.listings ?? [];
   if (listings.length === 0) {
@@ -26,7 +26,9 @@ async function main() {
   }
 
   console.log("Listings count:", listings.length);
-  console.log("First listing:", listings[0]);
+  console.log("Listing", listings[0]);
+  // console.log("Listing:");
+  // console.dir(listings, { depth: Infinity });
 }
 
 main().catch((err) => {

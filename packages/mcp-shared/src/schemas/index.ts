@@ -117,7 +117,7 @@ export const PropertySearchParamsSchema = z.object({
   propertyTypes: z.array(PropertyType).optional(),
   listingType: ListingType.default("sale"),
   includesSurrounding: z.boolean().optional(),
-  pageSize: z.number().default(20),
+  // pageSize: z.number().default(20),
   page: z.number().default(1),
 });
 export type PropertySearchParams = z.infer<typeof PropertySearchParamsSchema>;
