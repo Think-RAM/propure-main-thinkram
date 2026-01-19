@@ -19,10 +19,10 @@ import {
 /**
  * Build RealEstate.com.au search URL from params
  */
-function buildSearchUrl(params: PropertySearchParams): string {
+export function buildSearchUrl(params: PropertySearchParams): string {
   const baseUrl = "https://www.realestate.com.au";
 
-  // Build listing type path
+  // Build listing type path (buy|rent|sold)
   let listingPath = "buy";
   if (params.listingType === "rent") {
     listingPath = "rent";
@@ -30,12 +30,13 @@ function buildSearchUrl(params: PropertySearchParams): string {
     listingPath = "sold";
   }
 
-  // Build location part
+  // Build location part: REA expects plus-separated suburb + state + optional postcode
   let location = "";
   if (params.suburbs?.length) {
-    const suburbSlug = params.suburbs[0].toLowerCase().replace(/\s+/g, "-");
-    const state = params.state?.toLowerCase() || "nsw";
-    location = `in-${suburbSlug},+${state}+${params.postcode || ""}`;
+    const suburbSlug = params.suburbs[0].toLowerCase().replace(/\s+/g, "+");
+    const state = (params.state || "nsw").toLowerCase();
+    const postcode = params.postcode ? `+${params.postcode}` : "";
+    location = `in-${suburbSlug},+${state}${postcode}`;
   } else if (params.state) {
     location = `in-${params.state.toLowerCase()}`;
   }
@@ -82,13 +83,12 @@ function buildSearchUrl(params: PropertySearchParams): string {
     searchParams.set("minBathrooms", String(params.minBaths));
   }
 
-  // Page
-  if (params.page && params.page > 1) {
-    searchParams.set("page", String(params.page));
-  }
+  // Page: REA encodes page in path as /list-N (default list-1)
+  const pageSegment =
+    params.page && params.page > 1 ? `/list-${params.page}` : "/list-1";
 
   const queryString = searchParams.toString();
-  const url = `${baseUrl}/${listingPath}/${location}${queryString ? `?${queryString}` : ""}`;
+  const url = `${baseUrl}/${listingPath}/${location}${pageSegment}${queryString ? `?${queryString}` : ""}`;
 
   return url;
 }
@@ -97,7 +97,7 @@ function buildSearchUrl(params: PropertySearchParams): string {
  * Search properties on RealEstate.com.au
  */
 export async function searchReaProperties(
-  params: PropertySearchParams,
+  params: PropertySearchParams
 ): Promise<{
   listings: PropertyListing[];
   totalCount: number;
@@ -128,12 +128,12 @@ export async function searchReaProperties(
  * Get property details from RealEstate.com.au
  */
 export async function getReaPropertyDetails(
-  listingId: string,
+  listingId: string
 ): Promise<PropertyListing | null> {
   // Check for mock mode
   if (isMockModeEnabled()) {
     console.log(
-      `[Mock Mode] Returning mock REA property details for ${listingId}`,
+      `[Mock Mode] Returning mock REA property details for ${listingId}`
     );
     return getMockPropertyDetails(listingId);
   }
@@ -159,7 +159,7 @@ export async function getReaPropertyDetails(
 export async function getReaSuburbProfile(
   suburb: string,
   state: AustralianState,
-  postcode: string,
+  postcode: string
 ): Promise<{
   suburb: string;
   state: AustralianState;
@@ -175,7 +175,7 @@ export async function getReaSuburbProfile(
   // Check for mock mode
   if (isMockModeEnabled()) {
     console.log(
-      `[Mock Mode] Returning mock REA suburb profile for ${suburb}, ${state}`,
+      `[Mock Mode] Returning mock REA suburb profile for ${suburb}, ${state}`
     );
     return getMockSuburbStats(suburb, state, postcode);
   }
@@ -189,7 +189,7 @@ export async function getReaSuburbProfile(
 
     // Try to extract from ArgonautExchange
     const argonautMatch = html.match(
-      /window\.ArgonautExchange\s*=\s*({[\s\S]*?});/,
+      /window\.ArgonautExchange\s*=\s*({[\s\S]*?});/
     );
 
     if (argonautMatch?.[1]) {
@@ -262,12 +262,12 @@ export async function getReaSuburbProfile(
 export async function getReaSoldProperties(
   suburb: string,
   state: AustralianState,
-  postcode?: string,
+  postcode?: string
 ): Promise<PropertyListing[]> {
   // Check for mock mode
   if (isMockModeEnabled()) {
     console.log(
-      `[Mock Mode] Returning mock REA sold properties for ${suburb}, ${state}`,
+      `[Mock Mode] Returning mock REA sold properties for ${suburb}, ${state}`
     );
     return getMockSoldProperties(suburb, state);
   }
@@ -289,12 +289,12 @@ export async function getReaSoldProperties(
  * Get agency listings from RealEstate.com.au
  */
 export async function getReaAgencyListings(
-  agencyId: string,
+  agencyId: string
 ): Promise<PropertyListing[]> {
   // Check for mock mode
   if (isMockModeEnabled()) {
     console.log(
-      `[Mock Mode] Returning mock REA agency listings for ${agencyId}`,
+      `[Mock Mode] Returning mock REA agency listings for ${agencyId}`
     );
     return getMockAgencyListings(agencyId);
   }
