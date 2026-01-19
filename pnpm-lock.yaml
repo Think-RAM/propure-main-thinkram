@@ -365,6 +365,9 @@ importers:
       '@types/node':
         specifier: ^20
         version: 20.19.27
+      tsx:
+        specifier: ^4.20.3
+        version: 4.21.0
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -409,9 +412,12 @@ importers:
 
   packages/mcp-shared:
     dependencies:
+<<<<<<< HEAD
       chalk:
         specifier: ^5.6.2
         version: 5.6.2
+=======
+>>>>>>> 025b884b513e041cf829efedccd289748197c54d
       cheerio:
         specifier: ^1.1.2
         version: 1.1.2

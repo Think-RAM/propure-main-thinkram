@@ -6,6 +6,7 @@ import {
   type PropertyListing,
   type PropertySearchParams,
   type AustralianState,
+  type ListingType,
 } from "@propure/mcp-shared";
 
 import {
@@ -136,6 +137,7 @@ export async function searchDomainProperties(
  */
 export async function getDomainPropertyDetails(
   listingId: string,
+  listingType: ListingType = "sale",
 ): Promise<PropertyListing | null> {
   // Check for mock mode
   if (isMockModeEnabled()) {
@@ -144,11 +146,19 @@ export async function getDomainPropertyDetails(
   }
 
   // Domain property URLs are like: https://www.domain.com.au/{listingId}
-  const url = `https://www.domain.com.au/${listingId}`;
+  let url = listingId;
+  if (!url.startsWith("http")) {
+    if (url.startsWith("/")) {
+      url = `https://www.domain.com.au${url}`;
+    } else {
+      url = `https://www.domain.com.au/${url}`;
+    }
+  }
+
   const html = await scrapeDomainWithWebScraper(url);
 
   writeFileSync("reference/domain-property-details.html", html);
-  return parseDomainPropertyListing(html);
+  return parseDomainPropertyListing(html, listingType, url);
 }
 
 /**

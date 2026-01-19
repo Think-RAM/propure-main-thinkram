@@ -25,11 +25,11 @@ export function createDomainServer(): McpServer {
 
   // Tool: Search Properties
   server.registerTool(
-    "search_properties",
+    "scrape_domain",
     {
-      title: "Search Domain Properties",
+      title: "Scrape Domain Properties",
       description:
-        "Search property listings on Domain.com.au with filters for location, price, bedrooms, and property type",
+        "Scrape property listings on Domain.com.au with filters for location, price, bedrooms, and property type",
       inputSchema: {
         suburbs: z
           .array(z.string())
@@ -89,11 +89,14 @@ export function createDomainServer(): McpServer {
         listingId: z
           .string()
           .describe("The Domain.com.au listing ID or URL path"),
+        listingType: ListingType.default("sale").describe(
+          "Type of listing: sale, rent, or sold",
+        ),
       },
     },
-    async ({ listingId }) => {
+    async ({ listingId, listingType }) => {
       try {
-        const property = await getDomainPropertyDetails(listingId);
+        const property = await getDomainPropertyDetails(listingId, listingType);
         if (!property) {
           return {
             content: [{ type: "text" as const, text: "Property not found" }],
