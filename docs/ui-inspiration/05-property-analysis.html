@@ -1,0 +1,2285 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#F3F4F6" />
+    <meta name="color-scheme" content="light" />
+    <title>Property Analysis | Propure</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* Primary Palette */
+        --primary-teal: #0d7377;
+        --primary-teal-dark: #095557;
+        --primary-teal-light: #1a9599;
+
+        /* Secondary */
+        --gold: #d4af37;
+        --gold-light: #e8c85a;
+        --gold-dark: #b8962e;
+
+        /* Accent */
+        --coral: #ff6b6b;
+        --coral-light: #ff8a8a;
+
+        /* Neutrals */
+        --slate-900: #1a1d23;
+        --slate-800: #2d3139;
+        --slate-700: #3d424d;
+        --slate-600: #545b6a;
+        --slate-500: #6b7280;
+        --slate-400: #9ca3af;
+        --slate-300: #d1d5db;
+        --slate-200: #e5e7eb;
+        --slate-100: #f3f4f6;
+        --slate-50: #f9fafb;
+
+        /* Semantic */
+        --success: #10b981;
+        --success-light: #d1fae5;
+        --warning: #f59e0b;
+        --warning-light: #fef3c7;
+        --danger: #ef4444;
+        --danger-light: #fee2e2;
+
+        /* Typography */
+        --font-display: "Playfair Display", serif;
+        --font-body: "DM Sans", sans-serif;
+
+        /* Shadows */
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+        --shadow-md:
+          0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg:
+          0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl:
+          0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: var(--font-body);
+        background: var(--slate-100);
+        color: var(--slate-800);
+        line-height: 1.6;
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Focus Styles */
+      :focus-visible {
+        outline: 2px solid var(--primary-teal);
+        outline-offset: 2px;
+      }
+
+      /* Header */
+      .header {
+        background: white;
+        border-bottom: 1px solid var(--slate-200);
+        padding: 1rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .back-button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--slate-600);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+
+      .back-button:hover {
+        color: var(--primary-teal);
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .btn {
+        padding: 0.625rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .btn-outline {
+        background: white;
+        border: 1px solid var(--slate-300);
+        color: var(--slate-700);
+      }
+
+      .btn-outline:hover {
+        border-color: var(--primary-teal);
+        color: var(--primary-teal);
+      }
+
+      .btn-primary {
+        background: var(--primary-teal);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: var(--primary-teal-dark);
+      }
+
+      .btn-gold {
+        background: var(--gold);
+        color: var(--slate-900);
+      }
+
+      .btn-gold:hover {
+        background: var(--gold-dark);
+      }
+
+      /* Main Layout */
+      .main-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      /* Property Hero */
+      .property-hero {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      .main-image {
+        height: 400px;
+        background: linear-gradient(
+          135deg,
+          var(--slate-300) 0%,
+          var(--slate-400) 100%
+        );
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      .main-image::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23ffffff' fill-opacity='0.1' width='100' height='100'/%3E%3Cpath d='M20 80 L50 40 L80 80 Z' fill='%23ffffff' fill-opacity='0.2'/%3E%3Ccircle cx='30' cy='25' r='8' fill='%23ffffff' fill-opacity='0.3'/%3E%3C/svg%3E")
+          center/cover;
+      }
+
+      .image-badge {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: var(--primary-teal);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        z-index: 1;
+      }
+
+      .image-count {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        z-index: 1;
+      }
+
+      .thumbnail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 0.5rem;
+      }
+
+      .thumbnail {
+        background: linear-gradient(
+          135deg,
+          var(--slate-200) 0%,
+          var(--slate-300) 100%
+        );
+        border-radius: 12px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .thumbnail:last-child {
+        position: relative;
+      }
+
+      .thumbnail:last-child::after {
+        content: "+12 more";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+      }
+
+      /* Property Info Bar */
+      .property-info-bar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
+      }
+
+      .property-details h1 {
+        font-family: var(--font-display);
+        font-size: 1.75rem;
+        color: var(--slate-900);
+        margin-bottom: 0.5rem;
+      }
+
+      .property-location {
+        color: var(--slate-600);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .property-features {
+        display: flex;
+        gap: 1.5rem;
+      }
+
+      .feature {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--slate-600);
+      }
+
+      .feature-icon {
+        width: 20px;
+        height: 20px;
+      }
+
+      .price-section {
+        text-align: right;
+      }
+
+      .price-label {
+        font-size: 0.875rem;
+        color: var(--slate-500);
+        margin-bottom: 0.25rem;
+      }
+
+      .price {
+        font-family: var(--font-display);
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-teal);
+      }
+
+      .price-guide {
+        font-size: 0.875rem;
+        color: var(--slate-500);
+      }
+
+      /* Strategy Match Score */
+      .strategy-match {
+        margin: 1rem 0;
+        padding: 1rem;
+        background: linear-gradient(
+          135deg,
+          rgba(13, 115, 119, 0.1) 0%,
+          rgba(13, 115, 119, 0.05) 100%
+        );
+        border-radius: 10px;
+        border-left: 4px solid var(--primary-teal);
+      }
+
+      .strategy-match-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+
+      .strategy-match-title {
+        font-weight: 600;
+        color: var(--slate-700);
+        font-size: 0.875rem;
+      }
+
+      .strategy-match-value {
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary-teal);
+      }
+
+      .strategy-match-bar {
+        width: 100%;
+        height: 8px;
+        background: var(--slate-200);
+        border-radius: 999px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+      }
+
+      .strategy-match-fill {
+        width: 92%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          var(--primary-teal) 0%,
+          var(--primary-teal-light) 100%
+        );
+        border-radius: 999px;
+      }
+
+      .strategy-match-desc {
+        font-size: 0.75rem;
+        color: var(--slate-600);
+        margin: 0;
+      }
+
+      /* Market Context */
+      .market-context {
+        margin: 1rem 0;
+        padding: 0.875rem 1rem;
+        background: rgba(245, 158, 11, 0.1);
+        border-radius: 8px;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      .market-context-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .market-context-title {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: var(--warning);
+      }
+
+      .market-context-desc {
+        font-size: 0.75rem;
+        color: var(--slate-600);
+        margin: 0;
+      }
+
+      /* Financial Summary Grid */
+      .section-title {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        color: var(--slate-900);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .section-title svg {
+        width: 24px;
+        height: 24px;
+        color: var(--primary-teal);
+      }
+
+      .financial-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .metric-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--slate-200);
+        transition: all 0.2s;
+      }
+
+      .metric-card:hover {
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-teal);
+      }
+
+      .metric-label {
+        font-size: 0.875rem;
+        color: var(--slate-500);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .metric-value {
+        font-family: var(--font-display);
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--slate-900);
+      }
+
+      .metric-value.positive {
+        color: var(--success);
+      }
+
+      .metric-value.warning {
+        color: var(--warning);
+      }
+
+      .metric-change {
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+
+      .metric-change.up {
+        color: var(--success);
+      }
+
+      .metric-change.down {
+        color: var(--danger);
+      }
+
+      /* Two Column Layout */
+      .analysis-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      /* Cash Flow Chart */
+      .chart-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: var(--shadow-md);
+      }
+
+      .chart-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+      }
+
+      .chart-title {
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        color: var(--slate-900);
+      }
+
+      .chart-tabs {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .chart-tab {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        background: var(--slate-100);
+        color: var(--slate-600);
+        border: none;
+        transition: all 0.2s;
+      }
+
+      .chart-tab:focus-visible {
+        outline: 2px solid var(--primary-teal);
+        outline-offset: 2px;
+      }
+
+      .chart-tab.active {
+        background: var(--primary-teal);
+        color: white;
+      }
+
+      .chart-area {
+        height: 280px;
+        position: relative;
+      }
+
+      /* SVG Chart */
+      .chart-svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .chart-line {
+        fill: none;
+        stroke: var(--primary-teal);
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .chart-area-fill {
+        fill: url(#chartGradient);
+      }
+
+      .chart-grid-line {
+        stroke: var(--slate-200);
+        stroke-width: 1;
+      }
+
+      .chart-label {
+        font-size: 12px;
+        fill: var(--slate-500);
+      }
+
+      .chart-dot {
+        fill: var(--primary-teal);
+        stroke: white;
+        stroke-width: 2;
+      }
+
+      .chart-legend {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--slate-200);
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--slate-600);
+      }
+
+      .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+      }
+
+      /* Risk Gauge - Spider Chart */
+      .risk-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: var(--shadow-md);
+      }
+
+      .gauge-container {
+        width: 100%;
+        height: 320px;
+        margin: 1.5rem auto;
+        position: relative;
+      }
+
+      .gauge-svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .spider-grid {
+        fill: none;
+        stroke: var(--slate-200);
+        stroke-width: 1;
+      }
+
+      .spider-axis {
+        stroke: var(--slate-300);
+        stroke-width: 1;
+        stroke-dasharray: 2, 2;
+      }
+
+      .spider-data {
+        fill: rgba(13, 115, 119, 0.25);
+        stroke: var(--primary-teal);
+        stroke-width: 2;
+        stroke-linejoin: round;
+      }
+
+      .spider-dot {
+        fill: var(--primary-teal);
+        stroke: white;
+        stroke-width: 2;
+      }
+
+      .spider-label {
+        font-size: 11px;
+        fill: var(--slate-700);
+        font-weight: 500;
+      }
+
+      .spider-value-label {
+        font-size: 10px;
+        fill: var(--slate-500);
+      }
+
+      .risk-label {
+        text-align: center;
+        margin-top: 1rem;
+      }
+
+      .risk-value {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--slate-900);
+      }
+
+      .risk-description {
+        font-size: 0.875rem;
+        color: var(--slate-500);
+      }
+
+      .risk-factors {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--slate-200);
+      }
+
+      .risk-factor {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--slate-100);
+      }
+
+      .risk-factor:last-child {
+        border-bottom: none;
+      }
+
+      .factor-name {
+        font-size: 0.875rem;
+        color: var(--slate-700);
+      }
+
+      .factor-score {
+        display: flex;
+        gap: 4px;
+      }
+
+      .score-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--slate-200);
+      }
+
+      .score-dot.filled.green {
+        background: var(--success);
+      }
+
+      .score-dot.filled.yellow {
+        background: var(--warning);
+      }
+
+      .score-dot.filled.red {
+        background: var(--danger);
+      }
+
+      /* ROI Scenarios */
+      .scenarios-section {
+        margin-bottom: 2rem;
+      }
+
+      .scenarios-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+      }
+
+      .scenario-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: var(--shadow-md);
+        border: 2px solid transparent;
+        transition: all 0.2s;
+        cursor: pointer;
+      }
+
+      .scenario-card:hover,
+      .scenario-card:focus-visible {
+        border-color: var(--primary-teal);
+        outline: none;
+      }
+
+      .scenario-card.optimistic {
+        background: linear-gradient(
+          135deg,
+          var(--success-light) 0%,
+          white 100%
+        );
+      }
+
+      .scenario-card.optimistic .scenario-icon {
+        background: var(--success);
+      }
+
+      .scenario-card.base .scenario-icon {
+        background: var(--primary-teal);
+      }
+
+      .scenario-card.pessimistic {
+        background: linear-gradient(
+          135deg,
+          var(--warning-light) 0%,
+          white 100%
+        );
+      }
+
+      .scenario-card.pessimistic .scenario-icon {
+        background: var(--warning);
+      }
+
+      .scenario-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .scenario-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+      }
+
+      .scenario-title {
+        font-weight: 600;
+        color: var(--slate-900);
+      }
+
+      .scenario-subtitle {
+        font-size: 0.75rem;
+        color: var(--slate-500);
+      }
+
+      .scenario-metrics {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .scenario-metric {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .scenario-metric-label {
+        font-size: 0.875rem;
+        color: var(--slate-600);
+      }
+
+      .scenario-metric-value {
+        font-weight: 600;
+        color: var(--slate-900);
+      }
+
+      .scenario-metric-value.highlight {
+        color: var(--primary-teal);
+        font-size: 1.25rem;
+      }
+
+      /* Comparables Table */
+      .comparables-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+      }
+
+      .table-container {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th {
+        text-align: left;
+        padding: 1rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--slate-500);
+        border-bottom: 2px solid var(--slate-200);
+      }
+
+      td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--slate-100);
+      }
+
+      tr:hover td {
+        background: var(--slate-50);
+      }
+
+      .property-cell {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .property-thumb {
+        width: 60px;
+        height: 45px;
+        border-radius: 8px;
+        background: linear-gradient(
+          135deg,
+          var(--slate-200) 0%,
+          var(--slate-300) 100%
+        );
+      }
+
+      .property-name {
+        font-weight: 500;
+        color: var(--slate-900);
+      }
+
+      .property-suburb {
+        font-size: 0.75rem;
+        color: var(--slate-500);
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .badge-success {
+        background: var(--success-light);
+        color: var(--success);
+      }
+
+      .badge-warning {
+        background: var(--warning-light);
+        color: var(--warning);
+      }
+
+      /* AI Insights */
+      .ai-insights {
+        background: linear-gradient(
+          135deg,
+          var(--primary-teal) 0%,
+          var(--primary-teal-dark) 100%
+        );
+        padding: 2rem;
+        border-radius: 16px;
+        color: white;
+        margin-bottom: 2rem;
+      }
+
+      .ai-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .ai-avatar {
+        width: 48px;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .ai-title {
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+      }
+
+      .ai-subtitle {
+        opacity: 0.8;
+        font-size: 0.875rem;
+      }
+
+      .insight-list {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .insight-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        backdrop-filter: blur(10px);
+      }
+
+      .insight-icon {
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .insight-content h4 {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      .insight-content p {
+        font-size: 0.875rem;
+        opacity: 0.9;
+      }
+
+      /* Confidence Breakdown */
+      .confidence-breakdown {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+      }
+
+      .confidence-header {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .confidence-grid {
+        display: grid;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+      }
+
+      .confidence-item {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      /* Navigation */
+      .nav-links {
+        display: flex;
+        justify-content: space-between;
+        padding: 1.5rem 0;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--slate-600);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+
+      .nav-link:hover {
+        color: var(--primary-teal);
+      }
+
+      /* Animations */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .animate-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+      }
+
+      .delay-1 {
+        animation-delay: 0.1s;
+        opacity: 0;
+      }
+      .delay-2 {
+        animation-delay: 0.2s;
+        opacity: 0;
+      }
+      .delay-3 {
+        animation-delay: 0.3s;
+        opacity: 0;
+      }
+      .delay-4 {
+        animation-delay: 0.4s;
+        opacity: 0;
+      }
+
+      /* Responsive */
+      @media (max-width: 1200px) {
+        .analysis-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .financial-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .property-hero {
+          grid-template-columns: 1fr;
+        }
+
+        .thumbnail-grid {
+          display: none;
+        }
+
+        .main-image {
+          height: 250px;
+        }
+
+        .property-info-bar {
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .price-section {
+          text-align: left;
+        }
+
+        .scenarios-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <a href="04-dashboard.html" class="back-button">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Back to Search
+      </a>
+      <div class="header-actions">
+        <button class="btn btn-outline" aria-label="Share this property">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+            <polyline points="16 6 12 2 8 6" />
+            <line x1="12" y1="2" x2="12" y2="15" />
+          </svg>
+          Share
+        </button>
+        <button class="btn btn-outline" aria-label="Save property">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+          </svg>
+          Save
+        </button>
+        <button class="btn btn-gold">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <line x1="9" y1="3" x2="9" y2="21" />
+          </svg>
+          Add to Shortlist
+        </button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- Property Hero Gallery -->
+      <div class="property-hero animate-in">
+        <div class="main-image">
+          <span class="image-badge">Cash Flow Positive</span>
+          <span class="image-count">1 / 16 Photos</span>
+        </div>
+        <div class="thumbnail-grid">
+          <div class="thumbnail" aria-hidden="true"></div>
+          <div class="thumbnail" aria-hidden="true"></div>
+          <div class="thumbnail" aria-hidden="true"></div>
+          <div class="thumbnail" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <!-- Property Info Bar -->
+      <div class="property-info-bar animate-in delay-1">
+        <div class="property-details">
+          <h1>24 Harbour View Drive</h1>
+          <div class="property-location">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            Penrith, NSW 2750
+          </div>
+
+          <!-- Strategy Match Score -->
+          <div class="strategy-match">
+            <div class="strategy-match-header">
+              <span class="strategy-match-title">Strategy Match</span>
+              <span class="strategy-match-value">92%</span>
+            </div>
+            <div
+              class="strategy-match-bar"
+              role="progressbar"
+              aria-valuenow="92"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-label="Strategy Match Score"
+            >
+              <div class="strategy-match-fill"></div>
+            </div>
+            <p class="strategy-match-desc">
+              This property scores highly for your
+              <strong>Cash Flow</strong> strategy
+            </p>
+          </div>
+
+          <!-- Market Context -->
+          <div class="market-context">
+            <div class="market-context-header">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#F59E0B"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                <polyline points="17 6 23 6 23 12" />
+              </svg>
+              <span class="market-context-title"
+                >Penrith is currently a Seller's Market</span
+              >
+            </div>
+            <p class="market-context-desc">
+              High demand, low supply - properties selling 12% above median with
+              avg. 18 days on market
+            </p>
+          </div>
+
+          <div class="property-features">
+            <span class="feature">
+              <svg
+                class="feature-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path d="M3 22V8l9-6 9 6v14H3z" />
+                <path d="M9 22v-8h6v8" />
+              </svg>
+              4 Beds
+            </span>
+            <span class="feature">
+              <svg
+                class="feature-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path d="M4 12h16a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H4" />
+                <path d="M6 12V5a2 2 0 0 1 2-2h3" />
+              </svg>
+              2 Baths
+            </span>
+            <span class="feature">
+              <svg
+                class="feature-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <path d="M3 9h18M9 21V9" />
+              </svg>
+              2 Parking
+            </span>
+            <span class="feature">
+              <svg
+                class="feature-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                <line x1="1" y1="10" x2="23" y2="10" />
+              </svg>
+              650 m²
+            </span>
+          </div>
+        </div>
+        <div class="price-section">
+          <p class="price-label">Asking Price</p>
+          <p class="price">$785,000</p>
+          <p class="price-guide">Guide: $770K - $800K</p>
+        </div>
+      </div>
+
+      <!-- Financial Summary -->
+      <h2 class="section-title animate-in delay-2">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <line x1="12" y1="1" x2="12" y2="23" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+        Financial Summary
+      </h2>
+      <div class="financial-grid animate-in delay-2">
+        <div class="metric-card">
+          <div class="metric-label">
+            Gross Rental Yield
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <div class="metric-value positive">5.8%</div>
+          <div class="metric-change up">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+              <polyline points="17 6 23 6 23 12" />
+            </svg>
+            +0.3% vs suburb avg
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">
+            Weekly Rent Estimate
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <div class="metric-value">$875/wk</div>
+          <div class="metric-change up">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+              <polyline points="17 6 23 6 23 12" />
+            </svg>
+            +4.2% rent growth (1yr)
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">
+            Annual Cash Flow
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <div class="metric-value positive">+$4,280</div>
+          <div class="metric-change up">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+              <polyline points="17 6 23 6 23 12" />
+            </svg>
+            Cash flow positive
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">
+            5-Year Capital Growth
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <div class="metric-value">+32%</div>
+          <div class="metric-change up">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+              <polyline points="17 6 23 6 23 12" />
+            </svg>
+            Based on suburb trend
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="analysis-grid animate-in delay-3">
+        <!-- Cash Flow Chart -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3 class="chart-title">Cash Flow Projection</h3>
+            <div class="chart-tabs" role="tablist">
+              <button class="chart-tab active" role="tab" aria-selected="true">
+                5 Years
+              </button>
+              <button class="chart-tab" role="tab" aria-selected="false">
+                10 Years
+              </button>
+              <button class="chart-tab" role="tab" aria-selected="false">
+                20 Years
+              </button>
+            </div>
+          </div>
+          <div
+            class="chart-area"
+            role="img"
+            aria-label="Chart showing projected cash flow over 5 years. Starts at $5,000 in year 1 and ends at $25,000 in year 5."
+          >
+            <svg class="chart-svg" viewBox="0 0 600 250">
+              <defs>
+                <linearGradient
+                  id="chartGradient"
+                  x1="0%"
+                  y1="0%"
+                  x2="0%"
+                  y2="100%"
+                >
+                  <stop
+                    offset="0%"
+                    style="stop-color: #0d7377; stop-opacity: 0.3"
+                  />
+                  <stop
+                    offset="100%"
+                    style="stop-color: #0d7377; stop-opacity: 0"
+                  />
+                </linearGradient>
+              </defs>
+
+              <!-- Grid lines -->
+              <line x1="50" y1="40" x2="580" y2="40" class="chart-grid-line" />
+              <line x1="50" y1="90" x2="580" y2="90" class="chart-grid-line" />
+              <line
+                x1="50"
+                y1="140"
+                x2="580"
+                y2="140"
+                class="chart-grid-line"
+              />
+              <line
+                x1="50"
+                y1="190"
+                x2="580"
+                y2="190"
+                class="chart-grid-line"
+              />
+
+              <!-- Y-axis labels -->
+              <text x="40" y="45" text-anchor="end" class="chart-label">
+                $25K
+              </text>
+              <text x="40" y="95" text-anchor="end" class="chart-label">
+                $20K
+              </text>
+              <text x="40" y="145" text-anchor="end" class="chart-label">
+                $15K
+              </text>
+              <text x="40" y="195" text-anchor="end" class="chart-label">
+                $10K
+              </text>
+              <text x="40" y="230" text-anchor="end" class="chart-label">
+                $5K
+              </text>
+
+              <!-- X-axis labels -->
+              <text x="110" y="245" text-anchor="middle" class="chart-label">
+                Year 1
+              </text>
+              <text x="220" y="245" text-anchor="middle" class="chart-label">
+                Year 2
+              </text>
+              <text x="340" y="245" text-anchor="middle" class="chart-label">
+                Year 3
+              </text>
+              <text x="450" y="245" text-anchor="middle" class="chart-label">
+                Year 4
+              </text>
+              <text x="560" y="245" text-anchor="middle" class="chart-label">
+                Year 5
+              </text>
+
+              <!-- Area fill -->
+              <path
+                class="chart-area-fill"
+                d="M110,180 L220,160 L340,135 L450,105 L560,70 L560,220 L110,220 Z"
+              />
+
+              <!-- Line -->
+              <path
+                class="chart-line"
+                d="M110,180 L220,160 L340,135 L450,105 L560,70"
+              />
+
+              <!-- Data points -->
+              <circle cx="110" cy="180" r="6" class="chart-dot" />
+              <circle cx="220" cy="160" r="6" class="chart-dot" />
+              <circle cx="340" cy="135" r="6" class="chart-dot" />
+              <circle cx="450" cy="105" r="6" class="chart-dot" />
+              <circle cx="560" cy="70" r="6" class="chart-dot" />
+            </svg>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <span
+                class="legend-color"
+                style="background: var(--primary-teal)"
+              ></span>
+              Cumulative Cash Flow
+            </div>
+            <div class="legend-item">
+              <span class="legend-color" style="background: var(--gold)"></span>
+              Equity Growth
+            </div>
+          </div>
+        </div>
+
+        <!-- Risk Assessment -->
+        <div class="risk-card">
+          <h3 class="chart-title" style="margin-bottom: 0.5rem">
+            Multi-Factor Risk Analysis
+          </h3>
+          <div
+            class="gauge-container"
+            role="img"
+            aria-label="Spider chart showing risk factors. Lowest risks are Bushfire and Vacancy. Highest risks are Demographics and Infrastructure."
+          >
+            <svg class="gauge-svg" viewBox="0 0 300 320">
+              <defs>
+                <!-- Tooltip for hover (visual only) -->
+                <filter
+                  id="shadow"
+                  x="-50%"
+                  y="-50%"
+                  width="200%"
+                  height="200%"
+                >
+                  <feDropShadow
+                    dx="0"
+                    dy="2"
+                    stdDeviation="3"
+                    flood-opacity="0.15"
+                  />
+                </filter>
+              </defs>
+
+              <!-- Center point -->
+              <g transform="translate(150, 160)">
+                <!-- Grid levels (4 concentric octagons: 25%, 50%, 75%, 100%) -->
+                <!-- Level 1: 25% -->
+                <polygon
+                  class="spider-grid"
+                  points="0,-30 21.2,-21.2 30,0 21.2,21.2 0,30 -21.2,21.2 -30,0 -21.2,-21.2"
+                />
+                <!-- Level 2: 50% -->
+                <polygon
+                  class="spider-grid"
+                  points="0,-60 42.4,-42.4 60,0 42.4,42.4 0,60 -42.4,42.4 -60,0 -42.4,-42.4"
+                />
+                <!-- Level 3: 75% -->
+                <polygon
+                  class="spider-grid"
+                  points="0,-90 63.6,-63.6 90,0 63.6,63.6 0,90 -63.6,63.6 -90,0 -63.6,-63.6"
+                />
+                <!-- Level 4: 100% -->
+                <polygon
+                  class="spider-grid"
+                  points="0,-120 84.8,-84.8 120,0 84.8,84.8 0,120 -84.8,84.8 -120,0 -84.8,-84.8"
+                />
+
+                <!-- Axis lines (8 axes) -->
+                <line x1="0" y1="0" x2="0" y2="-120" class="spider-axis" />
+                <line x1="0" y1="0" x2="84.8" y2="-84.8" class="spider-axis" />
+                <line x1="0" y1="0" x2="120" y2="0" class="spider-axis" />
+                <line x1="0" y1="0" x2="84.8" y2="84.8" class="spider-axis" />
+                <line x1="0" y1="0" x2="0" y2="120" class="spider-axis" />
+                <line x1="0" y1="0" x2="-84.8" y2="84.8" class="spider-axis" />
+                <line x1="0" y1="0" x2="-120" y2="0" class="spider-axis" />
+                <line x1="0" y1="0" x2="-84.8" y2="-84.8" class="spider-axis" />
+
+                <!-- Data polygon (actual scores) -->
+                <!-- Vacancy Risk: 20% (top), Market Volatility: 40%, Interest Rate: 60%, Flood: 50%, Bushfire: 10%, Infrastructure: 85%, Demographics: 90%, Liquidity: 35% -->
+                <polygon
+                  class="spider-data"
+                  points="0,-24 33.9,-33.9 72,0 42.4,42.4 0,12 -84.8,84.8 -108,0 -29.7,-29.7"
+                  filter="url(#shadow)"
+                />
+
+                <!-- Data points -->
+                <circle
+                  cx="0"
+                  cy="-24"
+                  r="4"
+                  class="spider-dot"
+                  title="Vacancy Risk: 20%"
+                />
+                <circle
+                  cx="33.9"
+                  cy="-33.9"
+                  r="4"
+                  class="spider-dot"
+                  title="Market Volatility: 40%"
+                />
+                <circle
+                  cx="72"
+                  cy="0"
+                  r="4"
+                  class="spider-dot"
+                  title="Interest Rate: 60%"
+                />
+                <circle
+                  cx="42.4"
+                  cy="42.4"
+                  r="4"
+                  class="spider-dot"
+                  title="Flood Risk: 50%"
+                />
+                <circle
+                  cx="0"
+                  cy="12"
+                  r="4"
+                  class="spider-dot"
+                  title="Bushfire: 10%"
+                />
+                <circle
+                  cx="-84.8"
+                  cy="84.8"
+                  r="4"
+                  class="spider-dot"
+                  title="Infrastructure: 85%"
+                />
+                <circle
+                  cx="-108"
+                  cy="0"
+                  r="4"
+                  class="spider-dot"
+                  title="Demographics: 90%"
+                />
+                <circle
+                  cx="-29.7"
+                  cy="-29.7"
+                  r="4"
+                  class="spider-dot"
+                  title="Liquidity: 35%"
+                />
+
+                <!-- Axis labels -->
+                <text x="0" y="-135" text-anchor="middle" class="spider-label">
+                  Vacancy Risk
+                </text>
+                <text x="95" y="-95" text-anchor="start" class="spider-label">
+                  Market Volatility
+                </text>
+                <text x="135" y="5" text-anchor="start" class="spider-label">
+                  Interest Rate
+                </text>
+                <text x="95" y="100" text-anchor="start" class="spider-label">
+                  Flood Risk
+                </text>
+                <text x="0" y="140" text-anchor="middle" class="spider-label">
+                  Bushfire Risk
+                </text>
+                <text x="-95" y="100" text-anchor="end" class="spider-label">
+                  Infrastructure
+                </text>
+                <text x="-135" y="5" text-anchor="end" class="spider-label">
+                  Demographics
+                </text>
+                <text x="-95" y="-95" text-anchor="end" class="spider-label">
+                  Liquidity Risk
+                </text>
+
+                <!-- Center dot -->
+                <circle cx="0" cy="0" r="3" fill="var(--slate-400)" />
+              </g>
+            </svg>
+          </div>
+          <div class="risk-label">
+            <div class="risk-value">Low-Medium Overall Risk</div>
+            <div class="risk-description">
+              Composite Score: 43/100 (lower is better)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROI Scenarios -->
+      <div class="scenarios-section animate-in delay-3">
+        <h2 class="section-title">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+          Investment Scenarios (5 Year)
+        </h2>
+        <div class="scenarios-grid">
+          <div class="scenario-card optimistic" tabindex="0">
+            <div class="scenario-header">
+              <div class="scenario-icon" aria-hidden="true">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                  <polyline points="17 6 23 6 23 12" />
+                </svg>
+              </div>
+              <div>
+                <div class="scenario-title">Optimistic</div>
+                <div class="scenario-subtitle">Strong market growth</div>
+              </div>
+            </div>
+            <div class="scenario-metrics">
+              <div class="scenario-metric">
+                <span class="scenario-metric-label">Property Value</span>
+                <span class="scenario-metric-value">$1,082,000</span>
+              </div>
+              <div class="scenario-metric">
+                <span class="scenario-metric-label">Total Equity</span>
+                <span class="scenario-metric-value">$454,000</span>
+              </div>
+              <div class="scenario-metric">
+                <span class="scenario-metric-label">Total ROI</span>
+                <span class="scenario-metric-value highlight">+189%</span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="scenario-card base"
+            style="border-color: var(--primary-teal)"
+            tabindex="0"
+          >
+            <div class="scenario-header">
+              <div class="scenario-icon" aria-hidden="true">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </div>
+              <div>
+                <div class="scenario-title">Base Case</div>
+                <div class="scenario-subtitle">Most likely outcome</div>
+              </div>
+            </div>
+            <div class="scenario-metrics">
+              <div class="scenario-metric">
+                <span class="scenario-metric-label">Property Value</span>
+                <span class="scenario-metric-value">$1,036,200</span>
+              </div>
+              <div class="scenario-metric">
+                <span class="scenario-metric-label">Total Equity</span>
+                <span class="scenario-metric-value">$408,200</span>
+              </div>
+              <div class="scenario-metric">
+                <span class="scenario-metric-label">Total ROI</span>
+                <span class="scenario-metric-value highlight">+160%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="scenario-card pessimistic" tabindex="0">
+            <div class="scenario-header">
+              <div class="scenario-icon" aria-hidden="true">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+                  <polyline points="17 18 23 18 23 12" />
+                </svg>
+              </div>
+              <div>
+                <div class="scenario-title">Pessimistic</div>
+                <div class="scenario-subtitle">Weak market conditions</div>
+              </div>
+            </div>
+            <div class="scenario-metrics">
+              <div class="scenario-metric">
+                <span class="scenario-metric-label">Property Value</span>
+                <span class="scenario-metric-value">$863,500</span>
+              </div>
+              <div class="scenario-metric">
+                <span class="scenario-metric-label">Total Equity</span>
+                <span class="scenario-metric-value">$235,500</span>
+              </div>
+              <div class="scenario-metric">
+                <span class="scenario-metric-label">Total ROI</span>
+                <span class="scenario-metric-value highlight">+50%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparable Sales -->
+      <div class="comparables-section animate-in delay-4">
+        <h2 class="section-title">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          Comparable Sales
+        </h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Property</th>
+                <th scope="col">Sale Price</th>
+                <th scope="col">Date</th>
+                <th scope="col">Beds</th>
+                <th scope="col">Land Size</th>
+                <th scope="col">$/m²</th>
+                <th scope="col">Comparison</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="property-cell">
+                    <div
+                      class="property-thumb"
+                      role="img"
+                      aria-label="Thumbnail of 18 Harbour View Drive"
+                    ></div>
+                    <div>
+                      <div class="property-name">18 Harbour View Drive</div>
+                      <div class="property-suburb">Penrith, NSW</div>
+                    </div>
+                  </div>
+                </td>
+                <td><strong>$812,000</strong></td>
+                <td>Dec 2024</td>
+                <td>4</td>
+                <td>680 m²</td>
+                <td>$1,194</td>
+                <td><span class="badge badge-success">Similar</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="property-cell">
+                    <div
+                      class="property-thumb"
+                      role="img"
+                      aria-label="Thumbnail of 42 River Road"
+                    ></div>
+                    <div>
+                      <div class="property-name">42 River Road</div>
+                      <div class="property-suburb">Penrith, NSW</div>
+                    </div>
+                  </div>
+                </td>
+                <td><strong>$765,000</strong></td>
+                <td>Nov 2024</td>
+                <td>3</td>
+                <td>590 m²</td>
+                <td>$1,297</td>
+                <td><span class="badge badge-warning">Smaller</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="property-cell">
+                    <div
+                      class="property-thumb"
+                      role="img"
+                      aria-label="Thumbnail of 7 Mountain View Crescent"
+                    ></div>
+                    <div>
+                      <div class="property-name">7 Mountain View Crescent</div>
+                      <div class="property-suburb">Penrith, NSW</div>
+                    </div>
+                  </div>
+                </td>
+                <td><strong>$825,000</strong></td>
+                <td>Oct 2024</td>
+                <td>4</td>
+                <td>720 m²</td>
+                <td>$1,146</td>
+                <td><span class="badge badge-success">Similar</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="property-cell">
+                    <div
+                      class="property-thumb"
+                      role="img"
+                      aria-label="Thumbnail of 31 Nepean Avenue"
+                    ></div>
+                    <div>
+                      <div class="property-name">31 Nepean Avenue</div>
+                      <div class="property-suburb">Penrith, NSW</div>
+                    </div>
+                  </div>
+                </td>
+                <td><strong>$798,500</strong></td>
+                <td>Sep 2024</td>
+                <td>4</td>
+                <td>645 m²</td>
+                <td>$1,238</td>
+                <td><span class="badge badge-success">Similar</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AI Insights -->
+      <div class="ai-insights animate-in delay-4">
+        <div class="ai-header">
+          <div class="ai-avatar">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"
+              />
+              <circle cx="9" cy="13" r="1" />
+              <circle cx="15" cy="13" r="1" />
+              <path d="M9 17h6" />
+            </svg>
+          </div>
+          <div style="flex: 1">
+            <div class="ai-title">AI Investment Analysis</div>
+            <div class="ai-subtitle">Powered by Propure Intelligence</div>
+          </div>
+          <div style="text-align: right">
+            <div
+              style="
+                font-size: 1.5rem;
+                font-weight: 700;
+                font-family: var(--font-display);
+              "
+            >
+              92%
+            </div>
+            <div style="font-size: 0.75rem; opacity: 0.85">Confidence</div>
+          </div>
+        </div>
+
+        <!-- Confidence Breakdown -->
+        <div class="confidence-breakdown">
+          <div class="confidence-header">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Analysis Confidence Factors
+          </div>
+          <div class="confidence-grid">
+            <div class="confidence-item">
+              <span style="opacity: 0.95"
+                >Strong yield (5.8% vs 5.5% target)</span
+              >
+              <span style="font-weight: 600">✓</span>
+            </div>
+            <div class="confidence-item">
+              <span style="opacity: 0.95"
+                >Low vacancy rate (1.2% suburb avg)</span
+              >
+              <span style="font-weight: 600">✓</span>
+            </div>
+            <div class="confidence-item">
+              <span style="opacity: 0.95"
+                >Stable demographics (4.2% income growth)</span
+              >
+              <span style="font-weight: 600">✓</span>
+            </div>
+            <div class="confidence-item">
+              <span style="opacity: 0.95"
+                >Infrastructure investment ($5.3B WSA project)</span
+              >
+              <span style="font-weight: 600">✓</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-list">
+          <div class="insight-item">
+            <div class="insight-icon">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <div class="insight-content">
+              <h4>Strong Cash Flow Alignment</h4>
+              <p>
+                This property's 5.8% yield exceeds your target of 5.5%. The
+                rental demand in Penrith is driven by Western Sydney Airport
+                development and infrastructure projects.
+              </p>
+            </div>
+          </div>
+          <div class="insight-item">
+            <div class="insight-icon">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <div class="insight-content">
+              <h4>Consideration: Flood Zone Proximity</h4>
+              <p>
+                Property is 800m from a minor flood zone. Recommend checking
+                council flood maps and insurance premiums before proceeding.
+                Historical data shows no flooding at this address.
+              </p>
+            </div>
+          </div>
+          <div class="insight-item">
+            <div class="insight-icon">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                />
+              </svg>
+            </div>
+            <div class="insight-content">
+              <h4>Growth Catalyst: Metro West Line</h4>
+              <p>
+                The upcoming Metro West extension will improve connectivity to
+                Sydney CBD. Properties within 2km of stations have historically
+                seen 15-20% additional growth.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="nav-links">
+        <a href="04-dashboard.html" class="nav-link">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+          Back to Dashboard
+        </a>
+        <a href="06-shortlist-decision.html" class="nav-link">
+          Add to Shortlist
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </a>
+      </nav>
+    </main>
+
+    <script>
+      // Chart tab switching
+      document.querySelectorAll(".chart-tab").forEach((tab) => {
+        tab.addEventListener("click", function () {
+          document
+            .querySelectorAll(".chart-tab")
+            .forEach((t) => t.classList.remove("active"));
+          this.classList.add("active");
+        });
+      });
+
+      // Scenario card selection
+      document.querySelectorAll(".scenario-card").forEach((card) => {
+        card.addEventListener("click", function () {
+          document
+            .querySelectorAll(".scenario-card")
+            .forEach((c) => (c.style.borderColor = "transparent"));
+          this.style.borderColor = "var(--primary-teal)";
+        });
+        // Keyboard support
+        card.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") {
+            document
+              .querySelectorAll(".scenario-card")
+              .forEach((c) => (c.style.borderColor = "transparent"));
+            this.style.borderColor = "var(--primary-teal)";
+          }
+        });
+      });
+
+      // Animate elements on scroll
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px",
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = "1";
+            entry.target.style.transform = "translateY(0)";
+          }
+        });
+      }, observerOptions);
+
+      document.querySelectorAll(".animate-in").forEach((el) => {
+        el.style.opacity = "0";
+        el.style.transform = "translateY(20px)";
+        el.style.transition = "opacity 0.6s ease-out, transform 0.6s ease-out";
+        observer.observe(el);
+      });
+
+      // Trigger initial animations
+      setTimeout(() => {
+        document.querySelectorAll(".animate-in").forEach((el) => {
+          el.style.opacity = "1";
+          el.style.transform = "translateY(0)";
+        });
+      }, 100);
+    </script>
+  </body>
+</html>

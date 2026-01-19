@@ -8,6 +8,7 @@ import {
   Mountain,
   CloudRain,
   Landmark,
+  School,
 } from "lucide-react";
 
 import {
@@ -64,6 +65,11 @@ const layers: LayerOption[] = [
     id: "HERITAGE_ZONES",
     label: "Heritage Zones",
     icon: <Landmark className="h-4 w-4" />,
+  },
+  {
+    id: "SCHOOL_ZONES",
+    label: "School Zones",
+    icon: <School className="h-4 w-4" />,
   }
 ];
 
