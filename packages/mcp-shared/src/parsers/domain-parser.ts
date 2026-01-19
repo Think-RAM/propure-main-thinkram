@@ -5,6 +5,9 @@ import type {
   ListingStatus,
   ListingType,
   DataSource,
+  AustralianState,
+  PropertyType,
+  
 } from "../schemas";
 import * as cheerio from "cheerio";
 
@@ -236,10 +239,7 @@ export function parseDomainPropertyListing(
   try {
     const $ = cheerio.load(html);
 
-    // -----------------------------
     // HEADLINE (USED AS ADDRESS SOURCE)
-    // -----------------------------
-
     const headline =
       $("div[data-testid=listing-details__button-copy-wrapper] h1")
         .first()
@@ -248,17 +248,11 @@ export function parseDomainPropertyListing(
 
     if (!headline) return null;
 
-    // -----------------------------
     // ADDRESS
-    // -----------------------------
-
     const address = parseAustralianAddress(headline);
     if (!address) return null;
 
-    // -----------------------------
     // PRICE
-    // -----------------------------
-
     const price =
       $("div[data-testid='listing-details__summary-title'] span")
         .first()
@@ -267,10 +261,7 @@ export function parseDomainPropertyListing(
 
     const { priceValue, priceFrom, priceTo } = parsePrice(price);
 
-    // -----------------------------
     // FEATURES (CORE)
-    // -----------------------------
-
     const featureEls = $(
       "div[data-testid='property-features'] span[data-testid='property-features-text-container']"
     );
@@ -282,10 +273,7 @@ export function parseDomainPropertyListing(
       size: featureEls.eq(3).text()
     });
 
-    // -----------------------------
     // FEATURE LIST
-    // -----------------------------
-
     const featureList: string[] = [];
     $("li[data-testid^='listing-details__additional-']").each((_, el) => {
       featureList.push($(el).text().trim());
@@ -295,26 +283,21 @@ export function parseDomainPropertyListing(
       features.features = featureList;
     }
 
-    // -----------------------------
     // DESCRIPTION
-    // -----------------------------
-
     let description: string | undefined;
     const descContainer = $("div[data-testid='listing-details__description']");
 
     if (descContainer.length) {
       descContainer.find("button").remove();
       description = descContainer
-      .find("p")
-      .map((_index: number, el: cheerio.Element) => $(el).text().trim())
-      .get()
-      .join(" ");
+        .find("p")
+        
+        .map((_index: number, el) => $(el).text().trim())
+        .get()
+        .join(" ");
+    }
 
-
-    // -----------------------------
     // AGENT
-    // -----------------------------
-
     const agentName =
       $("[data-testid=listing-details__agent-details-agent-name]")
         .first()
@@ -333,18 +316,12 @@ export function parseDomainPropertyListing(
         .text()
         .trim() || undefined;
 
-    // -----------------------------
     // EXTERNAL ID
-    // -----------------------------
-
     const externalId =
       sourceUrl?.split("/").pop() ??
       `domain-${Buffer.from(headline).toString("base64")}`;
 
-    // -----------------------------
     // FINAL LISTING
-    // -----------------------------
-
     const listing: PropertyListing = {
       externalId,
       source: "DOMAIN",
@@ -366,13 +343,10 @@ export function parseDomainPropertyListing(
     };
 
     return listing;
-  } 
-}
-catch {
+  } catch {
     return null;
   }
 }
-
 
 function normalizePropertyType(
   type?: string,

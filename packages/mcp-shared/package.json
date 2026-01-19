@@ -17,8 +17,9 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "zod": "^3.24.1",
-    "limiter": "^2.1.0"
+    "cheerio": "^1.1.2",
+    "limiter": "^2.1.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^20",

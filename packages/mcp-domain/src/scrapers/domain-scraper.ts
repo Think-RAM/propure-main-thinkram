@@ -130,7 +130,7 @@ export async function getDomainPropertyDetails(
   const html = await scrapeDomainWithWebScraper(url);
 
   writeFileSync("reference/domain-property-details.html", html);
-  return parseDomainPropertyListing(html);
+  return parseDomainPropertyListing(html,"rent");
 }
 
 /**
