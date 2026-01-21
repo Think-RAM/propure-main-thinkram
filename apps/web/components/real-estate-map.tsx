@@ -18,6 +18,7 @@ import { Textarea } from "./ui/textarea";
 import { ChatSidebar } from "./ChatSideBar";
 import { useUserChats } from "@/context/ChatContext";
 import { LeafletMap } from "./maps/LeafletMap";
+import { FloatingNotificationInbox } from "./notification/NotificationBell";
 
 const MAX_HEIGHT = 180; // px ~ ChatGPT clamp
 
@@ -74,6 +75,8 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
           />
         </div>
       )}
+
+      <FloatingNotificationInbox align="bottom-right" />
 
       {/* Search Header - appears when search is active */}
       <div

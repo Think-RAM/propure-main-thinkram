@@ -231,7 +231,7 @@ const NSW_LAYER_INFO: LayerInfo = {
             "SHAPE",
         ],
         labelKey: "POITYPE",
-        whereClause: "POITYPE IN ('Academy','University')"
+        whereClause: "POITYPE IN ('Academy','University', 'Education Facility', 'Preschool', 'Primary School', 'TAFE College')",
     }
 }
 
