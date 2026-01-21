@@ -7,6 +7,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./oxylabs": "./src/oxylabs/index.ts",
+    "./scrapedo": "./src/scrapedo/index.ts",
     "./schemas": "./src/schemas/index.ts",
     "./parsers": "./src/parsers/index.ts",
     "./rate-limiter": "./src/rate-limiter.ts"
@@ -20,10 +21,13 @@
     "chalk": "^5.6.2",
     "cheerio": "^1.1.2",
     "limiter": "^2.1.0",
+    "pino": "^9.5.0",
+    "pino-pretty": "^11.3.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pino": "^7.0.5",
     "typescript": "^5"
   }
 }

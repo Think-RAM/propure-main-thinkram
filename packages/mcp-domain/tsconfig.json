@@ -11,7 +11,8 @@
     "declarationMap": true,
     "outDir": "./dist",
     "rootDir": "../..",
-    "types": ["node"]
+    // "types": ["node"],
+    // "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*", "src/test/**/*"],
   "exclude": ["node_modules", "dist"]

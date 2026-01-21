@@ -1,2 +1,7 @@
 export { createDomainServer } from "./server";
-export * from "./scrapers";
+export {
+  searchDomainPropertiesUsingOxylabs,
+  searchDomainPropertiesWithScrapeDo,
+  getDomainPropertyDetailsUsingOxylabs,
+  getDomainPropertyDetailsWithScrapeDo,
+} from "./scrapers";

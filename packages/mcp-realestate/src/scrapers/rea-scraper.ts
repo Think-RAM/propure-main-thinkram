@@ -1,11 +1,14 @@
 import {
-  scrapeRealEstate,
+  scrapeRealEstateWithWebScraper,
+  // scrapeRealEstate,
   parseReaPropertyListing,
   parseReaSearchResults,
   type PropertyListing,
   type PropertySearchParams,
   type AustralianState,
 } from "@propure/mcp-shared";
+import { writeFileSync, existsSync, mkdirSync } from "fs";
+import { join } from "path";
 
 import {
   isMockModeEnabled,
@@ -97,7 +100,7 @@ export function buildSearchUrl(params: PropertySearchParams): string {
  * Search properties on RealEstate.com.au
  */
 export async function searchReaProperties(
-  params: PropertySearchParams
+  params: PropertySearchParams,
 ): Promise<{
   listings: PropertyListing[];
   totalCount: number;
@@ -110,9 +113,18 @@ export async function searchReaProperties(
   }
 
   const url = buildSearchUrl(params);
-  const html = await scrapeRealEstate(url);
-  const listings = parseReaSearchResults(html);
+  const html = await scrapeRealEstateWithWebScraper(url);
 
+  // Save reference HTML for debugging/parser development
+  const referenceDir = join(process.cwd(), "packages/mcp-realestate/reference");
+  if (!existsSync(referenceDir)) {
+    mkdirSync(referenceDir, { recursive: true });
+  }
+  writeFileSync(join(referenceDir, "rea-search-results.html"), html);
+
+  // const listings = parseReaSearchResults(html);
+  const listings: PropertyListing[] = [];
+  
   // REA typically shows 20-25 results per page
   const hasMore = listings.length >= 20;
 
@@ -127,12 +139,12 @@ export async function searchReaProperties(
  * Get property details from RealEstate.com.au
  */
 export async function getReaPropertyDetails(
-  listingId: string
+  listingId: string,
 ): Promise<PropertyListing | null> {
   // Check for mock mode
   if (isMockModeEnabled()) {
     console.log(
-      `[Mock Mode] Returning mock REA property details for ${listingId}`
+      `[Mock Mode] Returning mock REA property details for ${listingId}`,
     );
     return getMockPropertyDetails(listingId);
   }
@@ -140,16 +152,29 @@ export async function getReaPropertyDetails(
   // REA property URLs are like: https://www.realestate.com.au/property-house-nsw-sydney-123456
   // or with just the ID: https://www.realestate.com.au/123456
   let url: string;
-  if (listingId.includes("/")) {
-    url = `https://www.realestate.com.au${listingId.startsWith("/") ? "" : "/"}${listingId}`;
+  if (listingId.startsWith("http")) {
+    url = listingId;
+  } else if (listingId.startsWith("/")) {
+    url = `https://www.realestate.com.au${listingId}`;
   } else if (listingId.includes("-")) {
+    // If it looks like a slug but no leading slash
     url = `https://www.realestate.com.au/property-${listingId}`;
   } else {
-    url = `https://www.realestate.com.au/${listingId}`;
+    // Numeric ID or unrecognized format
+    url = `https://www.realestate.com.au/property-details-${listingId}`;
   }
 
-  const html = await scrapeRealEstate(url);
-  return parseReaPropertyListing(html);
+  const html = await scrapeRealEstateWithWebScraper(url);
+
+  // Save reference HTML for debugging/parser development
+  const referenceDir = join(process.cwd(), "packages/mcp-realestate/reference");
+  if (!existsSync(referenceDir)) {
+    mkdirSync(referenceDir, { recursive: true });
+  }
+  writeFileSync(join(referenceDir, "rea-property-details.html"), html);
+
+  // return parseReaPropertyListing(html);
+  return null;
 }
 
 /**
@@ -158,7 +183,7 @@ export async function getReaPropertyDetails(
 export async function getReaSuburbProfile(
   suburb: string,
   state: AustralianState,
-  postcode: string
+  postcode: string,
 ): Promise<{
   suburb: string;
   state: AustralianState;
@@ -174,7 +199,7 @@ export async function getReaSuburbProfile(
   // Check for mock mode
   if (isMockModeEnabled()) {
     console.log(
-      `[Mock Mode] Returning mock REA suburb profile for ${suburb}, ${state}`
+      `[Mock Mode] Returning mock REA suburb profile for ${suburb}, ${state}`,
     );
     return getMockSuburbStats(suburb, state, postcode);
   }
@@ -184,11 +209,11 @@ export async function getReaSuburbProfile(
   const url = `https://www.realestate.com.au/neighbourhoods/${suburbSlug}-${postcode}-${state.toLowerCase()}`;
 
   try {
-    const html = await scrapeRealEstate(url);
+    const html = await scrapeRealEstateWithWebScraper(url);
 
     // Try to extract from ArgonautExchange
     const argonautMatch = html.match(
-      /window\.ArgonautExchange\s*=\s*({[\s\S]*?});/
+      /window\.ArgonautExchange\s*=\s*({[\s\S]*?});/,
     );
 
     if (argonautMatch?.[1]) {
@@ -261,12 +286,12 @@ export async function getReaSuburbProfile(
 export async function getReaSoldProperties(
   suburb: string,
   state: AustralianState,
-  postcode?: string
+  postcode?: string,
 ): Promise<PropertyListing[]> {
   // Check for mock mode
   if (isMockModeEnabled()) {
     console.log(
-      `[Mock Mode] Returning mock REA sold properties for ${suburb}, ${state}`
+      `[Mock Mode] Returning mock REA sold properties for ${suburb}, ${state}`,
     );
     return getMockSoldProperties(suburb, state);
   }
@@ -287,12 +312,12 @@ export async function getReaSoldProperties(
  * Get agency listings from RealEstate.com.au
  */
 export async function getReaAgencyListings(
-  agencyId: string
+  agencyId: string,
 ): Promise<PropertyListing[]> {
   // Check for mock mode
   if (isMockModeEnabled()) {
     console.log(
-      `[Mock Mode] Returning mock REA agency listings for ${agencyId}`
+      `[Mock Mode] Returning mock REA agency listings for ${agencyId}`,
     );
     return getMockAgencyListings(agencyId);
   }
@@ -300,8 +325,9 @@ export async function getReaAgencyListings(
   const url = `https://www.realestate.com.au/agency/${agencyId}/listings`;
 
   try {
-    const html = await scrapeRealEstate(url);
-    return parseReaSearchResults(html);
+    const html = await scrapeRealEstateWithWebScraper(url);
+    // return parseReaSearchResults(html);
+    return [];
   } catch (error) {
     console.error(`Failed to get agency listings for ${agencyId}:`, error);
     return [];

@@ -24,11 +24,11 @@ export function createRealEstateServer(): McpServer {
 
   // Tool: Search Properties
   server.registerTool(
-    "search_properties",
+    "scrape_realestate",
     {
-      title: "Search RealEstate.com.au Properties",
+      title: "Scrape RealEstate Properties",
       description:
-        "Search property listings on RealEstate.com.au with filters for location, price, bedrooms, and property type",
+        "Scrape property listings on RealEstate.com.au with filters for location, price, bedrooms, and property type",
       inputSchema: {
         suburbs: z
           .array(z.string())
@@ -118,7 +118,6 @@ export function createRealEstateServer(): McpServer {
       }
     },
   );
-
 
   return server;
 }

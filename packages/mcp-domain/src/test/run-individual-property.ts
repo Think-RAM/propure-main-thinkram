@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { parseDomainPropertyListing } from "../../../mcp-shared/src/parsers/domain-parser";
+import { logger } from "../logger";
 
 
 
@@ -8,13 +9,13 @@ export function openHtmlFile(filePath: string): string | null {
   try {
     const absolutePath = path.resolve(filePath);
     const htmlContent = fs.readFileSync(absolutePath, "utf-8");
-    console.log("HTML content successfully read into a string.");
+    logger.info("HTML content successfully read into a string.");
     return htmlContent;
   } catch (error: any) {
     if (error.code === "ENOENT") {
-      console.error(`Error: The file '${filePath}' was not found.`);
+      logger.error({ filePath }, "File not found");
     } else {
-      console.error("An error occurred while reading the file:", error);
+      logger.error({ err: error }, "An error occurred while reading the file");
     }
     return null;
   }
@@ -33,5 +34,5 @@ if (html) {
     "https://www.domain.com.au/example-listing"
   );
 
-  console.log(result);
+  logger.info({ result }, "Parsed property details");
 }

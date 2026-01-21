@@ -11,6 +11,7 @@ import type {
   
 } from "../schemas";
 import chalk from "chalk";
+import { logger } from "../logger";
 
 const VALID_STATES: Set<PropertyAddress["state"]> = new Set([
   "NSW",
@@ -419,14 +420,14 @@ export function parseDomainSearchResults(html: string): PropertyListing[] {
     // console.log(chalk.yellowBright("Parsed listing card: "));
     const parsed = parseListingCard($, el);
 
-    console.dir(parsed, { depth: Infinity });
+    // console.dir(parsed, { depth: Infinity });
 
     if (parsed) {
       listings.push(parsed);
     }
   });
 
-  console.log(
+  logger.info(
     chalk.greenBright(
       `Parsed ${listings.length} listings from search results.`,
     ),

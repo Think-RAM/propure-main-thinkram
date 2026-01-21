@@ -18,6 +18,17 @@ export {
   type WebScraperResponse,
 } from "./oxylabs";
 
+// Scrape.do Web Scraper client
+export {
+  ScrapeDoWebScraper,
+  getScrapeDoClient,
+  scrapeDomainWithScrapeDo,
+  scrapeRealEstateWithScrapeDo,
+  type ScrapeDoOptions,
+  type ScrapeDoDevice,
+  type ScrapeDoWaitUntil,
+} from "./scrapedo";
+
 // Rate limiter
 export {
   getRateLimiter,
@@ -26,6 +37,7 @@ export {
   RATE_LIMITS,
   type RateLimiterConfig,
 } from "./rate-limiter";
+
 
 // Schemas
 export * from "./schemas";
@@ -39,3 +51,5 @@ export {
   parseReaPropertyListing,
   parseReaSearchResults,
 } from "./parsers";
+
+export { logger, createChildLogger } from "./logger";

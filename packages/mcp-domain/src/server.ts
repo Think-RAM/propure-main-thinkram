@@ -6,12 +6,14 @@ import {
   ListingType,
 } from "@propure/mcp-shared";
 import {
-  searchDomainProperties,
-  getDomainPropertyDetails,
-  getDomainSuburbStats,
-  getDomainSalesHistory,
-  getDomainAgentInfo,
-  getDomainAuctionResults,
+  searchDomainPropertiesWithScrapeDo,
+  getDomainPropertyDetailsWithScrapeDo,
+  searchDomainPropertiesUsingOxylabs,
+  getDomainPropertyDetailsUsingOxylabs,
+  // getDomainSuburbStats,
+  // getDomainSalesHistory,
+  // getDomainAgentInfo,
+  // getDomainAuctionResults,
 } from "./scrapers/domain-scraper";
 
 /**
@@ -57,7 +59,7 @@ export function createDomainServer(): McpServer {
     },
     async (params) => {
       try {
-        const results = await searchDomainProperties(params);
+        const results = await searchDomainPropertiesWithScrapeDo(params);
         return {
           content: [
             {
@@ -65,7 +67,6 @@ export function createDomainServer(): McpServer {
               text: JSON.stringify(results, null, 2),
             },
           ],
-          structuredContent: results,
         };
       } catch (error) {
         const message =
@@ -96,7 +97,10 @@ export function createDomainServer(): McpServer {
     },
     async ({ listingId, listingType }) => {
       try {
-        const property = await getDomainPropertyDetails(listingId, listingType);
+        const property = await getDomainPropertyDetailsWithScrapeDo(
+          listingId,
+          listingType,
+        );
         if (!property) {
           return {
             content: [{ type: "text" as const, text: "Property not found" }],
@@ -110,7 +114,6 @@ export function createDomainServer(): McpServer {
               text: JSON.stringify(property, null, 2),
             },
           ],
-          structuredContent: property,
         };
       } catch (error) {
         const message =
@@ -168,40 +171,40 @@ export function createDomainServer(): McpServer {
   // );
 
   // Tool: Get Sales History
-  server.registerTool(
-    "get_sales_history",
-    {
-      title: "Get Sales History",
-      description:
-        "Get historical sales records for a specific property address",
-      inputSchema: {
-        address: z.string().describe("Street address of the property"),
-        suburb: z.string().describe("Suburb name"),
-        state: AustralianState.describe("Australian state"),
-      },
-    },
-    async ({ address, suburb, state }) => {
-      try {
-        const history = await getDomainSalesHistory(address, suburb, state);
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(history, null, 2),
-            },
-          ],
-          structuredContent: { salesHistory: history },
-        };
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Unknown error occurred";
-        return {
-          content: [{ type: "text" as const, text: `Error: ${message}` }],
-          isError: true,
-        };
-      }
-    },
-  );
+  // server.registerTool(
+  //   "get_sales_history",
+  //   {
+  //     title: "Get Sales History",
+  //     description:
+  //       "Get historical sales records for a specific property address",
+  //     inputSchema: {
+  //       address: z.string().describe("Street address of the property"),
+  //       suburb: z.string().describe("Suburb name"),
+  //       state: AustralianState.describe("Australian state"),
+  //     },
+  //   },
+  //   async ({ address, suburb, state }) => {
+  //     try {
+  //       const history = await getDomainSalesHistory(address, suburb, state);
+  //       return {
+  //         content: [
+  //           {
+  //             type: "text" as const,
+  //             text: JSON.stringify(history, null, 2),
+  //           },
+  //         ],
+  //         structuredContent: { salesHistory: history },
+  //       };
+  //     } catch (error) {
+  //       const message =
+  //         error instanceof Error ? error.message : "Unknown error occurred";
+  //       return {
+  //         content: [{ type: "text" as const, text: `Error: ${message}` }],
+  //         isError: true,
+  //       };
+  //     }
+  //   },
+  // );
 
   // Tool: Get Agent Info
   // server.registerTool(
@@ -244,39 +247,39 @@ export function createDomainServer(): McpServer {
   // );
 
   // Tool: Get Auction Results
-  server.registerTool(
-    "get_auction_results",
-    {
-      title: "Get Auction Results",
-      description:
-        "Get recent auction results for a suburb including sold prices and clearance rates",
-      inputSchema: {
-        suburb: z.string().describe("Suburb name"),
-        state: AustralianState.describe("Australian state"),
-      },
-    },
-    async ({ suburb, state }) => {
-      try {
-        const results = await getDomainAuctionResults(suburb, state);
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(results, null, 2),
-            },
-          ],
-          structuredContent: { auctionResults: results },
-        };
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Unknown error occurred";
-        return {
-          content: [{ type: "text" as const, text: `Error: ${message}` }],
-          isError: true,
-        };
-      }
-    },
-  );
+  // server.registerTool(
+  //   "get_auction_results",
+  //   {
+  //     title: "Get Auction Results",
+  //     description:
+  //       "Get recent auction results for a suburb including sold prices and clearance rates",
+  //     inputSchema: {
+  //       suburb: z.string().describe("Suburb name"),
+  //       state: AustralianState.describe("Australian state"),
+  //     },
+  //   },
+  //   async ({ suburb, state }) => {
+  //     try {
+  //       const results = await getDomainAuctionResults(suburb, state);
+  //       return {
+  //         content: [
+  //           {
+  //             type: "text" as const,
+  //             text: JSON.stringify(results, null, 2),
+  //           },
+  //         ],
+  //         structuredContent: { auctionResults: results },
+  //       };
+  //     } catch (error) {
+  //       const message =
+  //         error instanceof Error ? error.message : "Unknown error occurred";
+  //       return {
+  //         content: [{ type: "text" as const, text: `Error: ${message}` }],
+  //         isError: true,
+  //       };
+  //     }
+  //   },
+  // );
 
   return server;
 }

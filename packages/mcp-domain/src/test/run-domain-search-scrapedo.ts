@@ -16,9 +16,6 @@ async function main() {
     page: 1,
     postcode: "2000",
   });
-  // "sydney-nsw-2000"
-
-  // console.log("Domain search result: ", result);
 
   const listings = result.listings ?? [];
   if (listings.length === 0) {
@@ -28,22 +25,19 @@ async function main() {
 
   logger.info({ count: listings.length }, "Listings count");
   logger.info({ listing: listings[0] }, "Listing preview");
-  // console.log("Listing:");
-  // console.dir(listings, { depth: Infinity });
 
-  // Save to reference/output.json
   const referenceDir = path.join(
     process.cwd(),
     "packages/mcp-domain/reference",
   );
   await fs.mkdir(referenceDir, { recursive: true });
 
-  const outputPath = path.join(referenceDir, "output.json");
+  const outputPath = path.join(referenceDir, "output-scrapedo.json");
   await fs.writeFile(outputPath, JSON.stringify(result, null, 2));
   logger.info({ outputPath }, "Saved output to file");
 }
 
 main().catch((err) => {
-  logger.error({ err }, "Error running domain search");
+  logger.error({ err }, "Error running Scrape.do domain search");
   process.exit(1);
 });
