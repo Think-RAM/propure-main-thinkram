@@ -9,6 +9,7 @@ import {
   getAbsBuildingApprovals,
   getAbsPopulationProjections,
 } from "./sources/market-sources";
+import { scrapeABSWithScrapeDo } from "./sources/scrape-abs";
 
 /**
  * Create and configure the Market Data MCP server

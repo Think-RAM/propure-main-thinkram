@@ -3,6 +3,7 @@ export {
   getScrapeDoClient,
   scrapeDomainWithScrapeDo,
   scrapeRealEstateWithScrapeDo,
+  scrapeAbsWithScrapeDo,
   type ScrapeDoOptions,
   type ScrapeDoDevice,
   type ScrapeDoWaitUntil,

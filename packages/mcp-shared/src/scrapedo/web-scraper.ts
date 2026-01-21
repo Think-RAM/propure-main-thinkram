@@ -277,3 +277,25 @@ export async function scrapeRealEstateWithScrapeDo(
     RATE_LIMITS.realestate.scrape,
   );
 }
+
+/**
+ * Fetch an Australian Bureau of Statistics page through Scrape.do using dedicated market-data rate limits.
+ */
+export async function scrapeAbsWithScrapeDo(
+  url: string,
+  options?: Omit<ScrapeDoOptions, "url">,
+): Promise<string> {
+  const client = getScrapeDoClient();
+  const requestOptions: ScrapeDoOptions = {
+    url,
+    ...options,
+  };
+  if (!requestOptions.geoCode) {
+    requestOptions.geoCode = "au";
+  }
+  return client.scrapeWithRateLimit(
+    requestOptions,
+    "market-abs-scrape",
+    RATE_LIMITS.market.absScrape,
+  );
+}

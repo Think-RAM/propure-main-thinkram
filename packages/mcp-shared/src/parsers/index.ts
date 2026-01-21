@@ -9,3 +9,5 @@ export {
   parseReaPropertyListing,
   parseReaSearchResults,
 } from "./rea-parser";
+
+export { parseAbsMarketData } from "./abs-parser";

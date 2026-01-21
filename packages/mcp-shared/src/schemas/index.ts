@@ -235,6 +235,48 @@ export const MarketIndicatorSchema = z.object({
 });
 export type MarketIndicator = z.infer<typeof MarketIndicatorSchema>;
 
+export const BreakdownEntrySchema = z.object({
+  label: z.string(),
+  count: z.number(),
+  percentage: z.number().nullable(),
+});
+export type BreakdownEntry = z.infer<typeof BreakdownEntrySchema>;
+
+export const MarketDataSchema = z.object({
+  people: z.array(BreakdownEntrySchema),
+  maritalStatus: z.array(BreakdownEntrySchema),
+  education: z.array(BreakdownEntrySchema),
+  laborForce: z.array(BreakdownEntrySchema),
+  employmentStatus: z.array(BreakdownEntrySchema),
+  occupationTopResponses: z.array(BreakdownEntrySchema),
+  industryTopResponses: z.array(BreakdownEntrySchema),
+  medianWeeklyIncomes: z.array(BreakdownEntrySchema),
+  methodOfTravelToWork: z.array(BreakdownEntrySchema),
+  familyComposition: z.array(BreakdownEntrySchema),
+  dwellingStructure: z.array(BreakdownEntrySchema),
+  numberOfBedrooms: z.array(BreakdownEntrySchema),
+  tenureType: z.array(BreakdownEntrySchema),
+  rentWeeklyPayments: z.array(BreakdownEntrySchema),
+  mortgageMonthlyRepayments: z.array(BreakdownEntrySchema),
+});
+export type MarketData = z.infer<typeof MarketDataSchema>;
+
+export type PeopleBreakdown = Array<BreakdownEntry>;
+export type MaritalStatusBreakdown = Array<BreakdownEntry>;
+export type EducationLevelBreakdown = Array<BreakdownEntry>;
+export type LaborForceBreakdown = Array<BreakdownEntry>;
+export type EmploymentStatusBreakdown = Array<BreakdownEntry>;
+export type OccupationTopResponses = Array<BreakdownEntry>;
+export type IndustryTopResponses = Array<BreakdownEntry>;
+export type MedianWeeklyIncomes = Array<BreakdownEntry>;
+export type MethodOfTravelToWork = Array<BreakdownEntry>;
+export type FamilyComposition = Array<BreakdownEntry>;
+export type DwellingStructure = Array<BreakdownEntry>;
+export type NumberOfBedrooms = Array<BreakdownEntry>;
+export type TenureType = Array<BreakdownEntry>;
+export type RentWeeklyPayments = Array<BreakdownEntry>;
+export type MortgageMonthlyRepayments = Array<BreakdownEntry>;
+
 // Infrastructure project schema
 export const InfrastructureProjectSchema = z.object({
   id: z.string(),

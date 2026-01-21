@@ -25,6 +25,7 @@
   "dependencies": {
     "@ai-sdk/google": "^3.0.2",
     "@ai-sdk/react": "^3.0.7",
-    "ai": "^6.0.7"
+    "ai": "^6.0.7",
+    "domhandler": "^5.0.3"
   }
 }

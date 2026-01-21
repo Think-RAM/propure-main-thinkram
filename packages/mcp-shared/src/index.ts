@@ -24,6 +24,7 @@ export {
   getScrapeDoClient,
   scrapeDomainWithScrapeDo,
   scrapeRealEstateWithScrapeDo,
+  scrapeAbsWithScrapeDo,
   type ScrapeDoOptions,
   type ScrapeDoDevice,
   type ScrapeDoWaitUntil,
@@ -50,6 +51,7 @@ export {
   extractReaArgonautData,
   parseReaPropertyListing,
   parseReaSearchResults,
+  parseAbsMarketData,
 } from "./parsers";
 
 export { logger, createChildLogger } from "./logger";
