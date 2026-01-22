@@ -101,7 +101,7 @@ function useEvent<T extends (...args: any[]) => any>(handler: T): T {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   return useCallback(
     ((...args: any[]) => handlerRef.current(...args)) as T,
-    []
+    [],
   );
 }
 
@@ -182,7 +182,7 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
     const extracted = await handleLegendExtraction(
       layer.url,
       layer.name,
-      layer.whereClause
+      layer.whereClause,
     );
     legendCacheRef.current.set(layer.url, extracted);
     return extracted;
@@ -205,28 +205,37 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
             feature,
             layerLegends,
             layerInfo.propertyKey,
-            layerInfo.labelKey
+            layerInfo.labelKey,
           ),
         onEachFeature: (feature, Layer) =>
           stylePopupLayer(
             feature,
             layerInfo.propertyKey,
             layerInfo.labelKey,
-            Layer
+            Layer,
           ),
-        pointToLayer: (feature, latlng) => {
-          const pathStyle = styleLayer(
+        pointToLayer: (feature) => {
+          const style = styleLayer(
             feature,
             layerLegends,
             layerInfo.propertyKey,
-            layerInfo.labelKey
+            layerInfo.labelKey,
           );
-
-          // CircleMarker expects radius + path options
-          return L.circleMarker(latlng, {
-            radius: 6,
-            ...pathStyle,
-          });
+          if (
+            feature.geometry.type === "Point" ||
+            feature.geometry.type === "MultiPoint"
+          ) {
+            console.log(feature);
+            // CircleMarker expects radius + path options
+            const coords = {
+              lat: (feature.geometry.coordinates[0] as number[])[1],
+              lng: (feature.geometry.coordinates[0] as number[])[0],
+            };
+            return L.circleMarker(coords, {
+              radius: 6,
+              ...style,
+            });
+          }
         },
         minZoom: 10,
         simplifyFactor: 0.4,
@@ -246,7 +255,7 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
         return next.concat(layerLegends);
       });
     },
-    [getLegendsFor]
+    [getLegendsFor],
   );
 
   const refreshLayer = useCallback((layerId: string) => {
@@ -304,7 +313,7 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
         toast.dismiss(toastId);
       }
     },
-    [addLayer, getLegendsFor, removeAllLayers]
+    [addLayer, getLegendsFor, removeAllLayers],
   );
 
   // Moveend spatial filtering: stable handler, reads latest refs (no dependency reruns)
@@ -391,7 +400,7 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
       results,
       polygons,
       legends,
-    ]
+    ],
   );
 
   return <MapContext.Provider value={value}>{children}</MapContext.Provider>;

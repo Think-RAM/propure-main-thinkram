@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/popover";
 
 import { Command, CommandGroup, CommandItem } from "@/components/ui/command";
-
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Layers as MapLayers } from "@/lib/map/layers";
@@ -70,7 +70,7 @@ const layers: LayerOption[] = [
     id: "SCHOOL_ZONES",
     label: "School Zones",
     icon: <School className="h-4 w-4" />,
-  }
+  },
 ];
 
 export const MAP_VIEWS: {
@@ -104,14 +104,32 @@ export function MapLayersPopover() {
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button size="icon" className="h-10 w-10 rounded-full blur-none">
-          <LayersIcon className="h-5 w-5" />
+      <PopoverTrigger asChild className="z-100">
+        <Button
+          size="icon"
+          className={cn(
+            "h-12 w-12 rounded-full",
+            "pointer-events-auto",
+            "bg-[#1a1f26]/90 border border-white/10 shadow-xl",
+            "hover:bg-[#242b33] hover:border-[#0d7377]/30",
+            "text-[#f7f9fc]",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d7377]/50",
+          )}
+        >
+          <LayersIcon className="h-5 w-5 text-[#9fe7ea]" />
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent side="top" align="end" className="w-60 p-0">
-        <Command>
+      <PopoverContent
+        side="top"
+        align="end"
+        className={cn(
+          "w-72 p-0",
+          "bg-[#242b33] border border-white/10 shadow-2xl",
+          "text-[#f7f9fc]",
+        )}
+      >
+        <Command className="bg-transparent">
           <CommandGroup heading="Map Layers">
             {layers.map((layer) => (
               <CommandItem
@@ -121,23 +139,38 @@ export function MapLayersPopover() {
                   setMapLayer(layer.id === "default" ? undefined : layer.id);
                 }}
                 className={cn(
-                  "flex items-center gap-3 rounded px-2 py-1 cursor-pointer transition-colors",
-                  "hover:bg-gray-100 active:bg-gray-200",
-                  "data-[selected=true]:bg-transparent data-[selected=true]:text-foreground",
-                  "aria-selected:bg-transparent aria-selected:text-foreground"
+                  "flex items-center gap-3 rounded px-3 py-2 cursor-pointer transition-colors",
+                  "hover:bg-white/5 active:bg-white/10",
+                  "data-[selected=true]:bg-transparent data-[selected=true]:text-[#f7f9fc]",
+                  "aria-selected:bg-transparent aria-selected:text-[#f7f9fc]",
                 )}
               >
-                <span className="text-muted-foreground">{layer.icon}</span>
+                <span className="text-white/60">{layer.icon}</span>
 
-                <span className="flex-1">{layer.label}</span>
+                <span className="flex-1 text-white">{layer.label}</span>
 
-                <span
-                  className={cn(
-                    "h-2 w-2 rounded-full transition-colors",
+                <Switch
+                  checked={
                     currentLayer === layer.id ||
-                      (currentLayer === undefined && layer.id === "default")
-                      ? "bg-primary"
-                      : "bg-muted"
+                    (currentLayer === undefined && layer.id === "default")
+                  }
+                  onCheckedChange={(checked) => {
+                    // Single active layer behavior:
+                    // - turning ON selects that layer
+                    // - turning OFF returns to default (undefined)
+                    if (checked) {
+                      setMapLayer(
+                        layer.id === "default" ? undefined : layer.id,
+                      );
+                    } else {
+                      setMapLayer(undefined);
+                    }
+                  }}
+                  // prevent item click from double-triggering when toggling switch
+                  onClick={(e) => e.stopPropagation()}
+                  className={cn(
+                    "data-[state=checked]:bg-[#0d7377]",
+                    "data-[state=unchecked]:bg-white/10",
                   )}
                 />
               </CommandItem>
@@ -150,22 +183,30 @@ export function MapLayersPopover() {
                 key={id}
                 onSelect={() => setMapView(id)}
                 className={cn(
-                  "flex items-center gap-3 rounded px-2 py-1 cursor-pointer transition-colors",
-                  "hover:bg-gray-100 active:bg-gray-200",
-                  "data-[selected=true]:bg-transparent data-[selected=true]:text-foreground",
-                  "aria-selected:bg-transparent aria-selected:text-foreground"
+                  "flex items-center gap-3 rounded px-3 py-2 cursor-pointer transition-colors",
+                  "hover:bg-white/5 active:bg-white/10",
+                  "data-[selected=true]:bg-transparent data-[selected=true]:text-[#f7f9fc]",
+                  "aria-selected:bg-transparent aria-selected:text-[#f7f9fc]",
                 )}
               >
-                <span className="text-muted-foreground">
+                <span className="text-white/60">
                   <Icon className="h-4 w-4" />
                 </span>
-                <span className="flex-1">{label}</span>
-                <span
-                  className={cn(
-                    "h-2 w-2 rounded-full transition-colors",
+                <span className="flex-1 text-white">{label}</span>
+                <Switch
+                  checked={
                     currentView === id
-                      ? "bg-primary"
-                      : "bg-muted"
+                  }
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setMapView(id);
+                    }
+                  }}
+                  // prevent item click from double-triggering when toggling switch
+                  onClick={(e) => e.stopPropagation()}
+                  className={cn(
+                    "data-[state=checked]:bg-[#0d7377]",
+                    "data-[state=unchecked]:bg-white/10",
                   )}
                 />
               </CommandItem>

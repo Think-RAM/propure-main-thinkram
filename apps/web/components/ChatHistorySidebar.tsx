@@ -36,22 +36,24 @@ export function ChatSidebar({
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-20 w-72",
-          "bg-white/85 backdrop-blur-xl",
-          "border-r border-cyan-200/50",
+          // Propure dark panel
+          "bg-[#1a1f26]",
+          "border-r border-white/10",
+          "shadow-2xl",
           "transition-transform duration-300 ease-in-out",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-cyan-200/40">
-          <div className="h-4 w-16 bg-gray-300 rounded animate-pulse" />
-          <div className="h-8 w-8 bg-gray-300 rounded animate-pulse" />
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#242b33]">
+          <div className="h-4 w-16 bg-white/10 rounded animate-pulse" />
+          <div className="h-8 w-8 bg-white/10 rounded animate-pulse" />
         </div>
         <ScrollArea className="h-full px-2 py-3">
           <div className="space-y-1">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex gap-3 rounded-lg px-3 py-2">
-                <div className="h-4 w-4 bg-gray-300 rounded animate-pulse shrink-0" />
-                <div className="h-4 flex-1 bg-gray-300 rounded animate-pulse" />
+                <div className="h-4 w-4 bg-white/10 rounded animate-pulse shrink-0" />
+                <div className="h-4 flex-1 bg-white/10 rounded animate-pulse" />
               </div>
             ))}
           </div>
@@ -71,13 +73,13 @@ export function ChatSidebar({
               onClick={toggle}
               className="
                 fixed left-4 top-4 z-30
-                bg-white/80 backdrop-blur-md
-                border border-cyan-200/50
+               bg-[#1a1f26]/90 backdrop-blur-md
+               border border-white/10
                 shadow-lg
-                hover:bg-white
+                hover:bg-[#242b33]
               "
             >
-              <PanelLeft className="h-4 w-4 text-cyan-700" />
+              <PanelLeft className="h-4 w-4 text-[#1a9599]" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right">Open chats</TooltipContent>
@@ -88,19 +90,19 @@ export function ChatSidebar({
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-20 w-72",
-          // Surface
-          "bg-white/85 backdrop-blur-xl",
+          // Surface (Propure)
+          "bg-[#1a1f26]",
           // Border & separation
-          "border-r border-cyan-200/50",
+          "border-r border-white/10",
           // Motion
           "transition-transform duration-300 ease-in-out",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-cyan-200/40">
-          <span className="text-sm font-semibold text-gray-800">
-            Chats
+<div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#242b33]">
+          <span className="text-sm font-semibold text-[#f7f9fc]">
+           Chats
           </span>
 
           <div className="flex gap-1">
@@ -110,9 +112,9 @@ export function ChatSidebar({
                   size="icon"
                   variant="ghost"
                   onClick={onNewChat}
-                  className="hover:bg-cyan-100/60"
+                  className="hover:bg-white/5"
                 >
-                  <Plus className="h-4 w-4 text-cyan-700" />
+                  <Plus className="h-4 w-4 text-[#1a9599]" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>New chat</TooltipContent>
@@ -122,9 +124,9 @@ export function ChatSidebar({
               size="icon"
               variant="ghost"
               onClick={toggle}
-              className="hover:bg-cyan-100/60"
+              className="hover:bg-white/5"
             >
-              <PanelLeft className="h-4 w-4 rotate-180 text-cyan-700" />
+              <PanelLeft className="h-4 w-4 rotate-180 text-[#1a9599]" />
             </Button>
           </div>
         </div>
@@ -143,12 +145,12 @@ export function ChatSidebar({
                     "group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left",
                     "transition-colors",
                     active
-                      ? "bg-cyan-100/70"
-                      : "hover:bg-cyan-50"
+                      ? "bg-[#0d7377]/20 border border-[#0d7377]/40"
+                      : "hover:bg-white/5"
                   )}
                 >
-                  <MessageSquare className="h-4 w-4 text-cyan-600 shrink-0" />
-                  <span className="truncate text-sm text-gray-800">
+                  <MessageSquare className="h-4 w-4 text-[#1a9599] shrink-0" />
+                  <span className="truncate text-sm text-[#f7f9fc]">
                     {session.title || "Untitled chat"}
                   </span>
                 </button>
