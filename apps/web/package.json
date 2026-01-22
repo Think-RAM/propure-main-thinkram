@@ -62,6 +62,7 @@
     "date-fns": "4.1.0",
     "embla-carousel-react": "8.5.1",
     "esri-leaflet": "^3.0.19",
+    "exa-js": "^2.1.1",
     "framer-motion": "latest",
     "inngest": "^3.48.1",
     "input-otp": "1.4.1",

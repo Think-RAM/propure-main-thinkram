@@ -100,6 +100,31 @@ export function ChatSidebar({
             const titleData = dataPart.data as { title: string; id: string };
             updateChatSessionTitle(titleData.id, titleData.title);
             break;
+          case "data-properties-found":
+            console.log("Properties Found Data: ", dataPart.data);
+            const propData = dataPart.data as {
+              count: number;
+              suburb: string;
+              listings: {
+                title: string;
+                address: string;
+                suburb: string;
+                state: string | undefined;
+                postcode: string | undefined;
+                latLng: { lat: number; lng: number } | undefined;
+                priceText: string | undefined;
+                beds: number | undefined;
+                baths: number | undefined;
+                cars: number | undefined;
+                url: string;
+                website: string;
+                estimatedWeeklyRent: number | undefined;
+                estimatedGrossYieldPct: number | undefined;
+                listedAt: string | undefined;
+              }[];
+            };
+            
+            break;
         }
       },
       onError: (error) => {

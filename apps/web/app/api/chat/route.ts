@@ -12,17 +12,20 @@ import { google } from "@ai-sdk/google"
 
 import { auth } from "@clerk/nextjs/server";
 import { ChatMessage, prisma } from "@propure/db";
-import { searchDomainProperties, searchRealestateProperties } from "@/lib/tools/propertySearchTools";
-import { getDemographics, getEconomicIndicators, getPopulationProjections, getRbaRates, getSuburbProfile, getSuburbStats } from "@/lib/tools/marketTools";
-import { getAuctionResults, getSalesHistory, getSoldProperties } from "@/lib/tools/salesTools";
-import { calculateCashFlow, calculateROI } from "@/lib/tools/financialTools";
-import { saveStrategy } from "@/lib/tools/strategyTools";
+// import { searchDomainProperties, searchRealestateProperties } from "@/lib/tools/propertySearchTools";
+// import { getDemographics, getEconomicIndicators, getPopulationProjections, getRbaRates, getSuburbProfile, getSuburbStats } from "@/lib/tools/marketTools";
+// import { getAuctionResults, getSalesHistory, getSoldProperties } from "@/lib/tools/salesTools";
+// import { calculateCashFlow, calculateROI } from "@/lib/tools/financialTools";
+// import { saveStrategy } from "@/lib/tools/strategyTools";
 import { v4 as generateUUID } from "uuid";
 import { ChatMessageAI } from "@/types/ai";
 import { ChatSDKError } from "@/lib/ai-error";
 import { getChatById, saveChatSession, saveMessages, updateChatTitleById, updateMessage } from "@/lib/chat/data";
 import { convertCurrency, convertToUIMessages } from "@/lib/utils";
 import { UserPreferences } from "@/types/types";
+import { StrategyAgentTool } from "@/lib/tools/agents/strategistAgent";
+import { ResearcherAgentTool } from "@/lib/tools/agents/researcherAgent";
+import { AnalystAgentTool } from "@/lib/tools/agents/analystAgent";
 
 /* ======================================================================
    SYSTEM PROMPT
@@ -102,15 +105,15 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.findUnique({
       where: { clerkUserId: userId },
-      include: {
-        strategies: {
-          where: strategyId
-            ? { id: strategyId }
-            : { status: "ACTIVE" },
-          take: 1,
-          orderBy: { updatedAt: "desc" },
-        },
-      },
+      // include: {
+      //   strategies: {
+      //     where: strategyId
+      //       ? { id: strategyId }
+      //       : { status: "ACTIVE" },
+      //     take: 1,
+      //     orderBy: { updatedAt: "desc" },
+      //   },
+      // },
     });
 
     if (!user) {
@@ -118,34 +121,34 @@ export async function POST(req: Request) {
       return new ChatSDKError("unauthorized:chat").toResponse();
     }
 
-    const activeStrategy = user.strategies[0];
-    const activeStrategyParams = activeStrategy ? activeStrategy.params as UserPreferences : null;
+    // const activeStrategy = user.strategies[0];
+    // const activeStrategyParams = activeStrategy ? activeStrategy.params as UserPreferences : null;
 
-    const strategyContext = activeStrategy
-      ? `
-        Current Strategy:
-        - Type: ${activeStrategy.type}
-        - Status: ${activeStrategy.status}
-        - Budget: $${activeStrategy.budget ? convertCurrency(activeStrategy.budget) : "Not set"}
-        - Deposit: $${activeStrategy.deposit ? convertCurrency(activeStrategy.deposit) : "Not set"}
-        - Annual Income: $${activeStrategy.income ? convertCurrency(activeStrategy.income) : "Not set"}
-        - Risk Tolerance: ${activeStrategy.riskTolerance ?? "Unknown"}
-        - Investment Timeline: ${activeStrategy.timeline ?? "Not set"}
-        - Management Style: ${activeStrategy.managementStyle ?? "Not set"}
+    // const strategyContext = activeStrategy
+    //   ? `
+    //     Current Strategy:
+    //     - Type: ${activeStrategy.type}
+    //     - Status: ${activeStrategy.status}
+    //     - Budget: $${activeStrategy.budget ? convertCurrency(activeStrategy.budget) : "Not set"}
+    //     - Deposit: $${activeStrategy.deposit ? convertCurrency(activeStrategy.deposit) : "Not set"}
+    //     - Annual Income: $${activeStrategy.income ? convertCurrency(activeStrategy.income) : "Not set"}
+    //     - Risk Tolerance: ${activeStrategy.riskTolerance ?? "Unknown"}
+    //     - Investment Timeline: ${activeStrategy.timeline ?? "Not set"}
+    //     - Management Style: ${activeStrategy.managementStyle ?? "Not set"}
 
-        Investment Preferences:
-        - Target Regions: ${activeStrategyParams?.regions?.join(", ") ?? "Not specified"}
-        - Remote Investing: ${activeStrategyParams?.remoteInvesting ? "Yes" : "No"}
-        - Area Preference: ${activeStrategyParams?.areaPreference ?? "Not specified"}
-        - Property Type: ${activeStrategyParams?.propertyType ?? "Not specified"}
-        - Bedrooms: ${activeStrategyParams?.bedrooms ?? "Not specified"}
-        - Property Age: ${activeStrategyParams?.propertyAge ?? "Not specified"}
-        - Previous Experience: ${activeStrategyParams?.previousExperience ?? "Not specified"}
-        - Co-Investment: ${activeStrategyParams?.coInvestment ? "Open" : "Solo only"}
-        - Cashflow Expectations: ${activeStrategyParams?.cashflowExpectations ? convertCurrency(activeStrategyParams.cashflowExpectations) : "Not set"}
-        - Target Cashflow: $${activeStrategyParams?.cashflowAmount ? convertCurrency(activeStrategyParams.cashflowAmount) : "Not set"}
-      `
-      : "";
+    //     Investment Preferences:
+    //     - Target Regions: ${activeStrategyParams?.regions?.join(", ") ?? "Not specified"}
+    //     - Remote Investing: ${activeStrategyParams?.remoteInvesting ? "Yes" : "No"}
+    //     - Area Preference: ${activeStrategyParams?.areaPreference ?? "Not specified"}
+    //     - Property Type: ${activeStrategyParams?.propertyType ?? "Not specified"}
+    //     - Bedrooms: ${activeStrategyParams?.bedrooms ?? "Not specified"}
+    //     - Property Age: ${activeStrategyParams?.propertyAge ?? "Not specified"}
+    //     - Previous Experience: ${activeStrategyParams?.previousExperience ?? "Not specified"}
+    //     - Co-Investment: ${activeStrategyParams?.coInvestment ? "Open" : "Solo only"}
+    //     - Cashflow Expectations: ${activeStrategyParams?.cashflowExpectations ? convertCurrency(activeStrategyParams.cashflowExpectations) : "Not set"}
+    //     - Target Cashflow: $${activeStrategyParams?.cashflowAmount ? convertCurrency(activeStrategyParams.cashflowAmount) : "Not set"}
+    //   `
+    //   : "";
 
     /* ---------------- Chat Persistance ---------------- */
     const chat = await getChatById({ id });
@@ -164,7 +167,7 @@ export async function POST(req: Request) {
         id,
         userId: user.id,
         title: "New chat",
-        strategyId: activeStrategy?.id,
+        // strategyId: activeStrategy?.id,
       });
     }
 
@@ -192,59 +195,19 @@ export async function POST(req: Request) {
 
         const result = streamText({
           model: google("gemini-2.5-flash"),
-          system: SYSTEM_PROMPT + strategyContext,
+          system: SYSTEM_PROMPT,
           messages: await convertToModelMessages(UIMessages),
-          stopWhen: stepCountIs(12),
+          stopWhen: stepCountIs(3),
           experimental_transform: smoothStream({ chunking: "word" }),
-
+          toolChoice: "required",
           tools: {
-            /* ============================================================
-               PROPERTY SEARCH
-               ============================================================ */
+            // Strategy Agent
+            strategist: StrategyAgentTool({ user, strategyId, dataStream }),
+            // Researcher Agent
+            researcher: ResearcherAgentTool({ dataStream }),
+            // Analyst Agent
+            analyst: AnalystAgentTool({ dataStream })
 
-            searchDomainProperties: searchDomainProperties,
-
-            searchRealestateProperties: searchRealestateProperties,
-
-            /* ============================================================
-               SUBURB & MARKET DATA
-               ============================================================ */
-
-            getSuburbStats: getSuburbStats,
-
-            getSuburbProfile: getSuburbProfile,
-
-            getDemographics: getDemographics,
-
-            getPopulationProjections: getPopulationProjections,
-
-            getRbaRates: getRbaRates,
-
-            getEconomicIndicators: getEconomicIndicators,
-
-            /* ============================================================
-               SALES & AUCTIONS
-               ============================================================ */
-
-            getSalesHistory: getSalesHistory,
-
-            getSoldProperties: getSoldProperties,
-
-            getAuctionResults: getAuctionResults,
-
-            /* ============================================================
-               FINANCIAL ANALYSIS
-               ============================================================ */
-
-            calculateCashFlow: calculateCashFlow,
-
-            calculateROI: calculateROI,
-
-            /* ============================================================
-               STRATEGY PERSISTENCE
-               ============================================================ */
-
-            saveStrategy: saveStrategy({ user, strategyId }),
           }
         });
 

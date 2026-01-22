@@ -1,10 +1,5 @@
 "use server";
 
-import { generateText, Output } from "ai";
-import { Layers } from "./layers";
-import { google } from "@ai-sdk/google";
-import z from "zod";
-
 type GeocodeResult = { lat: number; lng: number; placeId?: string };
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY!;
