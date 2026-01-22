@@ -1,5 +1,4 @@
 import "dotenv/config";
-import fs from "fs/promises";
 import { logger } from "@propure/mcp-shared";
 import { scrapeABSWithScrapeDo } from "../sources/scrape-abs";
 
@@ -12,24 +11,22 @@ async function main(): Promise<void> {
   }
 
   const postcode = "2000";
-  const { referencePath } = await scrapeABSWithScrapeDo(postcode);
+  const { referencePath, marketData } = await scrapeABSWithScrapeDo(postcode);
 
-  const exists = await fileExists(referencePath);
-  if (!exists) {
-    throw new Error(`Reference file not found at ${referencePath}`);
+  if (!marketData || marketData.people.length === 0) {
+    throw new Error("Parsed ABS market data is empty");
   }
 
-  logger.info({ referencePath }, "ABS reference HTML verified");
-}
-
-async function fileExists(targetPath: string): Promise<boolean> {
-  try {
-    await fs.access(targetPath);
-    return true;
-  } catch (error) {
-    logger.warn({ targetPath, error }, "Reference file access failed");
-    return false;
-  }
+  logger.info(
+    {
+      referencePath: referencePath ?? "not saved",
+      sample: {
+        people: marketData.people.slice(0, 2),
+        tenureType: marketData.tenureType,
+      },
+    },
+    "ABS reference HTML and market data verified",
+  );
 }
 
 main().catch((err) => {

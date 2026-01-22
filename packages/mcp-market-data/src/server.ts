@@ -42,6 +42,7 @@ export function createMarketDataServer(): McpServer {
               text: JSON.stringify(result, null, 2),
             },
           ],
+          structuredContent: result,
         };
       } catch (error) {
         const message =
