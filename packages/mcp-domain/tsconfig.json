@@ -14,6 +14,6 @@
     // "types": ["node"],
     // "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*", "src/test/**/*"],
+  "include": ["src/**/*", "src/test/**/*", "../../types/env.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
