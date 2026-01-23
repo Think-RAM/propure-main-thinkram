@@ -9,6 +9,7 @@ import {
   SendHorizonalIcon,
   SparklesIcon,
 } from "lucide-react";
+import { ToolResult } from "./chat/ToolResults";
 
 import { cn, fetchWithErrorHandlers } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
@@ -123,7 +124,7 @@ export function ChatSidebar({
                 listedAt: string | undefined;
               }[];
             };
-            
+
             break;
         }
       },
@@ -274,43 +275,51 @@ export function ChatSidebar({
       <div className="flex-1 min-h-0">
         <ScrollArea className="h-full">
           <ScrollAreaPrimitive.Viewport className="h-full px-4 py-3">
-            <div className="flex flex-col gap-4">
-              {messages.map(
-                (msg) =>
-                  msg.parts.some(
-                    (part) =>
-                      part.type === "text" && part.text.trim().length > 0,
-                  ) && (
+            <div className="flex flex-col gap-4 w-full min-w-0">
+              {messages.map((msg) => {
+                // Check if message has any displayable content (text or tool parts)
+                const hasTextContent = msg.parts.some(
+                  (part) => part.type === "text" && part.text.trim().length > 0,
+                );
+                const hasToolParts = msg.parts.some((part) =>
+                  part.type.startsWith("tool-"),
+                );
+
+                if (!hasTextContent && !hasToolParts) return null;
+
+                return (
+                  <div
+                    key={msg.id}
+                    className={cn(
+                      "flex gap-2 w-full min-w-0",
+                      msg.role === "user" ? "justify-end" : "justify-start",
+                    )}
+                  >
+                    {/* Agent Avatar */}
+                    {msg.role !== "user" && (
+                      <Avatar className="h-8 w-8 mt-0.5 border border-white/10 bg-[#242b33]">
+                        <AvatarFallback className="bg-[#242b33] text-[#1a9599]">
+                          <Bot className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+
+                    {/* Message Bubble */}
                     <div
-                      key={msg.id}
                       className={cn(
-                        "flex gap-2",
-                        msg.role === "user" ? "justify-end" : "justify-start",
+                        "max-w-[85%] min-w-0 rounded-lg px-3 py-2 text-sm leading-relaxed overflow-hidden",
+                        msg.role === "user"
+                          ? "bg-[#0d7377]/20 text-[#f7f9fc] border border-[#0d7377]/30"
+                          : "bg-[#242b33]/85 text-[#f7f9fc] border border-white/10",
                       )}
                     >
-                      {/* Agent Avatar */}
-                      {msg.role !== "user" && (
-                        <Avatar className="h-8 w-8 mt-0.5 border border-white/10 bg-[#242b33]">
-                          <AvatarFallback className="bg-[#242b33] text-[#1a9599]">
-                            <Bot className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-
-                      {/* Message Bubble */}
-                      <div
-                        className={cn(
-                          "max-w-[85%] rounded-lg px-3 py-2 text-sm leading-relaxed",
-                          msg.role === "user"
-                            ? "bg-[#0d7377]/20 text-[#f7f9fc] border border-[#0d7377]/30"
-                            : "bg-[#242b33]/85 text-[#f7f9fc] border border-white/10",
-                        )}
-                      >
-                        {msg.parts.map((part, i) =>
-                          part.type === "text" ? (
+                      {msg.parts.map((part, i) => {
+                        // Render text parts
+                        if (part.type === "text") {
+                          return (
                             <div
                               key={i}
-                              className="prose prose-sm m-0 p-0 max-w-none prose-invert"
+                              className="prose prose-sm m-0 p-0 max-w-none prose-invert break-words [overflow-wrap:anywhere]"
                             >
                               <Response
                                 controls={{
@@ -321,12 +330,20 @@ export function ChatSidebar({
                                 {part.text}
                               </Response>
                             </div>
-                          ) : null,
-                        )}
-                      </div>
+                          );
+                        }
+
+                        // Render tool parts (tool-call, tool-result)
+                        if (part.type.startsWith("tool-")) {
+                          return <ToolResult key={i} part={part as any} />;
+                        }
+
+                        return null;
+                      })}
                     </div>
-                  ),
-              )}
+                  </div>
+                );
+              })}
 
               {status === "streaming" && <ThinkingMessage />}
               {error && (
