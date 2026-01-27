@@ -1,22 +1,36 @@
 {
   "name": "@propure/convex",
   "version": "0.1.0",
-  "description": "",
-  "main": "index.js",
   "private": true,
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "convex:generate":"convex dev"
+  "type": "module",
+  "exports": {
+    "./api": {
+      "types": "./src/_generated/api.d.ts",
+      "default": "./src/_generated/api.js"
+    },
+    "./server": {
+      "types": "./src/_generated/server.d.ts",
+      "default": "./src/_generated/server.js"
+    },
+    "./dataModel": {
+      "types": "./src/_generated/dataModel.d.ts",
+      "default": "./src/_generated/dataModel.js"
+    }
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^25.0.10",
-    "typescript": "^5"
+  "files": [
+    "src/_generated"
+  ],
+  "scripts": {
+    "convex:dev": "convex dev",
+    "convex:setup": "convex dev --until-success",
+    "convex:typecheck": "tsc --noEmit -p convex"
   },
   "dependencies": {
     "convex": "^1.31.6",
     "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "typescript": "^5"
   }
 }

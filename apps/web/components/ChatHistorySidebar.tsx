@@ -10,7 +10,8 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { MessageSquare, Plus, PanelLeft } from "lucide-react";
-import { ChatSession } from "@prisma/client";
+import { ChatSession } from "@prisma/client"
+
 
 interface ChatSidebarProps {
   open: boolean;

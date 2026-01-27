@@ -66,6 +66,26 @@ export default defineSchema({
     .index("by_clerk_id", ["clerkUserId"])
     .index("by_email", ["email"]),
 
+  // Chat Sessions
+  chatSessions: defineTable({
+    userId: v.id("users"),
+    createdAt: v.float64(),
+    updatedAt: v.float64(),
+    title: v.optional(v.string()),
+    strategyId: v.optional(v.id("strategies")),
+    chatMessages: v.array(v.id("chatMessages")),
+  })
+    .index("by_user", ["userId"])
+    .index("by_updated_at", ["updatedAt"]),
+
+  // Chat Messages
+  chatMessages: defineTable({
+    sessionId: v.id("chatSessions"),
+    role: v.string(),
+    content: v.any(),
+    timestamp: v.float64(),
+  }).index("by_session", ["sessionId"]),
+
   // ── Strategies ──
   strategies: defineTable({
     userId: v.id("users"),

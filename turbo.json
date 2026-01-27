@@ -46,6 +46,15 @@
     },
     "clean": {
       "cache": false
+    },
+    "convex:generate" : {
+      "cache": false
+    },
+    "convex:setup" : {
+      "cache": false
+    },
+    "convex:typecheck" : {
+      "cache": false
     }
   }
 }

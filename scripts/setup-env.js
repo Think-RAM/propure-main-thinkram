@@ -20,6 +20,7 @@ const PACKAGES_NEEDING_ENV = [
   "packages/db",
   "packages/ai",
   "packages/geo",
+  "packages/convex",
 ];
 
 // Environment files to symlink

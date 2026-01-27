@@ -14,6 +14,9 @@
     "db:generate": "turbo db:generate",
     "db:push": "turbo db:push",
     "db:migrate": "turbo db:migrate",
+    "convex:generate": "turbo convex:generate",
+    "convex:setup": "turbo convex:setup",
+    "convex:typecheck": "turbo convex:typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
