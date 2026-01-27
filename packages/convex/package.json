@@ -3,19 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "types": "./src/index.ts",
   "exports": {
-    "./api": {
-      "types": "./convex/_generated/api.d.ts",
-      "default": "./convex/_generated/api.js"
-    },
-    "./server": {
-      "types": "./convex/_generated/server.d.ts",
-      "default": "./convex/_generated/server.js"
-    },
-    "./dataModel": {
-      "types": "./convex/_generated/dataModel.d.ts",
-      "default": "./convex/_generated/dataModel.js"
-    }
+    ".": "./src/index.ts",
+    "./_generated": "./src/generated.ts",
+    "./client": "./src/client.ts"
   },
   "files": [
     "convex/_generated"

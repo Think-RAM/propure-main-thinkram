@@ -1,9 +1,9 @@
 // packages/convex/convex/schema.ts
 import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { v, Infer } from "convex/values";
 
 // Enum validators
-const strategyType = v.union(
+export const strategyType = v.union(
   v.literal("CASH_FLOW"),
   v.literal("CAPITAL_GROWTH"),
   v.literal("RENOVATION_FLIP"),
@@ -12,13 +12,17 @@ const strategyType = v.union(
   v.literal("COMMERCIAL"),
 );
 
-const strategyStatus = v.union(
+export type StrategyType = Infer<typeof strategyType>;
+
+export const strategyStatus = v.union(
   v.literal("DISCOVERY"),
   v.literal("ACTIVE"),
   v.literal("PAUSED"),
   v.literal("COMPLETED"),
   v.literal("ARCHIVED"),
 );
+
+export type StrategyStatus = Infer<typeof strategyStatus>;
 
 const propertyType = v.union(
   v.literal("HOUSE"),
@@ -83,6 +87,8 @@ export default defineSchema({
     sessionId: v.id("chatSessions"),
     role: v.string(),
     content: v.any(),
+    toolCalls: v.optional(v.any()),
+    toolResults: v.optional(v.any()),
     timestamp: v.float64(),
   }).index("by_session", ["sessionId"]),
 
@@ -98,6 +104,9 @@ export default defineSchema({
     riskTolerance: v.optional(v.string()),
     timeline: v.optional(v.string()),
     managementStyle: v.optional(v.string()),
+
+    createdAt: v.float64(),
+    updatedAt: v.float64(),
   })
     .index("by_user", ["userId"])
     .index("by_type", ["type"])

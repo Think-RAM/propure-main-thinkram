@@ -8,21 +8,44 @@ import {
   generateText,
   UIMessage,
 } from "ai";
-import { google } from "@ai-sdk/google"
+import { google } from "@ai-sdk/google";
 
 import { auth } from "@clerk/nextjs/server";
-import { ChatMessage, prisma } from "@propure/db";
-import { searchDomainProperties, searchRealestateProperties } from "@/lib/tools/propertySearchTools";
-import { getDemographics, getEconomicIndicators, getPopulationProjections, getRbaRates, getSuburbProfile, getSuburbStats } from "@/lib/tools/marketTools";
-import { getAuctionResults, getSalesHistory, getSoldProperties } from "@/lib/tools/salesTools";
+// import { ChatMessage, prisma } from "@propure/db";
+import {
+  searchDomainProperties,
+  searchRealestateProperties,
+} from "@/lib/tools/propertySearchTools";
+// import {
+//   getDemographics,
+//   getEconomicIndicators,
+//   getPopulationProjections,
+//   getRbaRates,
+//   getSuburbProfile,
+//   getSuburbStats,
+// } from "@/lib/tools/marketTools";
+import {
+  getAuctionResults,
+  getSalesHistory,
+  getSoldProperties,
+} from "@/lib/tools/salesTools";
 import { calculateCashFlow, calculateROI } from "@/lib/tools/financialTools";
 import { saveStrategy } from "@/lib/tools/strategyTools";
 import { v4 as generateUUID } from "uuid";
 import { ChatMessageAI } from "@/types/ai";
 import { ChatSDKError } from "@/lib/ai-error";
-import { getChatById, saveChatSession, saveMessages, updateChatTitleById, updateMessage } from "@/lib/chat/data";
+import {
+  getChatById,
+  saveChatSession,
+  saveMessages,
+  updateChatTitleById,
+  updateMessage,
+} from "@/lib/chat/data";
 import { convertCurrency, convertToUIMessages } from "@/lib/utils";
 import { UserPreferences } from "@/types/types";
+import { client } from "@propure/convex/client";
+import { api } from "@propure/convex/_generated";
+import { Doc } from "@propure/convex/_generated";
 
 /* ======================================================================
    SYSTEM PROMPT
@@ -35,7 +58,6 @@ Rules:
 - Just the topic/intent, not a full sentence
 - If the message is a greeting like "hi" or "hello", respond with just "New conversation"
 - Be concise: "Weather in NYC" not "User asking about the weather in New York City"`;
-
 
 const SYSTEM_PROMPT = `
 You are the Propure AI assistant, helping users discover their ideal property
@@ -58,11 +80,10 @@ When multiple agents are needed, invoke them efficiently:
 function getTextFromMessage(message: ChatMessageAI[] | UIMessage[]): string {
   return message
     .flatMap((msg) => msg.parts)
-    .filter((part) => part.type === 'text')
-    .map((part) => (part as { type: 'text'; text: string }).text)
-    .join('');
+    .filter((part) => part.type === "text")
+    .map((part) => (part as { type: "text"; text: string }).text)
+    .join("");
 }
-
 
 async function generateTitleFromUserMessage({
   message,
@@ -75,11 +96,10 @@ async function generateTitleFromUserMessage({
     prompt: getTextFromMessage(message),
   });
 
-  console.log(`Chat Title ${title}`)
+  console.log(`Chat Title ${title}`);
 
   return title;
 }
-
 
 /* ======================================================================
    ROUTE
@@ -87,7 +107,6 @@ async function generateTitleFromUserMessage({
 
 export async function POST(req: Request) {
   const { id, message, messages, strategyId } = await req.json();
-
 
   try {
     /* ---------------- Auth ---------------- */
@@ -100,18 +119,24 @@ export async function POST(req: Request) {
 
     /* ---------------- User Context ---------------- */
 
-    const user = await prisma.user.findUnique({
-      where: { clerkUserId: userId },
-      include: {
-        strategies: {
-          where: strategyId
-            ? { id: strategyId }
-            : { status: "ACTIVE" },
-          take: 1,
-          orderBy: { updatedAt: "desc" },
-        },
-      },
-    });
+    // const user = await prisma.user.findUnique({
+    //   where: { clerkUserId: userId },
+    //   include: {
+    //     strategies: {
+    //       where: strategyId
+    //         ? { id: strategyId }
+    //         : { status: "ACTIVE" },
+    //       take: 1,
+    //       orderBy: { updatedAt: "desc" },
+    //     },
+    //   },
+    // });
+
+    //changed the prisma query to convex query
+    const user = await client.query(
+      api.functions.strategy.GetStrategyByClerkId,
+      { clerkUserId: userId },
+    );
 
     if (!user) {
       console.log("User not found in chat API:", userId);
@@ -119,7 +144,9 @@ export async function POST(req: Request) {
     }
 
     const activeStrategy = user.strategies[0];
-    const activeStrategyParams = activeStrategy ? activeStrategy.params as UserPreferences : null;
+    const activeStrategyParams = activeStrategy
+      ? (activeStrategy.params as UserPreferences)
+      : null;
 
     const strategyContext = activeStrategy
       ? `
@@ -148,27 +175,36 @@ export async function POST(req: Request) {
       : "";
 
     /* ---------------- Chat Persistance ---------------- */
-    const chat = await getChatById({ id });
-    let messagesFromDb: ChatMessage[] = [];
+    // const chat = await getChatById({ id });
+
+    const chat = await client.query(api.functions.chat.getChatById, { id });
+
+    let messagesFromDb: Doc<"chatMessages">[] = [];
     let titlePromise: Promise<string> | null = null;
 
     if (chat) {
-      if (chat.userId !== user.id) {
+      if (chat.userId !== user._id) {
         return new ChatSDKError("forbidden:chat").toResponse();
       }
       messagesFromDb = chat.messages;
-    }
-    else if (message?.role === "user") {
+    } else if (message?.role === "user") {
       // Save chat immediately with placeholder title
-      await saveChatSession({
-        id,
-        userId: user.id,
+      // await saveChatSession({
+      //   id,
+      //   userId: user.id,
+      //   title: "New chat",
+      //   strategyId: activeStrategy?.id,
+      // });
+
+      await client.mutation(api.functions.chat.saveChatSession, {
+        strategyId: activeStrategy?._id,
         title: "New chat",
-        strategyId: activeStrategy?.id,
       });
     }
 
-    const UIMessages = chat ? [...convertToUIMessages(messagesFromDb), message as ChatMessageAI] : [message as ChatMessageAI];
+    const UIMessages = chat
+      ? [...convertToUIMessages(messagesFromDb), message as ChatMessageAI]
+      : [message as ChatMessageAI];
 
     // Start title generation in parallel (don't await)
     titlePromise = generateTitleFromUserMessage({ message: UIMessages });
@@ -181,10 +217,11 @@ export async function POST(req: Request) {
           titlePromise.then((title) => {
             updateChatTitleById({ chatId: id, title });
             dataStream.write({
-              type: "data-chat-title", data: {
+              type: "data-chat-title",
+              data: {
                 title,
-                id
-              }
+                id,
+              },
             });
           });
         }
@@ -209,43 +246,45 @@ export async function POST(req: Request) {
             /* ============================================================
                SUBURB & MARKET DATA
                ============================================================ */
+            // [UPDATE: NO SOURCE AS OF YET]
+            // getSuburbStats: getSuburbStats,
 
-            getSuburbStats: getSuburbStats,
+            // getSuburbProfile: getSuburbProfile,
 
-            getSuburbProfile: getSuburbProfile,
+            // getDemographics: getDemographics,
 
-            getDemographics: getDemographics,
+            // getPopulationProjections: getPopulationProjections,
 
-            getPopulationProjections: getPopulationProjections,
+            // getRbaRates: getRbaRates,
 
-            getRbaRates: getRbaRates,
-
-            getEconomicIndicators: getEconomicIndicators,
+            // getEconomicIndicators: getEconomicIndicators,
 
             /* ============================================================
                SALES & AUCTIONS
                ============================================================ */
 
-            getSalesHistory: getSalesHistory,
+            // [UPDATE: NO SOURCE AS OF YET]
+            // getSalesHistory: getSalesHistory,
 
-            getSoldProperties: getSoldProperties,
+            // getSoldProperties: getSoldProperties,
 
-            getAuctionResults: getAuctionResults,
+            // getAuctionResults: getAuctionResults,
 
             /* ============================================================
                FINANCIAL ANALYSIS
                ============================================================ */
 
-            calculateCashFlow: calculateCashFlow,
+            // [UPDATE: NO SOURCE AS OF YET]
+            // calculateCashFlow: calculateCashFlow,
 
-            calculateROI: calculateROI,
+            // calculateROI: calculateROI,
 
             /* ============================================================
                STRATEGY PERSISTENCE
                ============================================================ */
 
             saveStrategy: saveStrategy({ user, strategyId }),
-          }
+          },
         });
 
         result.consumeStream();
@@ -253,7 +292,7 @@ export async function POST(req: Request) {
         dataStream.merge(
           result.toUIMessageStream({
             sendReasoning: true,
-          })
+          }),
         );
       },
       generateId: generateUUID,
@@ -266,7 +305,12 @@ export async function POST(req: Request) {
           const existingMsg = UIMessages.find((m) => m.id === finishedMsg.id);
           if (existingMsg) {
             updatedMessageIds.push(finishedMsg.id);
-            await updateMessage(finishedMsg.id, finishedMsg.parts, finishedMsg.role, id);
+            await updateMessage(
+              finishedMsg.id,
+              finishedMsg.parts,
+              finishedMsg.role,
+              id,
+            );
           } else {
             newMessages.push({
               id: finishedMsg.id,
@@ -289,8 +333,7 @@ export async function POST(req: Request) {
     });
 
     return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
-  }
-  catch (error) {
+  } catch (error) {
     const vercelId = req.headers.get("x-vercel-id");
 
     console.error("Unhandled error in chat API:", error, { vercelId });

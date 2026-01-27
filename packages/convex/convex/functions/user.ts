@@ -1,28 +1,42 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query } from "../_generated/server";
+
+export const GetUserByClerkId = query({
+  args: {
+    clerkUserId: v.string(),
+  },
+  handler: async (ctx, { clerkUserId }) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", clerkUserId))
+      .first();
+    return user;
+  },
+});
 
 export const CreateUser = mutation({
-    args: {
-        userJSON: v.any(), // tighten later
-    },
-    handler: async (ctx, { userJSON }) => {
-        const existingUser = await ctx.db.query("users")
-            .withIndex("by_clerk_id", q => q.eq("clerkUserId", userJSON.id))
-            .first();
-        if (existingUser) {
-            const updatedUser = await ctx.db.patch("users", existingUser._id, {
-                name: `${userJSON.first_name ?? "John"} ${userJSON.last_name ?? "Doe"}`,
-                email: userJSON.email_addresses[0].email_address,
-            });
-            return updatedUser;
-        }
-        const newUser = await ctx.db.insert("users", {
-            clerkUserId: userJSON.id,
-            email: userJSON.email_addresses[0].email_address,
-            name: `${userJSON.first_name ?? "John"} ${userJSON.last_name ?? "Doe"}`,
-        });
-        return newUser;
+  args: {
+    userJSON: v.any(), // tighten later
+  },
+  handler: async (ctx, { userJSON }) => {
+    const existingUser = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", userJSON.id))
+      .first();
+    if (existingUser) {
+      const updatedUser = await ctx.db.patch("users", existingUser._id, {
+        name: `${userJSON.first_name ?? "John"} ${userJSON.last_name ?? "Doe"}`,
+        email: userJSON.email_addresses[0].email_address,
+      });
+      return updatedUser;
     }
+    const newUser = await ctx.db.insert("users", {
+      clerkUserId: userJSON.id,
+      email: userJSON.email_addresses[0].email_address,
+      name: `${userJSON.first_name ?? "John"} ${userJSON.last_name ?? "Doe"}`,
+    });
+    return newUser;
+  },
 });
 
 export const CreateUserStrategy = mutation({
@@ -85,6 +99,8 @@ export const CreateUserStrategy = mutation({
         cashflowExpectations: userPreferences.cashflowExpectations,
         cashflowAmount: userPreferences.cashflowAmount,
       },
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     });
 
     return strategyId;
