@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { cn } from "@/lib/utils"; // or use classnames lib if you don't use this
 import { Badge } from "@/components/ui/badge"; // assuming you're using shadcn/ui or similar
 import { useMap } from "@/context/MapContext";
@@ -397,36 +397,66 @@ export const CityFilterPills: React.FC<CityFilterPillsProps> = ({
   onSelect,
 }) => {
   const { setCenter } = useMap();
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+
   return (
-    <div className="flex flex-wrap gap-1">
-      {Object.entries(cityGroups).map(([key, label]) => (
-        <Badge
-          key={key}
-          variant={selected === key ? "default" : "outline"}
-          onClick={() => {
-            const position = australiaMarkers.find((marker) =>
-              marker.id.startsWith(key.toLowerCase())
-            )?.position;
-            if (position) {
-              setCenter({ lat: position.lat, lng: position.lng });
-            } else {
-              setCenter(
-                { lat: AUSTRALIA_CENTER[0], lng: AUSTRALIA_CENTER[1] },
-                6
-              );
-            }
-            onSelect(key);
-          }}
-          className={cn(
-            "cursor-pointer rounded-full px-2.5 py-1 text-xs transition-colors",
-            selected === key
-              ? "bg-cyan-600 text-white hover:bg-cyan-700"
-              : "border-cyan-300 text-cyan-600 hover:bg-cyan-100"
-          )}
-        >
-          {label}
-        </Badge>
-      ))}
+    <div className="relative w-full">
+      <div
+        ref={scrollerRef}
+        onWheel={(e) => {
+          const el = scrollerRef.current;
+          if (!el) return;
+
+          // If the user is already doing horizontal wheel (trackpad), let it work normally.
+          if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
+          // Only intercept when horizontal overflow exists
+          const canScroll = el.scrollWidth > el.clientWidth;
+          if (!canScroll) return;
+
+          // Convert vertical wheel into horizontal scroll
+          e.preventDefault();
+          el.scrollLeft += e.deltaY;
+        }}
+        className={cn(
+          "flex w-full flex-nowrap items-center gap-2",
+          "overflow-x-auto overflow-y-hidden whitespace-nowrap",
+          "py-1 pr-2 min-w-0",
+          "overscroll-x-contain scroll-smooth",
+          // make sure wheel preventDefault is allowed in React
+          // (works because we're attaching directly to the element)
+          "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        )}
+      >
+        {Object.entries(cityGroups).map(([key, label]) => (
+          <Badge
+            key={key}
+            variant={selected === key ? "default" : "outline"}
+            onClick={() => {
+              const position = australiaMarkers.find((marker) =>
+                marker.id.startsWith(key.toLowerCase())
+              )?.position;
+              if (position) setCenter({ lat: position.lat, lng: position.lng });
+              else
+                setCenter(
+                  { lat: AUSTRALIA_CENTER[0], lng: AUSTRALIA_CENTER[1] },
+                  6
+                );
+              onSelect(key);
+            }}
+            className={cn(
+              "shrink-0",
+              "cursor-pointer select-none rounded-full px-3 py-1 text-xs font-medium transition",
+              "border shadow-sm",
+              selected === key
+                ? "bg-[#0d7377] text-white border-[#0d7377]/60 hover:bg-[#0a5d60]"
+                : "bg-[#1a1f26]/60 text-[#9fe7ea] border-white/10 hover:bg-white/5 hover:border-[#0d7377]/30"
+            )}
+          >
+            {label}
+          </Badge>
+        ))}
+      </div>
     </div>
   );
 };

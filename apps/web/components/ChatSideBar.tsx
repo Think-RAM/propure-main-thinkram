@@ -28,6 +28,7 @@ interface ChatSidebarProps {
   activeSessionId?: string;
   initialMessages: ChatMessageAI[];
   isLoading: boolean;
+  className?: string;
 }
 
 export function ChatSidebar({
@@ -36,6 +37,7 @@ export function ChatSidebar({
   initialMessages,
   activeSessionId,
   isLoading,
+  className,
 }: ChatSidebarProps) {
   const [input, setInput] = useState("");
   const lastSentRef = useRef<string | null>(null);
@@ -76,7 +78,7 @@ export function ChatSidebar({
                 return (
                   state === "approval-responded" || state === "output-denied"
                 );
-              })
+              }),
             );
 
           return {
@@ -102,7 +104,7 @@ export function ChatSidebar({
       },
       onError: (error) => {
         console.error("Chat error:", error);
-      }
+      },
     });
 
   // Auto-scroll ONLY if already at bottom
@@ -125,7 +127,7 @@ export function ChatSidebar({
 
   useEffect(() => {
     const root = document.querySelector(
-      "[data-radix-scroll-area-viewport]"
+      "[data-radix-scroll-area-viewport]",
     ) as HTMLDivElement | null;
 
     if (!root) {
@@ -161,12 +163,18 @@ export function ChatSidebar({
     return (
       <aside
         className={cn(
+          // default behavior (floating sidebar)
           "fixed inset-y-0 left-0 z-20 w-96",
-          "bg-gradient-to-b from-white/95 via-white/90 to-cyan-50/95 backdrop-blur-lg",
-          "border-r border-cyan-200/50 shadow-xl",
+          // Propure dark panel
+          "bg-[#1a1f26]",
+          "border-r border-white/10 shadow-2xl",
           "transition-transform duration-300 ease-in-out",
           "flex flex-col",
-          open ? "translate-x-0" : "-translate-x-full"
+          open ? "translate-x-0" : "-translate-x-full",
+          // when embedded in split view, override fixed positioning
+          className &&
+            "static z-10 w-auto translate-x-0 rounded-none border-r-0 border-l border-white/10",
+          className,
         )}
       >
         <div className="flex-1 min-h-0">
@@ -177,19 +185,19 @@ export function ChatSidebar({
                   key={i}
                   className={cn(
                     "flex gap-2",
-                    i % 2 === 0 ? "justify-end" : "justify-start"
+                    i % 2 === 0 ? "justify-end" : "justify-start",
                   )}
                 >
                   {i % 2 !== 0 && (
-                    <div className="h-8 w-8 rounded-full bg-cyan-100 animate-pulse" />
+                    <div className="h-8 w-8 rounded-full bg-white/10 animate-pulse" />
                   )}
 
                   <div
                     className={cn(
                       "h-10 rounded-lg animate-pulse",
                       i % 2 === 0
-                        ? "w-[60%] bg-cyan-100"
-                        : "w-[75%] bg-white border"
+                        ? "w-[60%] bg-[#0d7377]/20 border border-[#0d7377]/20"
+                        : "w-[75%] bg-white/5 border border-white/10",
                     )}
                   />
                 </div>
@@ -198,19 +206,19 @@ export function ChatSidebar({
           </ScrollArea>
         </div>
 
-        <form className="border-t border-cyan-200/40 px-4 py-3">
+        <form className="border-t border-white/10 px-4 py-3 bg-[#242b33]">
           <div className="relative">
             <Textarea
               disabled
               rows={1}
               placeholder="Ask about properties, data, or insights…"
-              className="resize-none pr-12 rounded-lg border border-cyan-200/60 bg-white/90 text-sm focus-visible:ring-0"
+              className="resize-none pr-12 rounded-lg border border-white/10 bg-[#1a1f26]/90 text-sm text-[#f7f9fc] placeholder:text-white/40 focus-visible:ring-0"
             />
             <Button
               type="submit"
               size="icon"
               disabled
-              className="absolute right-2 bottom-2 h-8 w-8 rounded-full bg-cyan-200 text-cyan-600"
+              className="absolute right-2 bottom-2 h-8 w-8 rounded-full bg-white/10 text-white/40"
             >
               <SendHorizonalIcon className="h-4 w-4" />
             </Button>
@@ -223,12 +231,18 @@ export function ChatSidebar({
   return (
     <aside
       className={cn(
+        // default behavior (floating sidebar)
         "fixed inset-y-0 left-0 z-20 w-96",
-        "bg-gradient-to-b from-white/95 via-white/90 to-cyan-50/95 backdrop-blur-lg",
-        "border-r border-cyan-200/50 rounded-r-xl shadow-xl",
+        // Propure dark panel
+        "bg-[#1a1f26]",
+        "border-r border-white/10 rounded-r-xl shadow-2xl",
         "transition-transform duration-300 ease-in-out",
         "flex flex-col", // ✅ critical
-        open ? "translate-x-0" : "-translate-x-full"
+        open ? "translate-x-0" : "-translate-x-full",
+        // when embedded in split view, override fixed positioning
+        className &&
+          "static z-10 w-auto translate-x-0 rounded-none border-r-0 border-l border-white/10",
+        className,
       )}
     >
       {/* ================= Messages ================= */}
@@ -240,19 +254,19 @@ export function ChatSidebar({
                 (msg) =>
                   msg.parts.some(
                     (part) =>
-                      part.type === "text" && part.text.trim().length > 0
+                      part.type === "text" && part.text.trim().length > 0,
                   ) && (
                     <div
                       key={msg.id}
                       className={cn(
                         "flex gap-2",
-                        msg.role === "user" ? "justify-end" : "justify-start"
+                        msg.role === "user" ? "justify-end" : "justify-start",
                       )}
                     >
                       {/* Agent Avatar */}
                       {msg.role !== "user" && (
-                        <Avatar className="h-8 w-8 mt-0.5 border border-cyan-200 bg-white">
-                          <AvatarFallback className="bg-cyan-50 text-cyan-700">
+                        <Avatar className="h-8 w-8 mt-0.5 border border-white/10 bg-[#242b33]">
+                          <AvatarFallback className="bg-[#242b33] text-[#1a9599]">
                             <Bot className="h-4 w-4" />
                           </AvatarFallback>
                         </Avatar>
@@ -263,15 +277,15 @@ export function ChatSidebar({
                         className={cn(
                           "max-w-[85%] rounded-lg px-3 py-2 text-sm leading-relaxed",
                           msg.role === "user"
-                            ? "bg-cyan-100/70 text-gray-900"
-                            : "bg-white/80 text-gray-800 border border-cyan-100"
+                            ? "bg-[#0d7377]/20 text-[#f7f9fc] border border-[#0d7377]/30"
+                            : "bg-[#242b33]/85 text-[#f7f9fc] border border-white/10",
                         )}
                       >
                         {msg.parts.map((part, i) =>
                           part.type === "text" ? (
                             <div
                               key={i}
-                              className="prose prose-sm prose-cyan m-0 p-0"
+                              className="prose prose-sm m-0 p-0 max-w-none prose-invert"
                             >
                               <Response
                                 controls={{
@@ -282,16 +296,16 @@ export function ChatSidebar({
                                 {part.text}
                               </Response>
                             </div>
-                          ) : null
+                          ) : null,
                         )}
                       </div>
                     </div>
-                  )
+                  ),
               )}
 
               {status === "streaming" && <ThinkingMessage />}
               {error && (
-                <div className="max-w-[85%] rounded-lg bg-red-100/70 text-red-900 self-center px-3 py-2 text-sm leading-relaxed">
+                <div className="max-w-[85%] rounded-lg bg-red-500/10 text-red-200 border border-red-500/20 self-center px-3 py-2 text-sm leading-relaxed">
                   {error.message ||
                     "An error occurred while processing your chat."}
                 </div>
@@ -307,13 +321,13 @@ export function ChatSidebar({
           onClick={() => scrollToBottom()}
           className={cn(
             "absolute bottom-24 left-1/2 -translate-x-1/2 z-50",
-            "rounded-full border bg-white p-2 shadow-lg transition-all",
+            "rounded-full border border-white/10 bg-[#242b33] p-2 shadow-xl transition-all",
             isAtBottom
               ? "pointer-events-none opacity-0 scale-90"
-              : "opacity-100 scale-100 hover:bg-muted"
+              : "opacity-100 scale-100 hover:bg-white/5",
           )}
         >
-          <ArrowDownIcon className="h-4 w-4" />
+          <ArrowDownIcon className="h-4 w-4 text-[#f7f9fc]" />
         </button>
       </div>
 
@@ -325,7 +339,7 @@ export function ChatSidebar({
           sendMessage({ parts: [{ type: "text", text: input }] });
           setInput("");
         }}
-        className="border-t border-cyan-200/40 px-4 py-3"
+        className="border-t border-white/10 px-4 py-3 bg-[#242b33]"
       >
         <div className="relative">
           <Textarea
@@ -337,7 +351,7 @@ export function ChatSidebar({
               e.currentTarget.style.height = "auto";
               e.currentTarget.style.height = `${Math.min(
                 e.currentTarget.scrollHeight,
-                160
+                160,
               )}px`;
             }}
             onKeyDown={(e) => {
@@ -351,7 +365,12 @@ export function ChatSidebar({
                 }
               }
             }}
-            className="resize-none pr-12 rounded-lg border border-cyan-200/60 bg-white/90 text-sm focus-visible:ring-0"
+            className={cn(
+              "resize-none pr-12 rounded-lg text-sm focus-visible:ring-0",
+              "border border-white/10 bg-[#1a1f26]/90",
+              "text-[#f7f9fc] placeholder:text-white/40",
+              "focus:border-[#0d7377]",
+            )}
           />
 
           <Button
@@ -363,8 +382,8 @@ export function ChatSidebar({
             className={cn(
               "absolute right-2 bottom-2 h-8 w-8 rounded-full",
               input.trim()
-                ? "bg-gradient-to-br from-cyan-400 to-teal-500 text-white"
-                : "bg-cyan-200 text-cyan-600"
+                ? "bg-gradient-to-br from-[#0d7377] to-[#095456] text-white hover:brightness-110"
+                : "bg-white/10 text-white/40",
             )}
           >
             <SendHorizonalIcon className="h-4 w-4" />
@@ -383,14 +402,14 @@ export const ThinkingMessage = () => {
       data-testid="message-assistant-loading"
     >
       <div className="flex items-start justify-start gap-3">
-        <div className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
+        <div className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-[#242b33] ring-1 ring-white/10">
           <div className="animate-pulse">
             <SparklesIcon size={14} />
           </div>
         </div>
 
         <div className="flex w-full flex-col gap-2 md:gap-4">
-          <div className="flex items-center gap-1 p-0 text-muted-foreground text-sm">
+          <div className="flex items-center gap-1 p-0 text-white/60 text-sm">
             <span className="animate-pulse">Thinking</span>
             <span className="inline-flex">
               <span className="animate-bounce [animation-delay:0ms]">.</span>

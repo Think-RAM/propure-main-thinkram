@@ -348,7 +348,11 @@ export async function checkMcpHealth(
 // Type-safe Tool Wrappers
 // ============================================================================
 
-import type { AustralianState } from "@propure/mcp-shared";
+import type {
+  AustralianState,
+  ListingType,
+  MarketData,
+} from "@propure/mcp-shared";
 import type {
   PropertyListing,
   PropertySearchParams,
@@ -371,34 +375,12 @@ export interface PropertySearchResponse {
 // Domain Tools
 export const domainTools = {
   searchProperties: (params: PropertySearchParams) =>
-    callMcpTool<PropertySearchResponse>("domain", "search_properties", params),
+    callMcpTool<PropertySearchResponse>("domain", "scrape_domain", params),
 
-  getPropertyDetails: (listingId: string) =>
-    callMcpTool<PropertyListing>("domain", "get_property_details", {
+  getPropertyDetails: (listingId: string, listingType: ListingType = "sale") =>
+    callMcpTool<PropertyListing | null>("domain", "get_property_details", {
       listingId,
-    }),
-
-  getSuburbStats: (suburb: string, state: AustralianState, postcode: string) =>
-    callMcpTool<SuburbStats>("domain", "get_suburb_stats", {
-      suburb,
-      state,
-      postcode,
-    }),
-
-  getSalesHistory: (address: string, suburb: string, state: AustralianState) =>
-    callMcpTool<SaleRecord[]>("domain", "get_sales_history", {
-      address,
-      suburb,
-      state,
-    }),
-
-  getAgentInfo: (agentId: string) =>
-    callMcpTool<Agent>("domain", "get_agent_info", { agentId }),
-
-  getAuctionResults: (suburb: string, state: AustralianState) =>
-    callMcpTool<AuctionResult[]>("domain", "get_auction_results", {
-      suburb,
-      state,
+      listingType,
     }),
 };
 
@@ -407,95 +389,24 @@ export const realestateTools = {
   searchProperties: (params: PropertySearchParams) =>
     callMcpTool<PropertySearchResponse>(
       "realestate",
-      "search_properties",
+      "scrape_realestate",
       params,
     ),
 
   getPropertyDetails: (listingId: string) =>
-    callMcpTool<PropertyListing>("realestate", "get_property_details", {
+    callMcpTool<PropertyListing | null>("realestate", "get_property_details", {
       listingId,
-    }),
-
-  getSuburbProfile: (
-    suburb: string,
-    state: AustralianState,
-    postcode: string,
-  ) =>
-    callMcpTool<SuburbStats>("realestate", "get_suburb_profile", {
-      suburb,
-      state,
-      postcode,
-    }),
-
-  getSoldProperties: (
-    suburb: string,
-    state: AustralianState,
-    postcode?: string,
-  ) =>
-    callMcpTool<SaleRecord[]>("realestate", "get_sold_properties", {
-      suburb,
-      state,
-      postcode,
-    }),
-
-  getAgencyListings: (agencyId: string) =>
-    callMcpTool<PropertyListing[]>("realestate", "get_agency_listings", {
-      agencyId,
     }),
 };
 
 // Market Data Tools
 export const marketTools = {
-  getRbaRates: (includeHistorical = true, includeLendingRates = true) =>
-    callMcpTool<{
-      cashRate: {
-        current: number;
-        effectiveDate: string;
-        historical?: { date: string; rate: number }[];
-      };
-      lendingRates?: {
-        standardVariable: number;
-        fixed1Year: number;
-        fixed3Year: number;
-      };
-    }>("market", "get_rba_rates", { includeHistorical, includeLendingRates }),
-
-  getEconomicIndicators: () =>
-    callMcpTool<{
-      gdpGrowth: number;
-      inflation: number;
-      unemployment: number;
-      wageGrowth: number;
-    }>("market", "get_economic_indicators", {}),
-
-  getAbsDemographics: (
-    suburb?: string,
-    lga?: string,
-    state?: AustralianState,
-  ) =>
-    callMcpTool<{
-      population: number;
-      medianAge: number;
-      medianIncome: number;
-      ownerOccupied: number;
-      rented: number;
-    }>("market", "get_abs_demographics", { suburb, lga, state }),
-
-  getBuildingApprovals: (state?: AustralianState, months = 12) =>
-    callMcpTool<
+  scrapeAbs: (postcode: string) =>
+    callMcpTool<{ url: string; marketData: MarketData }>(
+      "market",
+      "scrape_abs",
       {
-        period: string;
-        totalDwellings: number;
-        houses: number;
-        apartments: number;
-      }[]
-    >("market", "get_building_approvals", { state, months }),
-
-  getPopulationProjections: (state?: AustralianState) =>
-    callMcpTool<{
-      current: number;
-      projected2030: number;
-      projected2040: number;
-      growthRate: number;
-    }>("market", "get_population_projections", { state }),
+        postcode,
+      },
+    ),
 };

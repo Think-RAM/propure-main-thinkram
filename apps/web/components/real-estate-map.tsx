@@ -2,11 +2,7 @@
 
 import type React from "react";
 import { useEffect, useState } from "react";
-import {
-  SendHorizonalIcon,
-  SlidersHorizontal,
-  User,
-} from "lucide-react";
+import { SendHorizonalIcon, SlidersHorizontal, User } from "lucide-react";
 import { cn } from "../lib/utils";
 import FiltersPanel from "./FiltersPanel";
 import { CityFilterPills } from "./SuburbFilter";
@@ -18,6 +14,7 @@ import { Textarea } from "./ui/textarea";
 import { ChatSidebar } from "./ChatSideBar";
 import { useUserChats } from "@/context/ChatContext";
 import { LeafletMap } from "./maps/LeafletMap";
+import { FloatingNotificationInbox } from "./notification/NotificationBell";
 
 const MAX_HEIGHT = 180; // px ~ ChatGPT clamp
 
@@ -33,7 +30,12 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
   const [selectedCity, setSelectedCity] = useState("All");
   const router = useRouter();
   const { user, loaded } = useClerk();
-  const { activeSessionId, activeChatMessages, chatsLoading, createNewChatSession } = useUserChats();
+  const {
+    activeSessionId,
+    activeChatMessages,
+    chatsLoading,
+    createNewChatSession,
+  } = useUserChats();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -42,7 +44,7 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
 
   const handleSubmit = () => {
     if (searchValue && searchValue.length > 0 && !isChatActive) {
-      closeSidebar(); 
+      closeSidebar();
       createNewChatSession(searchValue);
       setIsChatActive(true);
     }
@@ -53,12 +55,43 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
   }, [activeSessionId]);
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
-      {/* Leaflet Map Background */}
-      <LeafletMap
-        className="absolute inset-0 w-full h-full"
-        isBlurred={!isChatActive}
-      />
+    <div className="relative h-screen w-full overflow-hidden bg-[#0f1419] text-[#f7f9fc]">
+      {/* Layout wrapper:
+          - when chat inactive => map takes full width
+          - when chat active   => map 60%, chat 40% */}
+      <div
+        className={cn(
+          "h-full w-full",
+          isChatActive ? "flex flex-row" : "relative",
+        )}
+      >
+        {/* CHAT REGION (only in split mode) */}
+        {isChatActive && (
+          <div className="relative h-full basis-[30%] min-w-0 border-l border-white/10">
+            <ChatSidebar
+              open={isChatActive}
+              send={searchValue ?? undefined}
+              initialMessages={activeChatMessages}
+              activeSessionId={activeSessionId ?? undefined}
+              isLoading={chatsLoading}
+              className="h-full"
+            />
+          </div>
+        )}
+        {/* MAP REGION */}
+        <div
+          className={cn(
+            isChatActive
+              ? "relative h-full basis-[70%] min-w-0"
+              : "absolute inset-0",
+          )}
+        >
+          <LeafletMap
+            className="absolute inset-0 w-full h-full"
+            isBlurred={!isChatActive}
+          />
+        </div>
+      </div>
 
       {!isChatActive && (
         <div className=" absolute z-50 top-4 right-4">
@@ -75,17 +108,40 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
         </div>
       )}
 
+      <FloatingNotificationInbox align="bottom-right" />
+
       {/* Search Header - appears when search is active */}
       <div
-        className={`absolute top-0 left-0 right-0 z-20 border-cyan-200/50 transition-all duration-500 ${
+        className={`absolute top-0 left-0 right-0 z-20 border-white/10 transition-all duration-500 ${
           isChatActive ? "translate-y-0" : "-translate-y-full opacity-0"
         }`}
       >
-        <div className="flex flex-col p-4 max-w-4xl mx-auto">
-          {/* Shared white rounded background */}
-          <div className="relative flex flex-col gap-2 bg-white/90 backdrop-blur-sm border-2 border-cyan-300 focus-within:border-cyan-500 rounded-2xl px-4 py-3">
-            {/* Search Input */}
-            <div className="relative w-full">
+        <div
+          className={cn(
+            "flex flex-col p-4",
+            // center within the available container
+            "mx-auto w-full",
+            // when chat is active, keep it narrower so it never reaches the chat seam
+            isChatActive ? "max-w-2xl" : "max-w-4xl",
+          )}
+        >
+          {/* Shared dark rounded background (Propure) */}
+          <div
+            className={cn(
+              "relative flex flex-col gap-2 rounded-2xl px-4 py-3",
+              "bg-[#242b33]/95 backdrop-blur-md",
+              "border border-white/10",
+              "shadow-xl",
+            )}
+          >
+            {/* City Filter Pills */}
+            <div
+              className={cn(
+                "relative w-full",
+                // reserve space for the two absolute right-side controls
+                "pr-20",
+              )}
+            >
               {/* City Filter Pills Inside White Box */}
               <CityFilterPills
                 selected={selectedCity}
@@ -93,7 +149,7 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
               />
               <div className="absolute right-10 top-1/2 transform -translate-y-1/2 cursor-pointer">
                 <SlidersHorizontal
-                  className="h-4 w-4 text-cyan-600"
+                  className="h-4 w-4 text-[#1a9599]"
                   onClick={() => setShowFilters((prev) => !prev)}
                 />
               </div>
@@ -112,7 +168,10 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
                   />
                 ) : (
                   <Button
-                    className="bg-gradient-to-br from-cyan-400 to-teal-500 text-white flex items-center gap-2 h-8 rounded-full px-3"
+                    className={cn(
+                      "flex items-center gap-2 h-8 rounded-full px-3 text-white",
+                      "bg-gradient-to-br from-[#0d7377] to-[#095456]",
+                    )}
                     onClick={() => router.push("/sign-in")}
                   >
                     <User className="h-4 w-4" />
@@ -128,13 +187,13 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
       {/* Hero Section - centered initially */}
       <div
         className={`absolute inset-0 z-10 flex items-center justify-center transition-all duration-700 ${
-          isChatActive ? "opacity-0 pointer-events-none" : "opacity-100"
+          isChatActive ? "opacity-0 pointer-events-none" : "opacity-100 backdrop-blur-[10px] backdrop-saturate-10 bg-black/10"
         }`}
       >
         <div className="text-center max-w-2xl mx-auto px-6">
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-8 drop-shadow-2xl">
+          <h1 className="text-4xl md:text-6xl font-bold text-[#f7f9fc] mb-8 drop-shadow-2xl">
             Find the best investment for your{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-teal-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#1a9599] to-[#d4af37] bg-clip-text text-transparent">
               real estate portfolio
             </span>
           </h1>
@@ -151,7 +210,7 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
                 e.currentTarget.style.height = "auto";
                 e.currentTarget.style.height = `${Math.min(
                   e.currentTarget.scrollHeight,
-                  MAX_HEIGHT
+                  MAX_HEIGHT,
                 )}px`;
               }}
               onKeyDown={(e) => {
@@ -170,11 +229,10 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
                 "pl-4 pr-14 py-4",
                 "text-lg leading-relaxed",
                 "rounded-2xl",
-                "border-2 border-cyan-300/50",
-                "bg-white/80 backdrop-blur-md",
-                "text-gray-800 placeholder:text-cyan-700/80",
-                "focus:border-cyan-400 focus:bg-white/90 focus-visible:ring-0",
-                "shadow-xl"
+                "border border-white/10",
+                "bg-[#1a1f26]/90 backdrop-blur-md",
+                "text-[#f7f9fc] placeholder:text-white/40",
+                "focus:border-[#0d7377] focus:bg-[#1a1f26] focus-visible:ring-0",
               )}
             />
 
@@ -187,8 +245,8 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
                 "flex h-9 w-9 items-center justify-center rounded-full",
                 "transition-all",
                 searchValue?.trim()
-                  ? "bg-gradient-to-br from-cyan-400 to-teal-500 text-white shadow-md hover:from-cyan-500 hover:to-teal-600"
-                  : "bg-cyan-200/60 text-cyan-500 cursor-not-allowed"
+                  ? "bg-gradient-to-br from-[#0d7377] to-[#095456] text-white shadow-md hover:brightness-110"
+                  : "bg-white/10 text-white/40 cursor-not-allowed",
               )}
             >
               <SendHorizonalIcon className="h-4 w-4" />
@@ -203,13 +261,13 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
       </div>
 
       {/* Results Panel - appears when search is active */}
-      <ChatSidebar 
+      {/* <ChatSidebar
         open={isChatActive}
         send={searchValue ?? undefined}
         initialMessages={activeChatMessages}
-        activeSessionId={activeSessionId ?? undefined} 
+        activeSessionId={activeSessionId ?? undefined}
         isLoading={chatsLoading}
-      />
+      /> */}
 
       <div
         className={`absolute right-6 top-20 bottom-6 w-80 transition-all duration-500 ${

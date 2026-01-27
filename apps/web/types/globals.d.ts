@@ -21,6 +21,11 @@ declare global {
     subscriptionStatus?: Stripe.Subscription.Status;
     subscriptionId?: string;
     subscriptionEndDate?: number; // Unix timestamp for when the subscription ends
+    notifSettings?: {
+      all: boolean;
+      inApp: boolean;
+      email: boolean;
+    };
   }
   interface OrganizationMembershipPublicMetadata {
     onboardingComplete?: boolean;

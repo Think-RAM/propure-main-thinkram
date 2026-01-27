@@ -1,6 +1,7 @@
 import "@/app/globals.css";
 import { ChatProvider } from "@/context/ChatContext";
 import { MapProvider } from "@/context/MapContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -15,8 +16,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <MapProvider>
-      <ChatProvider>{children}</ChatProvider>
-    </MapProvider>
+    <NotificationProvider>
+      <MapProvider>
+        <ChatProvider>{children}</ChatProvider>
+      </MapProvider>
+    </NotificationProvider>
   );
 }

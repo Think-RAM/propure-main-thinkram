@@ -110,3 +110,30 @@
 ::-webkit-scrollbar-thumb {
   @apply bg-muted-foreground/50 rounded-full hover:bg-muted-foreground/70;
 }
+
+/* Modern thin cyan scrollbar (works in Chromium/Edge + Firefox) */
+.scrollbar-thin {
+  scrollbar-width: thin;                 /* Firefox */
+  scrollbar-color: rgba(34,211,238,.35) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.28);
+  border-radius: 999px;
+  border: 2px solid transparent;         /* creates “floating pill” look */
+  background-clip: padding-box;
+}
+
+.scrollbar-thin:hover::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.45);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
