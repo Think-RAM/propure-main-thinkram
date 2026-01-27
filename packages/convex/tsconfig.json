@@ -1,27 +1,16 @@
 {
   "compilerOptions": {
-    /* These compiler options are required by Convex */
-    "target": "ESNext",
-    "lib": ["ES2021", "dom"],
-    "forceConsistentCasingInFileNames": true,
+    "target": "ES2020",
     "module": "ESNext",
-    "isolatedModules": true,
-    "noEmit": true,
-
-    /* These settings are not required by Convex and can be modified. */
-    // "target": "ES2020",
-    // "module": "ESNext",
     "moduleResolution": "bundler",
-    // "lib": ["ES2020"],
+    "lib": ["ES2020"],
     "types": ["node"],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    // "declaration": true,
-    // "declarationMap": true,
-    // "outDir": "./dist",
-    "rootDir": "."
+    "noEmit": true,
+    "rootDir": "./src"
   },
-  "include": ["./**/*", "../../types/env.d.ts"],
-  "exclude": ["node_modules", "./_generated"]
+  "include": ["src/**/*", "../../types/env.d.ts"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -63,6 +63,9 @@ importers:
       '@prisma/extension-accelerate':
         specifier: ^2.0.2
         version: 2.0.2(@prisma/client@6.19.1(prisma@6.19.1(typescript@5.9.3))(typescript@5.9.3))
+      '@propure/convex':
+        specifier: workspace:*
+        version: link:../../packages/convex
       '@propure/db':
         specifier: workspace:*
         version: link:../../packages/db
