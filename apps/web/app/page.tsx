@@ -10,6 +10,9 @@ import LampContainer from "@/components/lamp-container";
 import { useState } from "react";
 import AustraliaMap from "@/components/maps/australia-map";
 import { useRouter } from "next/navigation";
+import {
+
+} from "@propure/convex/api"
 
 export default function Home() {
   const [selectedCity, setSelectedCity] = useState("All");
