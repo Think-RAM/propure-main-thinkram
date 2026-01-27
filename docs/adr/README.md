@@ -39,6 +39,9 @@ The following approaches were evaluated and rejected for all states:
 | [004](./004-western-australia-planning-data-endpoints.md) | Western Australia Planning Data Endpoint Selection | Accepted | 2026-01-15 |
 | [005](./005-act-planning-data-endpoints.md) | ACT Planning Data Endpoint Selection | Accepted | 2026-01-15 |
 | [006](./006-south-australia-planning-data-endpoints.md) | South Australia Planning Data Endpoint Selection | Accepted | 2026-01-15 |
+| [009](./009-convex-unified-backend.md) | Convex as Unified Backend Platform | Accepted | 2026-01-27 |
+| [010](./010-geospatial-bounding-box-strategy.md) | Geospatial Bounding Box Strategy | Accepted | 2026-01-27 |
+| [011](./011-convex-agent-multi-agent-orchestration.md) | Convex Agent Multi-Agent Orchestration | Accepted | 2026-01-27 |
 
 ## Pending Decisions
 
