@@ -21,6 +21,7 @@
     "@prisma/extension-accelerate": "^2.0.2",
     "@propure/db": "workspace:*",
     "@propure/mcp-domain": "workspace:*",
+    "@propure/convex": "workspace:*",
     "@propure/mcp-market-data": "workspace:*",
     "@propure/mcp-realestate": "workspace:*",
     "@propure/mcp-shared": "workspace:*",

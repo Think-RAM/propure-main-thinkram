@@ -14,7 +14,8 @@
     "db:generate": "turbo db:generate",
     "db:push": "turbo db:push",
     "db:migrate": "turbo db:migrate",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "convex:generate": "turbo convex:generate"
   },
   "devDependencies": {
     "dotenv-cli": "^11.0.0",

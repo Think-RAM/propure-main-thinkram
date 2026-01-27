@@ -38,3 +38,4 @@ packages/*/node_modules
 /*/.next*
 /*/*/.next*
 /*/*/node_modules*
+**/_generated/
