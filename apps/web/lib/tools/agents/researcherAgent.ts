@@ -19,6 +19,7 @@ import {
   getSuburbStats,
 } from "../marketTools";
 import { addressToCoordinatesGoogle } from "@/lib/map/geoEncoding";
+import { latLng } from "leaflet";
 
 // Search context extracted from strategy or user query
 interface SearchContext {
@@ -466,7 +467,10 @@ const WebScraperTool = ({
         type: "data-properties-found",
         data: {
           count: listings.length,
-          suburb: inferredSuburb,
+          suburb: {
+            name: inferredSuburb,
+            latLng: await addressToCoordinatesGoogle(inferredSuburb) 
+          },
           listings: listings.filter((l) => l.latLng),
         },
       });

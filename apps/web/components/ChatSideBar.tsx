@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { ToolResult } from "./chat/ToolResults";
 
-import { cn, fetchWithErrorHandlers } from "@/lib/utils";
+import { AUS_CENTER, cn, fetchWithErrorHandlers, PropertiesFoundPayload, toSearchResult } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ChatMessageAI } from "@/types/ai";
@@ -22,6 +22,7 @@ import { useUserChats } from "@/context/ChatContext";
 import { Response } from "./elements/response";
 import { ScrollArea } from "./ui/scroll-area";
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
+import { useMap } from "@/context/MapContext";
 
 interface ChatSidebarProps {
   open: boolean;
@@ -45,6 +46,7 @@ export function ChatSidebar({
   const scrollElRef = useRef<HTMLDivElement | null>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const { updateChatSessionTitle } = useUserChats();
+  const { setCenter, setResults } = useMap();
 
   const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
     const el = scrollElRef.current;
@@ -103,28 +105,11 @@ export function ChatSidebar({
             break;
           case "data-properties-found":
             console.log("Properties Found Data: ", dataPart.data);
-            const propData = dataPart.data as {
-              count: number;
-              suburb: string;
-              listings: {
-                title: string;
-                address: string;
-                suburb: string;
-                state: string | undefined;
-                postcode: string | undefined;
-                latLng: { lat: number; lng: number } | undefined;
-                priceText: string | undefined;
-                beds: number | undefined;
-                baths: number | undefined;
-                cars: number | undefined;
-                url: string;
-                website: string;
-                estimatedWeeklyRent: number | undefined;
-                estimatedGrossYieldPct: number | undefined;
-                listedAt: string | undefined;
-              }[];
-            };
-
+            const propData = dataPart.data as PropertiesFoundPayload;
+            setCenter(
+              propData.suburb.latLng || AUS_CENTER,
+            );
+            setResults(propData.listings.map(toSearchResult));
             break;
         }
       },
@@ -319,7 +304,7 @@ export function ChatSidebar({
                           return (
                             <div
                               key={i}
-                              className="prose prose-sm m-0 p-0 max-w-none prose-invert break-words [overflow-wrap:anywhere]"
+                              className="prose prose-sm m-0 p-0 max-w-none prose-invert break-words"
                             >
                               <Response
                                 controls={{
@@ -335,7 +320,11 @@ export function ChatSidebar({
 
                         // Render tool parts (tool-call, tool-result)
                         if (part.type.startsWith("tool-")) {
-                          return <ToolResult key={i} part={part as any} />;
+                          return (
+                            <div className="my-2" key={`tool-part-${i}`}>
+                              <ToolResult part={part as any} />
+                            </div>
+                          );
                         }
 
                         return null;

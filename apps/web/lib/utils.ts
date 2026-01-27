@@ -14,6 +14,7 @@ import {
   Layers,
   StateCoords,
 } from "./map/layers";
+import { SearchResult } from "@/context/MapContext";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -213,5 +214,104 @@ export async function fetchDetailsAtPoint(
   return {
     data: {} as ArcGisFeature,
     attrs: layer.propertyKey,
+  };
+}
+
+type LatLng = { lat: number; lng: number };
+
+export type PropertiesFoundPayload = {
+  count: number;
+  suburb: {
+    name: string;
+    latLng?: LatLng;
+  };
+  listings: Array<{
+    title: string;
+    address: string;
+    suburb: string;
+    state?: string;
+    postcode?: string;
+    latLng?: LatLng;
+    priceText?: string;
+    beds?: number;
+    baths?: number;
+    cars?: number;
+    url: string;
+    website: string;
+    estimatedWeeklyRent?: number;
+    estimatedGrossYieldPct?: number;
+    listedAt?: string;
+  }>;
+};
+
+export const AUS_CENTER: LatLng = { lat: -25.2744, lng: 133.7751 };
+
+function isLatLng(v: unknown): v is LatLng {
+  return (
+    typeof v === "object" &&
+    v !== null &&
+    typeof (v as any).lat === "number" &&
+    typeof (v as any).lng === "number"
+  );
+}
+
+function isPropertiesFoundPayload(v: unknown): v is PropertiesFoundPayload {
+  if (typeof v !== "object" || v === null) return false;
+  const o = v as any;
+
+  if (typeof o.count !== "number") return false;
+  if (typeof o.suburb !== "object" || o.suburb === null) return false;
+  if (typeof o.suburb.name !== "string") return false;
+  if (o.suburb.latLng !== undefined && !isLatLng(o.suburb.latLng)) return false;
+
+  if (!Array.isArray(o.listings)) return false;
+
+  // light validation for listings
+  for (const l of o.listings) {
+    if (typeof l !== "object" || l === null) return false;
+    if (typeof l.title !== "string") return false;
+    if (typeof l.address !== "string") return false;
+    if (typeof l.url !== "string") return false;
+    if (typeof l.website !== "string") return false;
+    if (l.latLng !== undefined && !isLatLng(l.latLng)) return false;
+    if (l.estimatedGrossYieldPct !== undefined && typeof l.estimatedGrossYieldPct !== "number")
+      return false;
+  }
+
+  return true;
+}
+
+function formatYieldPct(y?: number): string {
+  if (typeof y !== "number" || !Number.isFinite(y) || y <= 0) return "—";
+  return `${y.toFixed(1)}%`;
+}
+
+function yieldColorFromPct(y?: number): string {
+  // tweak thresholds to taste
+  if (typeof y !== "number" || !Number.isFinite(y) || y <= 0) return "#94a3b8"; // slate-400
+  if (y >= 6) return "#22c55e"; // green-500
+  if (y >= 4) return "#eab308"; // yellow-500
+  return "#ef4444";            // red-500
+}
+
+export function toSearchResult(listing: PropertiesFoundPayload["listings"][number]): SearchResult {
+  const ll = listing.latLng ?? AUS_CENTER;
+  const y = listing.estimatedGrossYieldPct;
+
+  return {
+    title: listing.title,
+    description: listing.address,
+    yield: formatYieldPct(y),
+    yieldColor: yieldColorFromPct(y),
+    gradientFrom: "#0d7377",
+    gradientTo: "#095456",
+    lat: ll.lat,
+    lng: ll.lng,
+
+    // optional extras (only if your type includes them)
+    url: listing.url,
+    beds: listing.beds ?? 0,
+    baths: listing.baths ?? 0,
+    cars: listing.cars ?? 0,
   };
 }

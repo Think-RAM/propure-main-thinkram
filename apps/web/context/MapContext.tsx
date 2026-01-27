@@ -41,6 +41,12 @@ export type SearchResult = {
   yieldColor: string;
   lat: number;
   lng: number;
+
+  // optional extras if you use them in cards
+  url?: string;
+  beds?: number;
+  baths?: number;
+  cars?: number;
 };
 
 type MapContextType = {

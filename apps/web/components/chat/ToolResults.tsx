@@ -1,12 +1,172 @@
 "use client";
 
-import { CheckCircle, Loader2, XCircle } from "lucide-react";
+import * as React from "react";
+import type {
+  DynamicToolUIPart,
+  FileUIPart,
+  ReasoningUIPart,
+  SourceDocumentUIPart,
+  SourceUrlUIPart,
+  StepStartUIPart,
+  ToolUIPart,
+} from "ai";
+import { CheckCircle2, Loader2, XCircle } from "lucide-react";
+import type { ChatTools } from "@/types/ai";
+
+/**
+ * ---------
+ *  TYPES
+ * ---------
+ */
+
+/**
+ * This union represents “UI parts” you might render in your stream.
+ * We only handle tool-* parts here, but keep union for your upstream list typing.
+ */
+export type ToolType =
+  | ReasoningUIPart
+  | DynamicToolUIPart
+  | SourceUrlUIPart
+  | SourceDocumentUIPart
+  | FileUIPart
+  | StepStartUIPart
+  | { type: `data-${string}`; id?: string; data: unknown }
+  | ToolUIPart<ChatTools>;
+
+/**
+ * A strongly-typed view of ONLY tool parts.
+ */
+type ToolPart = Extract<ToolType, { type: `tool-${string}` }>;
+
+/**
+ * Tool execution state we care about.
+ * (We avoid `as any` by narrowing with type guards below.)
+ */
+type ToolState =
+  | "pending"
+  | "partial-call"
+  | "call"
+  | "output-available"
+  | "output-error";
+
+/**
+ * A typed refinement of ToolPart that includes state/output when present.
+ * We don't assume the AI SDK always includes them, so we guard at runtime.
+ */
+type ToolPartWithState = ToolPart & { state: ToolState };
+type ToolPartWithOutput = ToolPartWithState & {
+  state: "output-available";
+  output: unknown;
+};
+type ToolPartWithError = ToolPartWithState & { state: "output-error" };
+
+/**
+ * Known tool names (tightens switch statements).
+ * If you add more named tools later, extend this union.
+ */
+type KnownToolName = "strategist" | "researcher" | "analyst";
+
+/**
+ * Your tool output schemas (define them once, use everywhere).
+ * If you have real types in `@/types/ai`, replace these with imports.
+ */
+type StrategyOutputData = {
+  strategyDiscovery?: {
+    summary?: string;
+    keyInsights?: string[];
+  };
+  [k: string]: unknown;
+};
+
+type ResearchOutputData = {
+  propertySearches?: {
+    query?: { suburb?: string };
+    listings?: unknown[];
+  };
+  suburbStatistics?: {
+    medianPrice?: { amount: number };
+    medianRentWeekly?: { amount: number };
+    grossRentalYieldPct?: number;
+    vacancyRatePct?: number;
+  };
+  [k: string]: unknown;
+};
+
+type AnalystOutputData = {
+  insights?: string;
+  recommendations?: string;
+  [k: string]: unknown;
+};
+
+/**
+ * --------------
+ *  TYPE GUARDS
+ * --------------
+ */
+
+function isToolPart(part: ToolType): part is ToolPart {
+  return part.type.startsWith("tool-");
+}
+
+function isToolState(x: unknown): x is ToolState {
+  return (
+    x === "pending" ||
+    x === "partial-call" ||
+    x === "call" ||
+    x === "output-available" ||
+    x === "output-error"
+  );
+}
+
+function hasToolState(part: ToolPart): part is ToolPartWithState {
+  return "state" in part && isToolState((part as { state?: unknown }).state);
+}
+
+function hasToolOutput(part: ToolPartWithState): part is ToolPartWithOutput {
+  return part.state === "output-available" && "output" in part;
+}
+
+function isKnownToolName(name: string): name is KnownToolName {
+  return name === "strategist" || name === "researcher" || name === "analyst";
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null;
+}
+
+function asStrategyData(v: unknown): StrategyOutputData | null {
+  if (!isRecord(v)) return null;
+  // Lightweight structural check
+  if ("strategyDiscovery" in v && isRecord(v.strategyDiscovery))
+    return v as StrategyOutputData;
+  return null;
+}
+
+function asResearchData(v: unknown): ResearchOutputData | null {
+  if (!isRecord(v)) return null;
+  if ("propertySearches" in v || "suburbStatistics" in v)
+    return v as ResearchOutputData;
+  return null;
+}
+
+function asAnalystData(v: unknown): AnalystOutputData | null {
+  if (!isRecord(v)) return null;
+  if ("insights" in v || "recommendations" in v) return v as AnalystOutputData;
+  return null;
+}
+
+function toolNameFromType(type: ToolPart["type"]): string {
+  return type.replace(/^tool-/, "");
+}
+
+/**
+ * ----------
+ *  COMPONENT
+ * ----------
+ */
 
 interface ToolResultProps {
-  part: {
-    type: string;
-    [key: string]: any;
-  };
+  part: ToolType;
 }
 
 /**
@@ -14,23 +174,15 @@ interface ToolResultProps {
  * Handles different states: pending, partial-call, call, output-available, output-error.
  */
 export function ToolResult({ part }: ToolResultProps) {
-  // Only render if this is a tool-related part
-  if (!part.type.startsWith("tool-")) {
-    return null;
-  }
+  // Only render tool-* parts
+  if (!isToolPart(part)) return null;
 
-  // Extract tool name by removing 'tool-' prefix
-  const toolName = part.type.replace(/^tool-/, "");
+  const toolName = toolNameFromType(part.type);
 
-  // Cast to access state property (AI SDK internal structure)
-  const state = (part as any).state as string | undefined;
+  // Must have a known/valid tool state
+  if (!hasToolState(part)) return null;
 
-  if (!state) {
-    return null;
-  }
-
-  // Render based on state
-  switch (state) {
+  switch (part.state as ToolState) {
     case "pending":
     case "partial-call":
     case "call":
@@ -42,7 +194,10 @@ export function ToolResult({ part }: ToolResultProps) {
       );
 
     case "output-available":
-      return <ToolOutput toolName={toolName} part={part} />;
+      console.log("Tool Ouput: ", part);
+      // ensure output exists before passing down
+      if (!hasToolOutput(part)) return null;
+      return <ToolOutput toolName={toolName} output={part.output} />;
 
     case "output-error":
       return (
@@ -57,76 +212,82 @@ export function ToolResult({ part }: ToolResultProps) {
   }
 }
 
-interface ToolOutputProps {
+function ToolOutput({
+  toolName,
+  output,
+}: {
   toolName: string;
-  part: {
-    type: string;
-    [key: string]: any;
-  };
-}
-
-/**
- * ToolOutput component renders tool-specific UI based on the agent type.
- * Each agent (strategist, researcher, analyst) has a custom output component.
- */
-function ToolOutput({ toolName, part }: ToolOutputProps) {
-  // Extract output data from part
-  const data = (part as any).output;
-
-  if (!data) {
-    return null;
+  output: unknown;
+}) {
+  // Tighten toolName discrimination, fall back to generic
+  if (isKnownToolName(toolName)) {
+    switch (toolName) {
+      case "strategist": {
+        const data = asStrategyData(output);
+        return data ? (
+          <StrategyOutput data={data} />
+        ) : (
+          <GenericOutput data={output} />
+        );
+      }
+      case "researcher": {
+        const data = asResearchData(output);
+        return data ? (
+          <ResearchOutput data={data} />
+        ) : (
+          <GenericOutput data={output} />
+        );
+      }
+      case "analyst": {
+        const data = asAnalystData(output);
+        return data ? (
+          <AnalystOutput data={data} />
+        ) : (
+          <GenericOutput data={output} />
+        );
+      }
+    }
   }
 
-  switch (toolName) {
-    case "strategist":
-      return <StrategyOutput data={data} />;
-
-    case "researcher":
-      return <ResearchOutput data={data} />;
-
-    case "analyst":
-      return <AnalystOutput data={data} />;
-
-    default:
-      return <GenericOutput data={data} />;
-  }
+  return <GenericOutput data={output} />;
 }
 
 /**
  * StrategyOutput displays strategy discovery results from the Strategist agent.
  */
-function StrategyOutput({ data }: { data: any }) {
-  const summary = data?.strategyDiscovery?.summary;
+function StrategyOutput({ data }: { data: StrategyOutputData }) {
+  const summary = data.strategyDiscovery?.summary;
 
   if (!summary) {
     return <GenericOutput data={data} />;
   }
 
+  const keyInsights = data.strategyDiscovery?.keyInsights ?? [];
+
   return (
     <div className="rounded-lg bg-[#242b33]/85 border border-white/10 p-4 space-y-3 overflow-hidden">
       <div className="flex items-center gap-2">
-        <CheckCircle className="h-4 w-4 text-[#55d6be]" />
+        <CheckCircle2 className="h-4 w-4 text-[#55d6be]" />
         <h4 className="text-sm font-semibold text-white">Strategy Discovery</h4>
       </div>
+
       <p className="text-sm text-white/80 leading-relaxed">{summary}</p>
 
-      {data.strategyDiscovery?.keyInsights?.length > 0 && (
+      {keyInsights.length > 0 && (
         <div className="space-y-2">
           <h5 className="text-xs font-medium text-white/60 uppercase tracking-wide">
             Key Insights
           </h5>
           <ul className="space-y-1">
-            {data.strategyDiscovery.keyInsights.map(
-              (insight: string, i: number) => (
-                <li
-                  key={i}
-                  className="text-sm text-white/70 flex items-start gap-2"
-                >
-                  <span className="text-[#55d6be] mt-1">•</span>
-                  <span>{insight}</span>
-                </li>
-              ),
-            )}
+            {keyInsights.map((insight, i) => (
+              <li
+                key={i}
+                className="text-sm text-white/70 flex items-start gap-2"
+              >
+                <span className="text-[#55d6be] mt-1">•</span>
+                <span>{insight}</span>
+              </li>
+            ))}
           </ul>
         </div>
       )}
@@ -137,14 +298,16 @@ function StrategyOutput({ data }: { data: any }) {
 /**
  * ResearchOutput displays property search results from the Researcher agent.
  */
-function ResearchOutput({ data }: { data: any }) {
-  const listingsCount = data?.propertySearches?.listings?.length ?? 0;
-  const suburb = data?.propertySearches?.query?.suburb;
+function ResearchOutput({ data }: { data: ResearchOutputData }) {
+  const listingsCount = data.propertySearches?.listings?.length ?? 0;
+  const suburb = data.propertySearches?.query?.suburb;
+
+  const stats = data.suburbStatistics;
 
   return (
     <div className="rounded-lg bg-[#242b33]/85 border border-white/10 p-4 space-y-3 overflow-hidden">
       <div className="flex items-center gap-2">
-        <CheckCircle className="h-4 w-4 text-[#55d6be]" />
+        <CheckCircle2 className="h-4 w-4 text-[#55d6be]" />
         <h4 className="text-sm font-semibold text-white">Research Complete</h4>
       </div>
 
@@ -159,30 +322,30 @@ function ResearchOutput({ data }: { data: any }) {
             {suburb && <span className="text-white/60"> in {suburb}</span>}
           </p>
 
-          {data.suburbStatistics && (
+          {stats && (
             <div className="grid grid-cols-2 gap-2 pt-2">
-              {data.suburbStatistics.medianPrice && (
+              {stats.medianPrice && (
                 <Stat
                   label="Median Price"
-                  value={`$${data.suburbStatistics.medianPrice.amount.toLocaleString()}`}
+                  value={`$${stats.medianPrice.amount.toLocaleString()}`}
                 />
               )}
-              {data.suburbStatistics.medianRentWeekly && (
+              {stats.medianRentWeekly && (
                 <Stat
                   label="Median Rent"
-                  value={`$${data.suburbStatistics.medianRentWeekly.amount}/wk`}
+                  value={`$${stats.medianRentWeekly.amount}/wk`}
                 />
               )}
-              {data.suburbStatistics.grossRentalYieldPct && (
+              {typeof stats.grossRentalYieldPct === "number" && (
                 <Stat
                   label="Gross Yield"
-                  value={`${data.suburbStatistics.grossRentalYieldPct.toFixed(2)}%`}
+                  value={`${stats.grossRentalYieldPct.toFixed(2)}%`}
                 />
               )}
-              {data.suburbStatistics.vacancyRatePct && (
+              {typeof stats.vacancyRatePct === "number" && (
                 <Stat
                   label="Vacancy Rate"
-                  value={`${data.suburbStatistics.vacancyRatePct.toFixed(2)}%`}
+                  value={`${stats.vacancyRatePct.toFixed(2)}%`}
                 />
               )}
             </div>
@@ -198,13 +361,13 @@ function ResearchOutput({ data }: { data: any }) {
 /**
  * AnalystOutput displays financial insights from the Analyst agent.
  */
-function AnalystOutput({ data }: { data: any }) {
-  const insights = data?.insights;
+function AnalystOutput({ data }: { data: AnalystOutputData }) {
+  const { insights, recommendations } = data;
 
   return (
     <div className="rounded-lg bg-[#242b33]/85 border border-white/10 p-4 space-y-3 overflow-hidden">
       <div className="flex items-center gap-2">
-        <CheckCircle className="h-4 w-4 text-[#55d6be]" />
+        <CheckCircle2 className="h-4 w-4 text-[#55d6be]" />
         <h4 className="text-sm font-semibold text-white">Analysis Complete</h4>
       </div>
 
@@ -217,13 +380,13 @@ function AnalystOutput({ data }: { data: any }) {
             <p className="text-sm text-white/80 leading-relaxed">{insights}</p>
           </div>
 
-          {data.recommendations && (
+          {recommendations && (
             <div>
               <h5 className="text-xs font-medium text-white/60 uppercase tracking-wide mb-2">
                 Recommendations
               </h5>
               <p className="text-sm text-white/80 leading-relaxed">
-                {data.recommendations}
+                {recommendations}
               </p>
             </div>
           )}
@@ -238,14 +401,31 @@ function AnalystOutput({ data }: { data: any }) {
 /**
  * GenericOutput displays raw JSON for unknown tool types.
  */
-function GenericOutput({ data }: { data: any }) {
+function GenericOutput({ data }: { data: unknown }) {
   return (
     <div className="rounded-lg bg-[#242b33]/60 border border-white/10 p-3 min-w-0 overflow-hidden">
-      <pre className="text-xs text-white/60 overflow-x-auto max-h-40 whitespace-pre-wrap break-words">
-        {JSON.stringify(data, null, 2)}
+      <pre
+        className="
+          text-xs text-white/60
+          max-h-40 overflow-auto
+          whitespace-pre-wrap break-words
+          rounded-xl border border-white/10 bg-black/20
+          p-3
+          scrollbar-thin
+        "
+      >
+        {safeStringify(data)}
       </pre>
     </div>
   );
+}
+
+function safeStringify(v: unknown) {
+  try {
+    return JSON.stringify(v, null, 2);
+  } catch {
+    return String(v);
+  }
 }
 
 /**
