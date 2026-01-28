@@ -7,7 +7,18 @@
   "exports": {
     ".": "./src/index.ts",
     "./_generated": "./src/generated.ts",
-    "./client": "./src/client.ts"
+    "./client": "./src/client.ts",
+    "./dataModel": {
+      "types": "./convex/_generated/dataModel.d.ts"
+    },
+    "./server": {
+      "import": "./convex/_generated/server.js",
+      "types": "./convex/_generated/server.d.ts"
+    },
+    "./api": {
+      "import": "./convex/_generated/api.js",
+      "types": "./convex/_generated/api.d.ts"
+    }
   },
   "files": [
     "convex/_generated"

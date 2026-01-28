@@ -19,10 +19,9 @@
     "@modelcontextprotocol/sdk": "^1.12.0",
     "@prisma/client": "^6.11.1",
     "@prisma/extension-accelerate": "^2.0.2",
-    "@propure/db": "workspace:*",
     "@propure/convex": "workspace:*",
+    "@propure/db": "workspace:*",
     "@propure/mcp-domain": "workspace:*",
-    
     "@propure/mcp-market-data": "workspace:*",
     "@propure/mcp-realestate": "workspace:*",
     "@propure/mcp-shared": "workspace:*",

@@ -1,5 +1,5 @@
 import { calculateCashFlow, calculateROI } from "@/lib/tools/financialTools";
-import { getDemographics, getEconomicIndicators, getPopulationProjections, getRbaRates, getSuburbProfile, getSuburbStats } from "@/lib/tools/marketTools";
+// import { getDemographics, getEconomicIndicators, getPopulationProjections, getRbaRates, getSuburbProfile, getSuburbStats } from "@/lib/tools/marketTools";
 import { searchDomainProperties, searchRealestateProperties } from "@/lib/tools/propertySearchTools";
 import { saveStrategy } from "@/lib/tools/strategyTools";
 import { InferUITool, UIDataTypes, UIMessage } from "ai";
@@ -20,12 +20,12 @@ type calculateCashFlow = InferUITool<typeof calculateCashFlow>;
 type calculateROI = InferUITool<typeof calculateROI>;
 
 // Market Tools
-type getSuburbStats = InferUITool<typeof getSuburbStats>;
-type getSuburbProfile = InferUITool<typeof getSuburbProfile>;
-type getDemographics = InferUITool<typeof getDemographics>;
-type getPopulationProjections = InferUITool<typeof getPopulationProjections>;
-type getRbaRates = InferUITool<typeof getRbaRates>;
-type getEconomicIndicators = InferUITool<typeof getEconomicIndicators>;
+// type getSuburbStats = InferUITool<typeof getSuburbStats>;
+// type getSuburbProfile = InferUITool<typeof getSuburbProfile>;
+// type getDemographics = InferUITool<typeof getDemographics>;
+// type getPopulationProjections = InferUITool<typeof getPopulationProjections>;
+// type getRbaRates = InferUITool<typeof getRbaRates>;
+// type getEconomicIndicators = InferUITool<typeof getEconomicIndicators>;
 
 // Strategy Tools
 type saveStrategy = InferUITool<ReturnType<typeof saveStrategy>>;
@@ -35,12 +35,12 @@ export type ChatTools = {
   searchRealestateProperties: searchRealestateProperties;
   calculateCashFlow: calculateCashFlow;
   calculateROI: calculateROI;
-  getSuburbStats: getSuburbStats;
-  getSuburbProfile: getSuburbProfile;
-  getDemographics: getDemographics;
-  getPopulationProjections: getPopulationProjections;
-  getRbaRates: getRbaRates;
-  getEconomicIndicators: getEconomicIndicators;
+  // getSuburbStats: getSuburbStats;
+  // getSuburbProfile: getSuburbProfile;
+  // getDemographics: getDemographics;
+  // getPopulationProjections: getPopulationProjections;
+  // getRbaRates: getRbaRates;
+  // getEconomicIndicators: getEconomicIndicators;
   saveStrategy: saveStrategy;
 }
 

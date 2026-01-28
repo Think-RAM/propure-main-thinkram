@@ -1,4 +1,5 @@
-import { withWorkflow } from "workflow/next";
+import pkg from "workflow/next";
+const { withWorkflow } = pkg;
 
 let userConfig = undefined;
 try {
