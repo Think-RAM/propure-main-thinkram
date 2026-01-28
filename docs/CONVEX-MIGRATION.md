@@ -783,22 +783,7 @@ export const callDomainMCP = tool({
 });
 ```
 
-Alternatively, MCP calls can go through Convex Actions for rate limiting and logging:
-
-```typescript
-// apps/web/lib/tools/mcp-tools.ts (alternative pattern)
-export const callDomainViaConvex = tool({
-  description: "Search properties via Domain MCP through Convex",
-  parameters: z.object({
-    tool: z.string(),
-    input: z.any(),
-  }),
-  execute: async ({ tool, input }) => {
-    const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-    return await convex.action(api.mcp.callDomain, { tool, input });
-  },
-});
-```
+All MCP calls use direct HTTP from tool execute functions — no Convex Actions for MCP integration.
 
 ### Chat API Route and Message Persistence
 
@@ -1027,7 +1012,7 @@ export function PropertyMap() {
 |-----------------|-------------|------|
 | `daily-property-sync` (cron 2am) | Vercel Cron → Vercel Workflow | Cron → Workflow |
 | `weekly-suburb-scoring` (cron Sunday 3am) | Vercel Cron → Vercel Workflow | Cron → Workflow |
-| `monthly-economic-update` (cron 1st) | Convex Cron → Convex Mutation | Cron → Mutation |
+| `monthly-economic-update` (cron 1st) | Vercel Cron → Vercel Workflow | Cron → Workflow |
 | `property-search-workflow` (event) | Convex Query (reactive) | Query |
 | `suburb-analysis-workflow` (event) | Vercel Workflow | Workflow |
 
@@ -1046,6 +1031,8 @@ export default withWorkflow(nextConfig);
 
 ### Cron Triggers (vercel.json)
 
+All scheduled jobs are defined in `vercel.json` and trigger API routes that launch Vercel Workflows:
+
 ```json
 {
   "crons": [
@@ -1056,43 +1043,13 @@ export default withWorkflow(nextConfig);
     {
       "path": "/api/cron/suburb-scoring",
       "schedule": "0 17 * * 6"
+    },
+    {
+      "path": "/api/cron/economic-update",
+      "schedule": "0 18 1 * *"
     }
   ]
 }
-```
-
-Or use Convex cron to trigger workflows:
-
-```typescript
-// packages/convex/convex/crons.ts
-import { cronJobs } from "convex/server";
-import { internal } from "./_generated/api";
-
-const crons = cronJobs();
-
-// Trigger Vercel Workflow via HTTP
-crons.daily(
-  "trigger-property-sync",
-  { hourUTC: 16, minuteUTC: 0 },
-  internal.functions.workflows.triggerPropertySync
-);
-
-export default crons;
-```
-
-```typescript
-// packages/convex/convex/functions/workflows.ts
-import { internalMutation } from "../_generated/server";
-
-export const triggerPropertySync = internalMutation({
-  args: {},
-  handler: async () => {
-    // Trigger Vercel Workflow via HTTP
-    await fetch(`${process.env.VERCEL_URL}/api/workflows/property-sync`, {
-      method: "POST",
-    });
-  },
-});
 ```
 
 ### Vercel Workflow Definitions

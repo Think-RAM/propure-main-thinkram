@@ -49,7 +49,7 @@ Following the architecture decision to use **Vercel AI SDK + Vercel Workflow** i
 **Update**:
 - Create Researcher using `ToolLoopAgent` in `apps/web/lib/agents/researcher.ts`
 - MCP tools implemented as `tool()` functions in `apps/web/lib/tools/mcp-tools.ts`
-- MCP servers called directly via HTTP `fetch()` from tool `execute` functions (OR optionally via Convex Actions for rate limiting)
+- **MCP servers called directly via HTTP `fetch()` from tool `execute` functions** (no Convex Actions)
 
 ### PRO-19: Build Analyst Agent
 
@@ -65,10 +65,9 @@ Following the architecture decision to use **Vercel AI SDK + Vercel Workflow** i
 **Current**: Implement MCP integration in Convex Actions
 
 **Update**:
-- Two patterns supported:
-  1. **Direct HTTP** (recommended): MCP tools call MCP servers directly via `fetch()` in tool `execute` functions
-  2. **Via Convex** (optional): MCP tools call Convex Actions which then call MCP servers (for rate limiting/logging)
+- **Use Direct HTTP only** — MCP tools call MCP servers directly via `fetch()` in tool `execute` functions
 - MCP tool definitions live in `apps/web/lib/tools/mcp-tools.ts`
+- No Convex Actions for MCP calls — all calls happen directly in Next.js API routes
 - No need for separate "integration layer" — tools ARE the integration
 
 ### PRO-21: Implement Thread Management
@@ -112,11 +111,10 @@ Following the architecture decision to use **Vercel AI SDK + Vercel Workflow** i
 **Current**: Use Convex `cronJobs()` + Convex Workflow Component
 
 **Update**:
-- **Two options for scheduling**:
-  1. **Vercel Cron** (vercel.json) → triggers Vercel Workflow
-  2. **Convex Cron** (convex/crons.ts) → triggers Vercel Workflow via HTTP
-- Convex `cronJobs()` still used for simple tasks (e.g., refreshing cached data, triggering external workflows)
-- Complex durable workflows use Vercel Workflow (WDK)
+- **Use Vercel Cron only** — all scheduled jobs defined in `vercel.json`
+- Vercel Cron triggers API routes (e.g., `/api/cron/property-sync`)
+- API routes call `start(workflowFn)` to launch Vercel Workflows
+- Convex handles database only — no scheduling responsibilities
 
 ### PRO-23: Build Property Data Sync Workflow
 
@@ -170,9 +168,9 @@ Following the architecture decision to use **Vercel AI SDK + Vercel Workflow** i
 | PRO-9 | Agent Component manages chat tables | Manual chatSessions/chatMessages tables |
 | PRO-16-19 | `@convex-dev/agent` Agent class | Vercel AI SDK `ToolLoopAgent` class |
 | PRO-17-19 | `createTool` with `ctx.db` | `tool()` with `ConvexHttpClient` |
-| PRO-20 | MCP in Convex Actions | MCP in tool `execute` functions (direct HTTP or via Convex) |
+| PRO-20 | MCP in Convex Actions | MCP in tool `execute` functions (direct HTTP only) |
 | PRO-21 | Automatic thread management | Manual thread persistence via onFinish callback |
-| PRO-22 | Convex cronJobs + Workflow | Vercel Cron + Vercel Workflow (or Convex cron → trigger workflow) |
+| PRO-22 | Convex cronJobs + Workflow | Vercel Cron + Vercel Workflow (vercel.json only) |
 | PRO-23-25 | `WorkflowManager` + `step.runQuery` | `"use workflow"` + `step()` + `ConvexHttpClient` |
 
 ---

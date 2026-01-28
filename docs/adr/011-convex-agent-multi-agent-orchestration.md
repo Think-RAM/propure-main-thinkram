@@ -332,22 +332,7 @@ export const callRealestateMCP = tool({
 });
 ```
 
-Alternatively, MCP calls can go through Convex Actions for better logging and rate limiting:
-
-```typescript
-// Call MCP via Convex Action (optional pattern)
-export const callDomainViaCon vex = tool({
-  description: "Search properties via Domain MCP through Convex",
-  parameters: z.object({
-    tool: z.string(),
-    input: z.any(),
-  }),
-  execute: async ({ tool, input }) => {
-    const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-    return await convex.action(api.mcp.callDomain, { tool, input });
-  },
-});
-```
+All MCP calls use direct HTTP — no Convex Actions for MCP integration.
 
 ### Streaming and Persistence
 

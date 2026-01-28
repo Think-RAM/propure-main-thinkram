@@ -37,7 +37,7 @@ Adopt **Convex** as the unified backend platform for database, real-time, and ca
 | Neon PostgreSQL + Prisma | Convex document database with indexes               |
 | Pusher                   | Convex reactive queries (WebSocket subscriptions)   |
 | Upstash Redis            | Convex system table caching + in-memory query cache |
-| Inngest                  | Vercel Workflow (WDK) + Convex cron triggers        |
+| Inngest                  | Vercel Cron + Vercel Workflow (WDK)                 |
 
 Convex will be deployed as a new monorepo package (`packages/convex/` as `@propure/convex`) following the official Convex monorepo pattern.
 
@@ -77,9 +77,9 @@ Convex queries are reactive by default. When data changes, subscribed clients re
 const properties = useQuery(api.properties.search, { filters });
 ```
 
-### Simple Scheduling with cronJobs()
+### Scheduling with Vercel Cron
 
-Convex provides `cronJobs()` for simple scheduled tasks that can trigger external workflows or run lightweight mutations. This is used to trigger Vercel Workflows on a schedule or refresh cached data.
+All scheduled jobs use **Vercel Cron** (defined in `vercel.json`) to trigger Vercel Workflows. Convex does not handle scheduling — it focuses solely on database, real-time subscriptions, and caching.
 
 ### Clerk Auth Integration
 
@@ -169,9 +169,8 @@ Use Convex Workflow Component (`@convex-dev/workflow`) instead of Vercel Workflo
 - Would require moving workflow orchestration logic into Convex Actions (separate from Next.js API routes where AI agents live)
 - AI agents already run in Next.js API routes using Vercel AI SDK — keeping workflows in the same layer (Vercel Workflow) provides better colocation
 - Vercel Workflow has tighter integration with Next.js through `"use workflow"` and `"use step"` directives
-- Vercel Workflow observability is built into Vercel dashboard alongside Next.js function logs
-- Convex `cronJobs()` provides sufficient scheduling capability to trigger Vercel Workflows
-- **Decision**: Use Convex for database/real-time/cache (where it excels), and Vercel Workflow for durable orchestration (where Next.js integration matters)
+- Vercel Workflow + Vercel Cron provides unified observability in Vercel dashboard alongside Next.js function logs
+- **Decision**: Use Convex for database/real-time/cache (where it excels), and Vercel Cron + Vercel Workflow for scheduling and durable orchestration
 
 ---
 
