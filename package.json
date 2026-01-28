@@ -6,7 +6,7 @@
   "scripts": {
     "preinstall": "node scripts/preinstall.js",
     "postinstall": "node scripts/setup-env.js",
-    "dev": "turbo dev",
+    "dev": "turbo dev && turbo convex:dev",
     "build": "turbo build",
     "lint": "turbo lint",
     "type-check": "turbo type-check",

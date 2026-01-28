@@ -75,7 +75,7 @@ export const updateChatTitleById = mutation({
 
 export const updateMessage = mutation({
   args: {
-    id: v.id("chatMessages"),
+    id: v.optional(v.id("chatMessages")),
     updatedParts: v.array(v.any()), // tighten later
     role: v.union(
       v.literal("user"),
@@ -85,9 +85,9 @@ export const updateMessage = mutation({
     chatSessionId: v.id("chatSessions"),
   },
   handler: async (ctx, { id, updatedParts, role, chatSessionId }) => {
-    const existing = await ctx.db.get(id);
+    const existing = id ? await ctx.db.get(id) : null;
 
-    if (existing) {
+    if (id && existing) {
       // equivalent to Prisma update
       await ctx.db.patch(id, {
         role,
@@ -100,6 +100,7 @@ export const updateMessage = mutation({
         content: updatedParts,
         sessionId: chatSessionId,
         timestamp: Date.now(),
+        createdAt: Date.now(),
       });
     }
   },
@@ -128,6 +129,7 @@ export const saveMessages = mutation({
         content: parts,
         timestamp: createdAt,
         sessionId: chatId,
+        createdAt,
       });
     }
   },

@@ -24,23 +24,15 @@ import {
 //   getSuburbProfile,
 //   getSuburbStats,
 // } from "@/lib/tools/marketTools";
-import {
-  getAuctionResults,
-  getSalesHistory,
-  getSoldProperties,
-} from "@/lib/tools/salesTools";
-import { calculateCashFlow, calculateROI } from "@/lib/tools/financialTools";
 import { saveStrategy } from "@/lib/tools/strategyTools";
 import { v4 as generateUUID } from "uuid";
 import { ChatMessageAI } from "@/types/ai";
 import { ChatSDKError } from "@/lib/ai-error";
-import {
-  getChatById,
-  saveChatSession,
-  saveMessages,
-  updateChatTitleById,
-  updateMessage,
-} from "@/lib/chat/data";
+// import {
+//   saveMessages,
+//   updateChatTitleById,
+//   updateMessage
+// } from "@/lib/chat/data";
 import { convertCurrency, convertToUIMessages } from "@/lib/utils";
 import { UserPreferences } from "@/types/types";
 import { client } from "@propure/convex/client";
@@ -215,7 +207,12 @@ export async function POST(req: Request) {
         // Handle title generation in parallel
         if (titlePromise) {
           titlePromise.then((title) => {
-            updateChatTitleById({ chatId: id, title });
+            client.mutation(api.functions.chat.updateChatTitleById, {
+              chatId: id,
+              title,
+            });
+
+            // updateChatTitleById({ chatId: id, title });
             dataStream.write({
               type: "data-chat-title",
               data: {
@@ -305,12 +302,18 @@ export async function POST(req: Request) {
           const existingMsg = UIMessages.find((m) => m.id === finishedMsg.id);
           if (existingMsg) {
             updatedMessageIds.push(finishedMsg.id);
-            await updateMessage(
-              finishedMsg.id,
-              finishedMsg.parts,
-              finishedMsg.role,
-              id,
-            );
+            await client.mutation(api.functions.chat.updateMessage, {
+              // id: finishedMsg.id, // this id is not equivalent to convex _id
+              updatedParts: finishedMsg.parts,
+              role: finishedMsg.role,
+              chatSessionId: id,
+            });
+            // await updateMessage(
+            //   finishedMsg.id,
+            //   finishedMsg.parts,
+            //   finishedMsg.role,
+            //   id,
+            // );
           } else {
             newMessages.push({
               id: finishedMsg.id,
@@ -324,7 +327,13 @@ export async function POST(req: Request) {
 
         // Bulk save all new messages at once
         if (newMessages.length > 0) {
-          await saveMessages(newMessages);
+          // await saveMessages(newMessages);
+          await client.mutation(api.functions.chat.saveMessages, {
+            messages: newMessages.map(({ id, ...rest }) => ({
+              ...rest,
+              createdAt: rest.createdAt.getTime(),
+            })),
+          });
         }
       },
       onError: () => {
