@@ -1,8 +1,8 @@
-# ADR-011: Convex Agent Component for Multi-Agent Orchestration
+# ADR-011: Multi-Agent Orchestration with Vercel AI SDK and Convex Persistence
 
 **Status**: Accepted
-**Date**: 2026-01-27
-**Decision Makers**: Dhrubbi Biswas
+**Date**: 2026-01-28
+**Decision Makers**: Dhrub Biswas
 
 ---
 
@@ -10,21 +10,21 @@
 
 Propure uses a multi-agent orchestration pattern where four AI agents collaborate to help users discover investment strategies, research markets, and analyse properties:
 
-| Agent | Purpose |
-|-------|---------|
+| Agent            | Purpose                                                |
+| ---------------- | ------------------------------------------------------ |
 | **Orchestrator** | Routes requests, synthesises responses, coordinates UI |
-| **Strategist** | Strategy discovery, goal setting, recommendations |
-| **Analyst** | Financial calculations, risk assessment, ROI modeling |
-| **Researcher** | Market data retrieval, property search, suburb stats |
+| **Strategist**   | Strategy discovery, goal setting, recommendations      |
+| **Analyst**      | Financial calculations, risk assessment, ROI modeling  |
+| **Researcher**   | Market data retrieval, property search, suburb stats   |
 
 All agents use **Gemini 2.5 Flash** via `@ai-sdk/google`.
 
 ### Current Implementation (POC/ai-sdk Branch)
 
-The existing proof-of-concept uses Vercel AI SDK's `streamText` with a `ToolLoopAgent` pattern in Next.js API routes:
+The existing proof-of-concept uses Vercel AI SDK's `streamText` in Next.js API routes:
 
 ```typescript
-// Current: Next.js API route
+// apps/web/app/api/chat/route.ts
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
@@ -40,200 +40,449 @@ export async function POST(req: Request) {
 }
 ```
 
-This approach has several limitations:
+This approach provides a solid foundation but needs enhancements:
 
-1. **No message persistence**: Chat history is stored in client state and sent with every request. Page refresh loses conversation.
-2. **HTTP SSE streaming**: Uses Server-Sent Events over HTTP, which has connection timeout issues on serverless platforms (Vercel 60-second function timeout).
-3. **No cross-agent context sharing**: Each agent invocation is independent. The Orchestrator must manually pass context between sub-agents via tool call arguments.
-4. **No usage tracking**: No built-in way to track token usage, cost, or performance per agent.
-5. **No durable workflows**: Multi-step agent tasks (e.g., "research 5 suburbs and compare them") can't survive function timeouts or failures.
-6. **Manual UI update plumbing**: AI tool results must be explicitly pushed to the frontend via Pusher. No automatic reactivity.
+1. **No message persistence**: Chat history is stored in client state only. Page refresh loses conversation.
+2. **HTTP SSE streaming**: Uses Server-Sent Events, which works well for most cases but has timeout considerations on Vercel Free tier (60s). Vercel Pro extends this to 300s, and Fluid Compute removes the limit.
+3. **Manual context management**: Thread management and message history must be implemented manually.
+4. **Manual usage tracking**: Token usage tracking requires custom implementation in `onStepFinish` callbacks.
+5. **Manual UI reactivity**: Real-time updates require explicit integration with Convex subscriptions.
 
 ### Requirements for Production
 
-- Persistent chat threads with message history stored in the database
-- WebSocket streaming (not HTTP SSE) for reliable long-running agent responses
-- Cross-agent context sharing and thread continuation
-- Durable multi-step workflows that survive timeouts
-- Built-in token usage tracking and cost monitoring
-- Automatic UI updates when agent actions modify data
+- Persistent chat threads with message history stored in Convex
+- Streaming agent responses that work reliably on Vercel infrastructure
+- Cross-agent context sharing via thread history
+- Token usage tracking and cost monitoring per conversation
+- Automatic UI updates when agent actions modify data (via Convex reactive queries)
+- Durable multi-step workflows for complex operations (handled by Vercel Workflow - see ADR-009)
 
 ---
 
 ## Decision
 
-Use **`@convex-dev/agent`** (Convex Agent Component) for multi-agent orchestration. This is a Convex component built on top of the Vercel AI SDK that adds persistence, streaming, and workflow integration.
+Use **Vercel AI SDK** with the `ToolLoopAgent` class and `createAgentUIStreamResponse` in Next.js API routes, combined with Convex for message persistence and real-time delivery.
+
+### Architecture
+
+```
+User Message → Next.js API Route
+                    │
+                    ├─► ToolLoopAgent.generateText()
+                    │       │
+                    │       ├─► Tool execution (DB via ConvexHttpClient)
+                    │       └─► Sub-agent delegation (call other agents)
+                    │
+                    ├─► onFinish: Save to Convex chatMessages
+                    │
+                    └─► createAgentUIStreamResponse → SSE to client
+
+Frontend ◄─── Convex reactive query (useQuery chatMessages)
+```
 
 ### Agent Definitions
 
 ```typescript
-// packages/convex/convex/agents/orchestrator.ts
-import { Agent } from "@convex-dev/agent";
+// apps/web/lib/agents/orchestrator.ts
+import { ToolLoopAgent } from "@vercel/ai-sdk-agents";
 import { google } from "@ai-sdk/google";
-import { components } from "../_generated/api";
 
-export const orchestrator = new Agent(components.agent, {
-  name: "Orchestrator",
-  chat: google("gemini-2.5-flash"),
-  instructions: `You are the Propure AI assistant...`,
-  tools: [delegateToStrategist, delegateToAnalyst, delegateToResearcher, updateUI],
+export const orchestrator = new ToolLoopAgent({
+  model: google("gemini-2.5-flash"),
+  instructions: `You are the Propure AI assistant, helping users discover
+their ideal property investment strategy in Australia. You coordinate between
+specialist agents: Strategist, Analyst, and Researcher.
+
+Route user requests to the appropriate agent(s), synthesize their outputs,
+and present cohesive responses.`,
+  tools: {
+    delegateToStrategist,
+    delegateToAnalyst,
+    delegateToResearcher,
+    searchProperties,
+    updateUIFilters,
+  },
 });
 ```
 
 ```typescript
-// packages/convex/convex/agents/strategist.ts
-export const strategist = new Agent(components.agent, {
-  name: "Strategist",
-  chat: google("gemini-2.5-flash"),
-  instructions: `You are a property investment strategy advisor...`,
-  tools: [captureDiscoveryInput, recommendStrategy, createStrategy, updateStrategy],
+// apps/web/lib/agents/strategist.ts
+export const strategist = new ToolLoopAgent({
+  model: google("gemini-2.5-flash"),
+  instructions: `You are a property investment strategy advisor for the Australian market.
+Help users discover their ideal strategy based on goals, budget, risk tolerance, and timeline.`,
+  tools: {
+    captureDiscoveryInput,
+    recommendStrategy,
+    createStrategy,
+    updateStrategy,
+  },
 });
 ```
 
 ```typescript
-// packages/convex/convex/agents/researcher.ts
-export const researcher = new Agent(components.agent, {
-  name: "Researcher",
-  chat: google("gemini-2.5-flash"),
-  instructions: `You are a market research specialist...`,
-  tools: [searchProperties, getSuburbStats, callDomainMCP, callRealestateMCP],
+// apps/web/lib/agents/researcher.ts
+export const researcher = new ToolLoopAgent({
+  model: google("gemini-2.5-flash"),
+  instructions: `You are a market research specialist for Australian property markets.
+Retrieve suburb statistics, property data, and market indicators.`,
+  tools: {
+    searchProperties,
+    getSuburbStats,
+    callDomainMCP,
+    callRealestateMCP,
+  },
 });
 ```
 
 ```typescript
-// packages/convex/convex/agents/analyst.ts
-export const analyst = new Agent(components.agent, {
-  name: "Analyst",
-  chat: google("gemini-2.5-flash"),
-  instructions: `You are a financial analysis specialist...`,
-  tools: [calculateCashFlow, calculateROI, assessRisk, compareProperties],
+// apps/web/lib/agents/analyst.ts
+export const analyst = new ToolLoopAgent({
+  model: google("gemini-2.5-flash"),
+  instructions: `You are a financial analysis specialist for property investment.
+Calculate cash flow, ROI, assess risk, and compare properties.`,
+  tools: {
+    calculateCashFlow,
+    calculateROI,
+    assessRisk,
+    compareProperties,
+  },
 });
 ```
 
 ### Tool Types
 
-The Convex Agent Component distinguishes two tool types:
-
-1. **`createTool`** — Tools that need Convex database access (`ctx`). Used for reading/writing data.
-2. **`tool()`** — Pure computation tools (Vercel AI SDK `tool()`). Used for calculations, formatting.
+All tools use the Vercel AI SDK `tool()` function with Zod schema validation. Tools that need database access call Convex via `ConvexHttpClient`.
 
 ```typescript
-// createTool: has database access
-const searchProperties = createTool({
-  description: "Search properties with filters",
-  args: { /* ... */ },
-  handler: async (ctx, args) => {
-    // ctx.db available for Convex queries
-    return await ctx.db.query("properties")
-      .withIndex("by_location_lat", ...)
-      .collect();
+// apps/web/lib/tools/search-tools.ts
+import { tool } from "ai";
+import { z } from "zod";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@propure/convex";
+
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+
+// Tool with Convex database access
+export const searchProperties = tool({
+  description: "Search properties within map bounds with filters",
+  parameters: z.object({
+    south: z.number(),
+    north: z.number(),
+    west: z.number(),
+    east: z.number(),
+    propertyType: z.string().optional(),
+    maxPrice: z.number().optional(),
+  }),
+  execute: async (args) => {
+    // Call Convex query via HTTP client
+    const properties = await convex.query(api.properties.searchByBounds, {
+      south: args.south,
+      north: args.north,
+      west: args.west,
+      east: args.east,
+      propertyType: args.propertyType,
+      maxPrice: args.maxPrice,
+    });
+    return properties;
   },
 });
 
-// tool(): pure computation
-const calculateCashFlow = tool({
-  description: "Calculate cash flow for a property",
-  parameters: z.object({ /* ... */ }),
-  execute: async ({ price, rent, expenses }) => {
-    return { annualCashFlow: rent * 52 - expenses, yield: (rent * 52 / price) * 100 };
+// Pure computation tool (no database access)
+export const calculateCashFlow = tool({
+  description: "Calculate annual cash flow and yield for a property",
+  parameters: z.object({
+    purchasePrice: z.number(),
+    weeklyRent: z.number(),
+    annualExpenses: z.number().optional().default(0),
+    interestRate: z.number().optional().default(6.0),
+  }),
+  execute: async ({ purchasePrice, weeklyRent, annualExpenses, interestRate }) => {
+    const annualRent = weeklyRent * 52;
+    const grossYield = (annualRent / purchasePrice) * 100;
+    const annualInterest = (purchasePrice * 0.8) * (interestRate / 100);
+    const netCashFlow = annualRent - annualExpenses - annualInterest;
+
+    return {
+      grossYield: Math.round(grossYield * 100) / 100,
+      annualRent,
+      annualInterest: Math.round(annualInterest),
+      netCashFlow: Math.round(netCashFlow),
+    };
+  },
+});
+
+// Tool that creates/updates Convex data
+export const createStrategy = tool({
+  description: "Create a new investment strategy for the user",
+  parameters: z.object({
+    type: z.enum(["CASH_FLOW", "CAPITAL_GROWTH", "RENOVATION_FLIP", "DEVELOPMENT", "SMSF", "COMMERCIAL"]),
+    budget: z.number().optional(),
+    riskTolerance: z.string().optional(),
+  }),
+  execute: async (args) => {
+    // Call Convex mutation via HTTP client
+    const strategyId = await convex.mutation(api.strategies.create, {
+      type: args.type,
+      status: "DISCOVERY",
+      budget: args.budget,
+      riskTolerance: args.riskTolerance,
+    });
+    return { strategyId };
+  },
+});
+```
+
+### Sub-Agent Delegation
+
+The Orchestrator delegates to specialist agents via tool calls:
+
+```typescript
+// apps/web/lib/tools/delegation-tools.ts
+import { tool } from "ai";
+import { z } from "zod";
+import { generateText } from "ai";
+import { strategist, analyst, researcher } from "../agents";
+
+export const delegateToStrategist = tool({
+  description: "Delegate strategy discovery and recommendation tasks to the Strategist agent",
+  parameters: z.object({
+    task: z.string().describe("The strategy-related task to perform"),
+    context: z.string().optional().describe("Additional context from the conversation"),
+  }),
+  execute: async ({ task, context }) => {
+    const result = await generateText({
+      model: strategist.model,
+      messages: [
+        { role: "system", content: strategist.instructions },
+        { role: "user", content: context ? `${context}\n\n${task}` : task },
+      ],
+      tools: strategist.tools,
+      maxSteps: 5,
+    });
+    return result.text;
+  },
+});
+
+export const delegateToResearcher = tool({
+  description: "Delegate market research and data retrieval to the Researcher agent",
+  parameters: z.object({
+    query: z.string().describe("The research query or data request"),
+    filters: z.any().optional().describe("Search filters or parameters"),
+  }),
+  execute: async ({ query, filters }) => {
+    const result = await generateText({
+      model: researcher.model,
+      messages: [
+        { role: "system", content: researcher.instructions },
+        { role: "user", content: filters ? `${query}\nFilters: ${JSON.stringify(filters)}` : query },
+      ],
+      tools: researcher.tools,
+      maxSteps: 3,
+    });
+    return result.text;
   },
 });
 ```
 
 ### MCP Integration
 
-External MCP servers (Domain, REA, Market Data) are called from Convex Actions via HTTP:
+External MCP servers (Domain, REA, Market Data) are called directly from tool `execute` functions via HTTP:
 
 ```typescript
-// packages/convex/convex/actions/mcp.ts
-export const callDomainMCP = action({
-  args: { tool: v.string(), input: v.any() },
-  handler: async (ctx, args) => {
-    // MCP servers expose HTTP endpoints
-    const response = await fetch(`${process.env.MCP_DOMAIN_URL}/tools/${args.tool}`, {
+// apps/web/lib/tools/mcp-tools.ts
+import { tool } from "ai";
+import { z } from "zod";
+
+export const callDomainMCP = tool({
+  description: "Search properties via Domain MCP server",
+  parameters: z.object({
+    tool: z.string(),
+    input: z.any(),
+  }),
+  execute: async ({ tool, input }) => {
+    const url = process.env.MCP_DOMAIN_URL;
+    const response = await fetch(`${url}/tools/${tool}`, {
       method: "POST",
-      body: JSON.stringify(args.input),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+    if (!response.ok) {
+      throw new Error(`MCP Domain call failed: ${response.status}`);
+    }
+    return response.json();
+  },
+});
+
+export const callRealestateMCP = tool({
+  description: "Search properties via RealEstate.com.au MCP server",
+  parameters: z.object({
+    tool: z.string(),
+    input: z.any(),
+  }),
+  execute: async ({ tool, input }) => {
+    const url = process.env.MCP_REALESTATE_URL;
+    const response = await fetch(`${url}/tools/${tool}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
     });
     return response.json();
   },
 });
 ```
 
-### Streaming Architecture
+Alternatively, MCP calls can go through Convex Actions for better logging and rate limiting:
+
+```typescript
+// Call MCP via Convex Action (optional pattern)
+export const callDomainViaCon vex = tool({
+  description: "Search properties via Domain MCP through Convex",
+  parameters: z.object({
+    tool: z.string(),
+    input: z.any(),
+  }),
+  execute: async ({ tool, input }) => {
+    const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+    return await convex.action(api.mcp.callDomain, { tool, input });
+  },
+});
+```
+
+### Streaming and Persistence
 
 ```
-Browser ←─ WebSocket ──→ Convex
-                           │
-                           ├── saveStreamDeltas() ──→ Thread messages (persisted)
-                           │
-                           └── useUIMessages() ──→ Real-time message stream (reactive)
+User Message → POST /api/chat
+    │
+    ├─► ToolLoopAgent.generateText({ messages, tools })
+    │       │
+    │       └─► Streams tokens via HTTP SSE
+    │
+    ├─► onFinish: Save to Convex
+    │       │
+    │       └─► convex.mutation(api.chatMessages.create, { ... })
+    │
+    └─► createAgentUIStreamResponse → HTTP Response (SSE)
+             │
+             └─► Frontend: useChat() receives stream
+
+Frontend also subscribes:
+    useQuery(api.chatMessages.list, { threadId })
+        └─► Re-renders when new messages saved (for thread history)
 ```
 
-The Convex Agent Component uses `saveStreamDeltas` to persist streamed tokens to the thread, and the frontend uses `useUIMessages` (a reactive Convex query) to display them in real-time over WebSocket.
+**API Route Implementation**:
+
+```typescript
+// apps/web/app/api/chat/route.ts
+import { ToolLoopAgent, createAgentUIStreamResponse } from "@vercel/ai-sdk-agents";
+import { google } from "@ai-sdk/google";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@propure/convex";
+import { orchestrator } from "@/lib/agents/orchestrator";
+
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+
+export async function POST(req: Request) {
+  const { messages, threadId } = await req.json();
+
+  const response = await orchestrator.generateText({
+    messages,
+    maxSteps: 10,
+    onFinish: async ({ text, toolCalls, toolResults, usage }) => {
+      // Save assistant message to Convex
+      await convex.mutation(api.chatMessages.create, {
+        threadId,
+        role: "assistant",
+        content: text,
+        toolCalls,
+        toolResults,
+        usage,
+      });
+    },
+  });
+
+  return createAgentUIStreamResponse({ response });
+}
+```
+
+**Dual-channel approach**:
+1. **HTTP SSE**: Live streaming during active conversation (via `useChat()` from `@ai-sdk/react`)
+2. **Convex reactive query**: Thread history and message persistence (via `useQuery()` from `convex/react`)
+
+This provides both real-time streaming AND persistent conversation history.
 
 ---
 
 ## Rationale
 
-### Built on Top of Vercel AI SDK
+### Familiar Next.js Development Model
 
-The Convex Agent Component is not a replacement for Vercel AI SDK — it's built on top of it. It uses the same `tool()` definitions, the same `@ai-sdk/google` provider, and the same model interface. This means:
+Agent logic stays in Next.js API routes where the team already has expertise. No need to learn Convex Actions/Components for agent orchestration. Tools are standard TypeScript functions that call Convex via `ConvexHttpClient`.
 
-- Existing tool logic from the POC/ai-sdk branch is **directly reusable**
+### Direct Use of Vercel AI SDK
+
+The Vercel AI SDK's `ToolLoopAgent` class provides official multi-step agent orchestration:
+
+- `ToolLoopAgent` with `maxSteps` for loop control
+- `stopWhen` conditions for early termination
+- `onStepFinish` for token tracking and logging
+- `onFinish` for message persistence
+
+This is the canonical way to build agents with Vercel AI SDK, not a custom abstraction.
+
+### Proven Pattern from POC
+
+The POC/ai-sdk branch already demonstrates this pattern working:
+
+- Existing tool definitions are directly reusable
 - System prompts require no changes
 - Model configuration (Gemini 2.5 Flash) stays the same
-- Knowledge of Vercel AI SDK applies directly
+- Streaming via `@ai-sdk/react` `useChat()` hook is familiar
 
-### Thread/Message Persistence
+### Manual Persistence Provides Control
 
-Every message (user, assistant, tool call, tool result) is automatically persisted to Convex tables managed by the Agent Component. This provides:
+Saving messages to Convex manually in `onFinish` provides:
 
-- Chat history survives page refresh
-- Conversation can be resumed across sessions
-- Full audit trail of agent reasoning and tool calls
-- Historical context for agent responses
-
-### WebSocket Streaming Over HTTP SSE
-
-Convex uses WebSocket connections (not HTTP SSE) for real-time data. Streaming agent responses through Convex's reactive system provides:
-
-- No 60-second serverless timeout (Convex Actions have up to 10-minute timeout for AI operations)
-- Automatic reconnection on network interruption
-- Bi-directional communication (can cancel in-flight requests)
-
-### Durable Multi-Agent Workflows
-
-The Agent Component integrates with the Convex Workflow Component for durable multi-step orchestration:
+- Full control over what gets persisted (can filter sensitive data)
+- Custom schema for `chatSessions` and `chatMessages` tables
+- Ability to add metadata (user ID, strategy ID, cost tracking)
+- No hidden abstraction layer — explicit persistence logic
 
 ```typescript
-const researchWorkflow = new WorkflowManager(components.workflow);
-
-export const deepResearch = researchWorkflow.define({
-  args: { suburbs: v.array(v.string()) },
-  handler: async (step, args) => {
-    // Each step is durable — survives failures
-    const stats = await step.run("getStats", () =>
-      researcher.generateText({ prompt: `Get stats for ${args.suburbs}` })
-    );
-    const analysis = await step.run("analyze", () =>
-      analyst.generateText({ prompt: `Analyze: ${stats}` })
-    );
-    return analysis;
-  },
-});
+onFinish: async ({ text, toolCalls, usage }) => {
+  await convex.mutation(api.chatMessages.create, {
+    threadId,
+    role: "assistant",
+    content: text,
+    toolCalls: toolCalls.map(tc => ({ name: tc.name, args: tc.args })),
+    usage: { promptTokens: usage.promptTokens, completionTokens: usage.completionTokens },
+    timestamp: Date.now(),
+  });
+},
 ```
 
-### Built-in RAG Support
+### HTTP SSE Streaming with Vercel Timeouts
 
-The Agent Component includes vector search capabilities for retrieval-augmented generation, which can be used for:
+HTTP SSE streaming works well on Vercel:
 
-- Searching past conversations for context
-- Matching user queries to relevant market reports
-- Semantic search over property descriptions
+- **Vercel Free/Hobby**: 60-second timeout (sufficient for most chat responses)
+- **Vercel Pro**: 300-second timeout (5 minutes — covers complex multi-step agents)
+- **Fluid Compute**: No timeout limit (for long-running agents)
 
-### Usage Tracking
+For operations that exceed function timeouts, use Vercel Workflow (see ADR-009).
 
-Token usage, model costs, and execution times are tracked per agent, per thread. This is essential for monitoring costs when running four agents that may invoke each other.
+### Colocation with Workflows
+
+Keeping agents in Next.js API routes colocates them with Vercel Workflow definitions (`"use workflow"`), which handle durable multi-step operations. Both run in the same layer and can call Convex for data access.
+
+### Real-Time Updates via Convex
+
+While HTTP SSE provides streaming during active conversation, Convex reactive queries provide:
+
+- Automatic UI updates when agent tools modify data (e.g., creating a strategy)
+- Thread history that loads instantly on page refresh
+- Multi-user collaboration (future: see other users' threads)
 
 ---
 
@@ -241,61 +490,71 @@ Token usage, model costs, and execution times are tracked per agent, per thread.
 
 ### Positive
 
-- **Persistent conversations**: All chat history stored in Convex, survives page refresh, resumable across sessions.
-- **WebSocket streaming**: No HTTP timeout issues. Reliable streaming even for long agent responses.
-- **Reusable tool logic**: Existing Vercel AI SDK tools from POC branch work with minimal changes.
-- **Durable workflows**: Multi-agent tasks survive function timeouts and failures via Workflow Component.
-- **Automatic UI updates**: Agent mutations to Convex data (e.g., creating a strategy) automatically trigger reactive UI updates. No Pusher needed.
-- **Usage tracking**: Built-in token/cost monitoring per agent and per thread.
-- **RAG capabilities**: Vector search for context retrieval without additional infrastructure.
+- **Familiar development model**: Agent logic stays in Next.js API routes where the team has expertise.
+- **Direct Vercel AI SDK usage**: Uses canonical `ToolLoopAgent` pattern, not a wrapper or abstraction.
+- **Persistent conversations**: Chat history stored in Convex with custom schema, survives page refresh, resumable across sessions.
+- **Reusable POC code**: Existing tool definitions from POC branch work unchanged.
+- **Flexible persistence**: Manual `onFinish` callback provides full control over what/how data is saved.
+- **Real-time updates**: Convex reactive queries provide automatic UI updates when agent tools modify data.
+- **Token tracking**: Custom usage tracking via `onStepFinish` and `onFinish` callbacks.
+- **Colocation with workflows**: Agents and Vercel Workflows run in the same Next.js layer.
 
 ### Negative
 
-- **Agent logic moves to Convex Actions**: Agent orchestration code runs on Convex infrastructure, not in Next.js API routes. This is a conceptual shift from the POC architecture.
-- **Convex Action constraints**: Actions (which run AI calls) cannot directly read/write the database — they must call mutations/queries. The Agent Component handles this internally, but custom tool implementations must respect this boundary.
-- **Component complexity**: The Agent Component adds tables and functions to the Convex deployment. Understanding the component's internal data model requires reading the documentation.
-- **Model provider lock-in to Vercel AI SDK**: While the Agent Component uses Vercel AI SDK, the specific model providers must be compatible. Gemini via `@ai-sdk/google` is supported.
+- **Manual thread management**: Must implement `chatSessions` and `chatMessages` tables in Convex schema and handle persistence logic manually.
+- **HTTP SSE timeout consideration**: Vercel Free tier has 60-second timeout. Requires Vercel Pro (300s) or Fluid Compute (unlimited) for long-running agents.
+- **No built-in RAG**: Vector search for conversation history requires implementing Convex vector indexes manually.
+- **No built-in usage dashboard**: Token/cost tracking requires custom implementation (vs. built-in dashboards in some agent frameworks).
+- **Database access via HTTP**: Tools call Convex via `ConvexHttpClient` (HTTP), not direct database access. This adds network latency per tool call.
 
 ### Mitigations
 
-1. **Action constraints**: Use `createTool` for database-accessing tools (handles the mutation boundary internally). Use `tool()` for pure computation.
-2. **Component understanding**: Follow the `@convex-dev/agent` documentation and examples. The component abstracts most complexity behind the `Agent` class.
-3. **Model flexibility**: Vercel AI SDK supports OpenAI, Anthropic, Google, and others. Switching models requires only changing the `chat` parameter in the Agent definition.
+1. **Thread management**: Implement `chatSessions` and `chatMessages` tables following standard chat schema patterns. Use Convex `useQuery` for reactive thread lists.
+2. **Timeout handling**: Use Vercel Pro for production (5-minute timeout). For operations exceeding this, delegate to Vercel Workflow.
+3. **RAG implementation**: Use Convex vector fields (`v.array(v.float64())`) for embeddings. Implement cosine similarity search in Convex queries.
+4. **Usage tracking**: Store token counts in `chatMessages` table. Build custom dashboard with Convex queries aggregating by user/thread/day.
+5. **HTTP latency**: For tools that need multiple Convex calls, batch them into a single Convex mutation or query. Cache frequently accessed data in API route memory.
 
 ---
 
 ## Alternatives Considered
 
-### 1. Keep ToolLoopAgent in Next.js API Routes + Wire to Convex
+### 1. Convex Agent Component (`@convex-dev/agent`)
 
-Keep the current Vercel AI SDK `streamText` approach in API routes, but persist messages to Convex manually and use Convex subscriptions for UI updates.
+Use the `@convex-dev/agent` package to run agents as Convex Actions/Components with built-in persistence, streaming, and thread management.
 
 **Rejected because**:
-- Requires building persistence layer from scratch (message storage, thread management, context retrieval)
-- HTTP SSE streaming still has timeout issues on serverless
-- Manual wiring between AI responses and Convex mutations creates a complex integration layer
-- Duplicates functionality that `@convex-dev/agent` provides out of the box
+
+- **Moves agent logic to Convex Actions**: Agent orchestration would run on Convex infrastructure, not in Next.js API routes. This creates a conceptual split where workflows run in Next.js (Vercel Workflow) but agents run in Convex.
+- **Locks agent orchestration to Convex platform**: While Convex is excellent for database/real-time, tying agent logic to it reduces flexibility. With Vercel AI SDK in API routes, agents can call any backend (Convex, direct DB, external APIs).
+- **Adds component complexity**: The Agent Component manages its own tables for threads/messages. Understanding the abstraction requires learning the component's data model.
+- **HTTP overhead between layers**: If agents run in Convex but workflows run in Vercel, they must communicate via HTTP. Keeping both in Next.js allows direct in-memory function calls.
+- **Team expertise**: The team already knows Next.js API routes. Learning Convex Actions for agent orchestration adds learning curve.
+
+**Decision**: Use Convex for what it excels at (database, real-time, caching) and Vercel AI SDK for agent orchestration in the familiar Next.js layer.
 
 ### 2. LangChain / LangGraph
 
 Use LangChain's agent framework with LangGraph for multi-agent orchestration.
 
 **Rejected because**:
+
 - Heavy framework with large dependency tree
-- No native Convex integration — would require custom persistence adapters
+- No native integration with Convex or Vercel infrastructure
 - LangGraph's state management model conflicts with Convex's reactive model
-- TypeScript support is improving but not as tight as Vercel AI SDK + Convex
-- Adds another framework to learn alongside Convex
+- TypeScript support is improving but not as tight as Vercel AI SDK
+- Adds another framework to learn (vs. using Vercel AI SDK which the team already knows from POC)
 
-### 3. Custom Multi-Agent Framework
+### 3. OpenAI Assistants API
 
-Build a bespoke agent orchestration system from scratch using raw Vercel AI SDK.
+Use OpenAI's hosted Assistants with built-in thread management and tool calling.
 
 **Rejected because**:
-- Significant engineering effort for persistence, streaming, context management
-- Must solve problems already solved by `@convex-dev/agent` (thread management, token tracking, tool execution)
-- Maintenance burden of a custom framework
-- Risk of architectural mistakes in areas where Convex has production-tested patterns
+
+- Locks to OpenAI models (can't use Gemini 2.5 Flash)
+- Proprietary thread storage (not in our Convex database)
+- Less control over tool execution and persistence
+- Higher cost than running agents on Vercel with Gemini API
 
 ---
 

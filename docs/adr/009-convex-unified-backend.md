@@ -2,13 +2,13 @@
 
 **Status**: Accepted
 **Date**: 2026-01-27
-**Decision Makers**: Dhrubbi Biswas
+**Decision Makers**: Dhrub Biswas
 
 ---
 
 ## Context
 
-Propure's current backend architecture relies on four separate managed services, each handling a distinct concern:
+Propure's current backend architecture relies on multiple separate managed services, each handling a distinct concern:
 
 1. **Neon PostgreSQL + Prisma** — Primary database (relational schema with 15+ models)
 2. **Pusher** — Real-time WebSocket communication (UI updates from AI tool calls)
@@ -30,16 +30,18 @@ The existing implementation is early-stage (pre-production), making this an idea
 
 ## Decision
 
-Adopt **Convex** as the unified backend platform, replacing all four services:
+Adopt **Convex** as the unified backend platform for database, real-time, and caching. Background jobs and durable workflows will use **Vercel Workflow (WDK)** instead of Convex Workflow Component.
 
-| Current Service | Replaced By |
-|----------------|-------------|
-| Neon PostgreSQL + Prisma | Convex document database with indexes |
-| Pusher | Convex reactive queries (WebSocket subscriptions) |
-| Inngest | Convex scheduled functions + Workflow Component |
-| Upstash Redis | Convex system table caching + in-memory query cache |
+| Current Service          | Replaced By                                         |
+| ------------------------ | --------------------------------------------------- |
+| Neon PostgreSQL + Prisma | Convex document database with indexes               |
+| Pusher                   | Convex reactive queries (WebSocket subscriptions)   |
+| Upstash Redis            | Convex system table caching + in-memory query cache |
+| Inngest                  | Vercel Workflow (WDK) + Convex cron triggers        |
 
 Convex will be deployed as a new monorepo package (`packages/convex/` as `@propure/convex`) following the official Convex monorepo pattern.
+
+**Note**: While Convex offers a Workflow Component, we're using Vercel Workflow (WDK) for background jobs to keep workflow orchestration in the Next.js layer alongside AI agents (see ADR-011).
 
 ---
 
@@ -62,8 +64,8 @@ defineSchema({
     longitude: v.float64(),
     price: v.optional(v.float64()),
     // ...
-  }).index("by_suburb", ["suburbId"])
-})
+  }).index("by_suburb", ["suburbId"]),
+});
 ```
 
 ### Built-in Real-Time Reactivity
@@ -72,12 +74,12 @@ Convex queries are reactive by default. When data changes, subscribed clients re
 
 ```typescript
 // Frontend: automatically re-renders when data changes
-const properties = useQuery(api.properties.search, { filters })
+const properties = useQuery(api.properties.search, { filters });
 ```
 
-### Durable Workflows Without Inngest
+### Simple Scheduling with cronJobs()
 
-Convex's Workflow Component provides the same step-function semantics as Inngest (retries, sleep, sub-steps) but runs within the same platform as the database, with transactional guarantees.
+Convex provides `cronJobs()` for simple scheduled tasks that can trigger external workflows or run lightweight mutations. This is used to trigger Vercel Workflows on a schedule or refresh cached data.
 
 ### Clerk Auth Integration
 
@@ -93,12 +95,13 @@ Convex is open-source (BSL license, transitioning to Apache 2.0). Self-hosting i
 
 ### Positive
 
-- **Reduced operational complexity**: One platform instead of four. Single dashboard for monitoring, debugging, and billing.
+- **Reduced operational complexity**: Consolidates database, real-time, and caching into one platform. Reduces from four services to two (Convex + Vercel Workflow).
 - **Eliminated real-time plumbing**: No manual Pusher event dispatch. UI reactivity is automatic through Convex subscriptions.
 - **Type safety from DB to UI**: Schema types flow end-to-end without code generation or manual type definitions.
 - **Transactional consistency**: Mutations and queries run in ACID transactions within Convex, unlike cross-service coordination.
-- **Simplified deployment**: `npx convex dev` for local development, `npx convex deploy` for production. No separate Inngest dev server, Pusher dashboard, or Redis instance.
+- **Simplified deployment**: `npx convex dev` for local development, `npx convex deploy` for production. No separate Pusher dashboard or Redis instance.
 - **Built-in usage tracking**: Convex provides function execution metrics, document counts, and bandwidth tracking natively.
+- **Unified observability**: Convex dashboard provides real-time monitoring of database operations, subscriptions, and scheduled functions.
 
 ### Negative
 
@@ -115,7 +118,8 @@ Convex is open-source (BSL license, transitioning to Apache 2.0). Self-hosting i
 2. **Data integrity**: Implement reference validation in mutation functions. Use Convex's `ctx.db.get()` to verify references before writes.
 3. **Time-series**: Use compound indexes (`by_suburb_type_time`) with range queries for metric history. Pre-aggregate in scheduled functions.
 4. **Vendor risk**: Convex is open-source. Data can be exported via the dashboard or API. Schema is portable TypeScript.
-5. **Learning curve**: Follow official Convex documentation patterns. Use `@convex-dev/agent` and `@convex-dev/workflow` components for complex orchestration.
+5. **Learning curve**: Follow official Convex documentation patterns. Workflows are handled by Vercel Workflow (WDK) which integrates with Next.js.
+6. **Two-platform dependency**: While workflows run on Vercel infrastructure, they can call Convex via `ConvexHttpClient` for data access, maintaining a clean separation of concerns.
 
 ---
 
@@ -126,6 +130,7 @@ Convex is open-source (BSL license, transitioning to Apache 2.0). Self-hosting i
 Maintain the existing four-service architecture and add features incrementally.
 
 **Rejected because**:
+
 - Operational complexity grows with each new feature (every mutation needs Pusher wiring, every background job needs Inngest function + Prisma imports)
 - No path to native real-time reactivity without substantial plumbing
 - Four separate billing/monitoring surfaces
@@ -136,6 +141,7 @@ Maintain the existing four-service architecture and add features incrementally.
 Unified PostgreSQL platform with real-time subscriptions, edge functions, and auth.
 
 **Rejected because**:
+
 - Real-time is row-level change subscriptions (CDC), not reactive query results — still requires client-side query logic
 - Edge Functions are not TypeScript-native in the same way (Deno runtime, separate deployment)
 - No built-in durable workflow engine (would still need Inngest or similar)
@@ -146,12 +152,26 @@ Unified PostgreSQL platform with real-time subscriptions, edge functions, and au
 Google's document database with real-time sync, Cloud Functions, and auth.
 
 **Rejected because**:
+
 - Proprietary with no self-hosting option — full vendor lock-in
 - Weaker TypeScript support (no schema-level type generation)
 - No ACID transactions across documents (limited to 500 documents per transaction)
 - Security rules language is separate from application code
 - No built-in durable workflow engine
 - Pricing model (per document read/write) is expensive at scale for real-time subscriptions
+
+### 4. Convex Workflow Component for Background Jobs
+
+Use Convex Workflow Component (`@convex-dev/workflow`) instead of Vercel Workflow for background jobs.
+
+**Rejected because**:
+
+- Would require moving workflow orchestration logic into Convex Actions (separate from Next.js API routes where AI agents live)
+- AI agents already run in Next.js API routes using Vercel AI SDK — keeping workflows in the same layer (Vercel Workflow) provides better colocation
+- Vercel Workflow has tighter integration with Next.js through `"use workflow"` and `"use step"` directives
+- Vercel Workflow observability is built into Vercel dashboard alongside Next.js function logs
+- Convex `cronJobs()` provides sufficient scheduling capability to trigger Vercel Workflows
+- **Decision**: Use Convex for database/real-time/cache (where it excels), and Vercel Workflow for durable orchestration (where Next.js integration matters)
 
 ---
 
