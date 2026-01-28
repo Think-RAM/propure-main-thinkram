@@ -6,7 +6,6 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./_generated": "./src/generated.ts",
     "./client": "./src/client.ts",
     "./dataModel": {
       "types": "./convex/_generated/dataModel.d.ts"

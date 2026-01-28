@@ -31,8 +31,6 @@ export const getUserChatSessions = query({
       throw new Error("Not authenticated");
     }
     const userId = (identity.metadata as any)?.applicationId as Id<"users">;
-    console.log("User Found");
-    console.dir(identity);
     const chatSessions = await ctx.db
       .query("chatSessions")
       .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -45,14 +43,10 @@ export const saveChatSession = mutation({
   args: {
     strategyId: v.optional(v.id("strategies")),
     title: v.optional(v.string()),
-    // id: v.optional(v.id("chatSessions")),
+    userId: v.id("users"),
+    // id: v.optional(v.string()),
   },
-  handler: async (ctx, { strategyId, title = "New Chat" }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (identity === null) {
-      throw new Error("Not authenticated");
-    }
-    const userId = (identity.metadata as any)?.applicationId as Id<"users">;
+  handler: async (ctx, { strategyId, title = "New Chat", userId }) => {
     const chatSessionId = await ctx.db.insert("chatSessions", {
       userId,
       strategyId,

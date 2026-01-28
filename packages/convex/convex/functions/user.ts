@@ -24,11 +24,11 @@ export const CreateUser = mutation({
       .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", userJSON.id))
       .first();
     if (existingUser) {
-      const updatedUser = await ctx.db.patch("users", existingUser._id, {
+      await ctx.db.patch("users", existingUser._id, {
         name: `${userJSON.first_name ?? "John"} ${userJSON.last_name ?? "Doe"}`,
         email: userJSON.email_addresses[0].email_address,
       });
-      return updatedUser;
+      return existingUser._id;
     }
     const newUser = await ctx.db.insert("users", {
       clerkUserId: userJSON.id,

@@ -20,10 +20,10 @@ export default clerkMiddleware(async (auth, req) => {
   const isDashboard = isDashboardRoute(req);
   const isOnBoardingComplete = sessionClaims?.metadata?.onboardingComplete ?? false;
 
-  console.log(`Middleware triggered for path: ${pathname}`);
-  console.log(`Path is public: ${isPublic}`);
-  console.log(`Path is auth: ${isAuth}`);
-  console.log(`Path is onboarding: ${isOnBoarding}`);
+  // console.log(`Middleware triggered for path: ${pathname}`);
+  // console.log(`Path is public: ${isPublic}`);
+  // console.log(`Path is auth: ${isAuth}`);
+  // console.log(`Path is onboarding: ${isOnBoarding}`);
 
   if (isAuth && userId) {
     console.log(

@@ -28,8 +28,9 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
-  const userChatSessionsFetched =
-    useQuery(api.functions.chat.getUserChatSessions) ?? [];
+  const userChatSessionsFetched = useQuery(
+    api.functions.chat.getUserChatSessions,
+  );
   const [userChatSessions, setUserChatSessions] = useState<
     Doc<"chatSessions">[]
   >([]);
@@ -42,7 +43,9 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const [isChatsLoading, setIsChatsLoading] = useState(false);
   const activeChatMessagesFetched = useQuery(
     api.functions.chat.getChatById,
-    activeSessionId ? { id: activeSessionId } : "skip",
+    (activeSessionId && !activeSessionId.startsWith("chat-"))
+      ? { id: activeSessionId }
+      : "skip",
   );
 
   const setActiveSession = useCallback(
@@ -69,7 +72,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
   const createNewChatSession = useCallback((send: string) => {
     const newSession: Doc<"chatSessions"> = {
-      _id: generateUUID() as Id<"chatSessions">,
+      _id: `chat-${generateUUID()}` as Id<"chatSessions">,
       title: "New Chat",
       userId: "" as Id<"users">,
       strategyId: undefined,
@@ -100,7 +103,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       setUserChatSessions(chatHistory);
       setIsLoading(false);
     };
-    if (userChatSessionsFetched.length > 0) {
+    if (userChatSessionsFetched) {
       fetchUserChatSessions();
     } else {
       setIsLoading(true);
@@ -125,11 +128,14 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     if (!activeSessionId) {
       setIsChatsLoading(false);
     }
+    else if (activeSessionId.startsWith("chat-")) {
+      // New chat session, no messages to load
+      setIsChatsLoading(false);
+    }
     else {
       toast.loading("Loading chat messages...");
       setIsChatsLoading(true);
     }
-
   }, [activeChatMessagesFetched, activeSessionId]);
 
   return (

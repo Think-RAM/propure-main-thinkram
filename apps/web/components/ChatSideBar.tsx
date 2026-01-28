@@ -21,6 +21,7 @@ import { useUserChats } from "@/context/ChatContext";
 import { Response } from "./elements/response";
 import { ScrollArea } from "./ui/scroll-area";
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
+import { Id } from "@propure/convex/dataModel";
 
 interface ChatSidebarProps {
   open: boolean;
@@ -97,7 +98,7 @@ export function ChatSidebar({
         console.log("Data Parts: ", dataPart);
         switch (dataPart.type) {
           case "data-chat-title":
-            const titleData = dataPart.data as { title: string; id: string };
+            const titleData = dataPart.data as { title: string; id: Id<"chatSessions"> };
             updateChatSessionTitle(titleData.id, titleData.title);
             break;
         }

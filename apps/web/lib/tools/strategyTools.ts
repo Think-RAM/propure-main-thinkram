@@ -1,9 +1,8 @@
-// import { Strategy, User } from "@prisma/client";
 import { tool } from "ai";
 import z from "zod";
-import { prisma } from "@propure/db";
 import { client } from "@propure/convex/client";
-import { api, Doc, Id } from "@propure/convex/_generated";
+import { Doc, Id } from "@propure/convex/dataModel";
+import { api } from "@propure/convex/api";
 
 type SaveStrategyProps = {
   user: Doc<"users">;

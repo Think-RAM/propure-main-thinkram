@@ -36,8 +36,8 @@ import { ChatSDKError } from "@/lib/ai-error";
 import { convertCurrency, convertToUIMessages } from "@/lib/utils";
 import { UserPreferences } from "@/types/types";
 import { client } from "@propure/convex/client";
-import { api } from "@propure/convex/_generated";
-import { Doc } from "@propure/convex/_generated";
+import { api } from "@propure/convex/api";
+import { Doc } from "@propure/convex/dataModel";
 
 /* ======================================================================
    SYSTEM PROMPT
@@ -99,6 +99,8 @@ async function generateTitleFromUserMessage({
 
 export async function POST(req: Request) {
   const { id, message, messages, strategyId } = await req.json();
+  const isNewChat = id.startsWith("chat-") === true;
+  let chatSessionId = isNewChat ? null : id;
 
   try {
     /* ---------------- Auth ---------------- */
@@ -168,8 +170,11 @@ export async function POST(req: Request) {
 
     /* ---------------- Chat Persistance ---------------- */
     // const chat = await getChatById({ id });
-
-    const chat = await client.query(api.functions.chat.getChatById, { id });
+    // If chat id is in format `chat-xxxx`, skip search
+    let chat = null;
+    if (chatSessionId) {
+      chat = await client.query(api.functions.chat.getChatById, { id: chatSessionId });
+    }
 
     let messagesFromDb: Doc<"chatMessages">[] = [];
     let titlePromise: Promise<string> | null = null;
@@ -188,9 +193,10 @@ export async function POST(req: Request) {
       //   strategyId: activeStrategy?.id,
       // });
 
-      await client.mutation(api.functions.chat.saveChatSession, {
+      chatSessionId = await client.mutation(api.functions.chat.saveChatSession, {
         strategyId: activeStrategy?._id,
         title: "New chat",
+        userId: user._id,
       });
     }
 
@@ -208,7 +214,7 @@ export async function POST(req: Request) {
         if (titlePromise) {
           titlePromise.then((title) => {
             client.mutation(api.functions.chat.updateChatTitleById, {
-              chatId: id,
+              chatId: chatSessionId!,
               title,
             });
 
@@ -217,7 +223,7 @@ export async function POST(req: Request) {
               type: "data-chat-title",
               data: {
                 title,
-                id,
+                id: chatSessionId!,
               },
             });
           });
@@ -306,7 +312,7 @@ export async function POST(req: Request) {
               // id: finishedMsg.id, // this id is not equivalent to convex _id
               updatedParts: finishedMsg.parts,
               role: finishedMsg.role,
-              chatSessionId: id,
+              chatSessionId: chatSessionId!,
             });
             // await updateMessage(
             //   finishedMsg.id,
@@ -320,7 +326,7 @@ export async function POST(req: Request) {
               role: finishedMsg.role,
               parts: finishedMsg.parts,
               createdAt: new Date(),
-              chatId: id,
+              chatId: chatSessionId!,
             });
           }
         }
