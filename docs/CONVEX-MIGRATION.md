@@ -642,7 +642,7 @@ Four agents, all using Gemini 2.5 Flash via `@ai-sdk/google`, defined in `apps/w
 
 ```typescript
 // apps/web/lib/agents/orchestrator.ts
-import { ToolLoopAgent } from "@vercel/ai-sdk-agents";
+import { ToolLoopAgent } from "ai";
 import { google } from "@ai-sdk/google";
 import {
   delegateToStrategist,
@@ -789,7 +789,7 @@ All MCP calls use direct HTTP from tool execute functions — no Convex Actions 
 
 ```typescript
 // apps/web/app/api/chat/route.ts
-import { createAgentUIStreamResponse } from "@vercel/ai-sdk-agents";
+import { createAgentUIStreamResponse } from "ai";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@propure/convex";
 import { orchestrator } from "@/lib/agents/orchestrator";

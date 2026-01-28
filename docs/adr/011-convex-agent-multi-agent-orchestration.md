@@ -84,7 +84,7 @@ Frontend ◄─── Convex reactive query (useQuery chatMessages)
 
 ```typescript
 // apps/web/lib/agents/orchestrator.ts
-import { ToolLoopAgent } from "@vercel/ai-sdk-agents";
+import { ToolLoopAgent } from "ai";
 import { google } from "@ai-sdk/google";
 
 export const orchestrator = new ToolLoopAgent({
@@ -360,7 +360,7 @@ Frontend also subscribes:
 
 ```typescript
 // apps/web/app/api/chat/route.ts
-import { ToolLoopAgent, createAgentUIStreamResponse } from "@vercel/ai-sdk-agents";
+import { ToolLoopAgent, createAgentUIStreamResponse } from "ai";
 import { google } from "@ai-sdk/google";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@propure/convex";

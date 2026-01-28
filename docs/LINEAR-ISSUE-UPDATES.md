@@ -27,7 +27,7 @@ Following the architecture decision to use **Vercel AI SDK + Vercel Workflow** i
 **Current**: Create Orchestrator using `@convex-dev/agent` in Convex Actions
 
 **Update**:
-- Create Orchestrator using `ToolLoopAgent` from `@vercel/ai-sdk-agents` in `apps/web/lib/agents/orchestrator.ts`
+- Create Orchestrator using `ToolLoopAgent` from `ai` in `apps/web/lib/agents/orchestrator.ts`
 - Agent runs in Next.js API route `/api/chat`, not in Convex
 - Pattern: `new ToolLoopAgent({ model, instructions, tools })`
 - Tools for delegation (`delegateToStrategist`, etc.) implemented as `tool()` functions that call `generateText()` on other agents
