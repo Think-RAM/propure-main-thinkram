@@ -32,7 +32,7 @@ export const getUserChatSessions = query({
     }
     const userId = (identity.metadata as any)?.applicationId as Id<"users">;
     console.log("User Found");
-    console.dir(identity);
+    console.log(identity);
     const chatSessions = await ctx.db
       .query("chatSessions")
       .withIndex("by_user", (q) => q.eq("userId", userId))
