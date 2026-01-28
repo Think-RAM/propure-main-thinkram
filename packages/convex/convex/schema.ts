@@ -66,6 +66,8 @@ export default defineSchema({
     clerkUserId: v.string(),
     email: v.string(),
     name: v.optional(v.string()),
+    createdAt: v.float64(),
+    updatedAt: v.float64(),
   })
     .index("by_clerk_id", ["clerkUserId"])
     .index("by_email", ["email"]),
@@ -90,7 +92,10 @@ export default defineSchema({
     toolCalls: v.optional(v.any()),
     toolResults: v.optional(v.any()),
     timestamp: v.float64(),
-  }).index("by_session", ["sessionId"]),
+    createdAt: v.float64(),
+  })
+    .index("by_session", ["sessionId"])
+    .index("by_created_at", ["createdAt"]),
 
   // ── Strategies ──
   strategies: defineTable({
@@ -118,12 +123,16 @@ export default defineSchema({
     name: v.optional(v.string()),
     filters: v.any(),
     results: v.optional(v.any()),
+    createdAt: v.float64(),
+    updatedAt: v.float64(),
   }).index("by_user", ["userId"]),
 
   // ── Location Hierarchy ──
   states: defineTable({
     name: v.string(),
     code: v.string(),
+    createdAt: v.float64(),
+    updatedAt: v.float64(),
   })
     .index("by_code", ["code"])
     .index("by_name", ["name"]),
@@ -131,6 +140,8 @@ export default defineSchema({
   cities: defineTable({
     stateId: v.id("states"),
     name: v.string(),
+    createdAt: v.float64(),
+    updatedAt: v.float64(),
   })
     .index("by_state", ["stateId"])
     .index("by_state_name", ["stateId", "name"]),
@@ -142,6 +153,8 @@ export default defineSchema({
     centroidLat: v.optional(v.float64()),
     centroidLng: v.optional(v.float64()),
     boundaryGeoJson: v.optional(v.string()),
+    createdAt: v.float64(),
+    updatedAt: v.float64(),
   })
     .index("by_city", ["cityId"])
     .index("by_postcode", ["postcode"])
@@ -173,6 +186,8 @@ export default defineSchema({
     agentId: v.optional(v.id("realEstateAgents")),
     agencyId: v.optional(v.id("agencies")),
     scrapedAt: v.optional(v.float64()),
+    createdAt: v.float64(),
+    updatedAt: v.float64(),
   })
     .index("by_external_id", ["externalId"])
     .index("by_suburb", ["suburbId"])
@@ -184,7 +199,8 @@ export default defineSchema({
     .index("by_bedrooms", ["bedrooms"])
     .index("by_location_lat", ["latitude"])
     .index("by_agent", ["agentId"])
-    .index("by_agency", ["agencyId"]),
+    .index("by_agency", ["agencyId"])
+    .index("by_lat_lng", ["latitude", "longitude"]),
 
   // ── Suburb Metrics ──
   suburbMetrics: defineTable({
@@ -193,6 +209,7 @@ export default defineSchema({
     value: v.float64(),
     source: v.optional(v.string()),
     recordedAt: v.float64(),
+    createdAt: v.float64(),
   })
     .index("by_suburb", ["suburbId"])
     .index("by_suburb_type", ["suburbId", "metricType"])
@@ -209,6 +226,8 @@ export default defineSchema({
     profileUrl: v.optional(v.string()),
     photoUrl: v.optional(v.string()),
     agencyId: v.optional(v.id("agencies")),
+    createdAt: v.float64(),
+    updatedAt: v.float64(),
   })
     .index("by_external_id", ["externalId"])
     .index("by_agency", ["agencyId"])
@@ -223,6 +242,8 @@ export default defineSchema({
     website: v.optional(v.string()),
     phone: v.optional(v.string()),
     address: v.optional(v.string()),
+    createdAt: v.float64(),
+    updatedAt: v.float64(),
   })
     .index("by_external_id", ["externalId"])
     .index("by_source", ["source"]),
@@ -235,6 +256,7 @@ export default defineSchema({
     priceText: v.optional(v.string()),
     recordedAt: v.float64(),
     source: dataSource,
+    createdAt: v.float64(),
   })
     .index("by_property", ["propertyId"])
     .index("by_recorded_at", ["recordedAt"])
@@ -251,6 +273,7 @@ export default defineSchema({
     saleType: v.string(),
     source: dataSource,
     sourceUrl: v.optional(v.string()),
+    createdAt: v.float64(),
   })
     .index("by_suburb_state", ["suburb", "state"])
     .index("by_sale_date", ["saleDate"])
@@ -268,6 +291,7 @@ export default defineSchema({
     soldPrice: v.optional(v.float64()),
     bidderCount: v.optional(v.float64()),
     source: dataSource,
+    createdAt: v.float64(),
   })
     .index("by_suburb_state", ["suburb", "state"])
     .index("by_auction_date", ["auctionDate"])
@@ -284,6 +308,8 @@ export default defineSchema({
     estimatedCost: v.optional(v.float64()),
     completionDate: v.optional(v.float64()),
     sourceUrl: v.optional(v.string()),
+    createdAt: v.float64(),
+    updatedAt: v.float64(),
   })
     .index("by_state", ["state"])
     .index("by_category", ["category"])
@@ -297,6 +323,7 @@ export default defineSchema({
     unit: v.optional(v.string()),
     recordedAt: v.float64(),
     source: dataSource,
+    createdAt: v.float64(),
   })
     .index("by_type", ["indicatorType"])
     .index("by_scope", ["scope"])

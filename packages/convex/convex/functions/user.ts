@@ -34,6 +34,8 @@ export const CreateUser = mutation({
       clerkUserId: userJSON.id,
       email: userJSON.email_addresses[0].email_address,
       name: `${userJSON.first_name ?? "John"} ${userJSON.last_name ?? "Doe"}`,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     });
     return newUser;
   },
