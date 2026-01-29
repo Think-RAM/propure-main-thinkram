@@ -14,7 +14,7 @@ import {
   Layers,
   StateCoords,
 } from "./map/layers";
-import { Doc } from "@propure/convex/_generated";
+import { Doc } from "@propure/convex/dataModel";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -48,7 +48,7 @@ export function convertToUIMessages(
   return messages.map((message) => ({
     id: message._id,
     role: message.role as "user" | "assistant" | "system",
-    parts: message.toolCalls as UIMessagePart<UIDataTypes, ChatTools>[],
+    parts: message.content as UIMessagePart<UIDataTypes, ChatTools>[],
     metadata: {
       createdAt: formatISO(message.timestamp),
     },

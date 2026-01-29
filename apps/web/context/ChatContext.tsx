@@ -10,15 +10,20 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { v4 as generateUUID } from "uuid";
-import { useQuery } from "@propure/convex";
+// import { useQuery } from "@propure/convex";
 import { api } from "@propure/convex/api";
 import type { Doc, Id } from "@propure/convex/dataModel";
+import { useConvex } from "@propure/convex";
 
 interface ChatContextType {
   userChatSessions: Doc<"chatSessions">[];
   activeSessionId: Id<"chatSessions"> | null;
   setActiveSession: (id: Id<"chatSessions"> | null) => void;
-  updateChatSessionTitle: (id: Id<"chatSessions">, title: string) => void;
+  updateChatSessionTitle: (
+    id: string | Id<"chatSessions">,
+    title: string,
+    generatedId: Id<"chatSessions">,
+  ) => void;
   createNewChatSession: (send: string) => void;
   activeChatMessages: ChatMessageAI[];
   historyLoading: boolean;
@@ -28,9 +33,7 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
-  const userChatSessionsFetched = useQuery(
-    api.functions.chat.getUserChatSessions,
-  );
+  const client = useConvex();
   const [userChatSessions, setUserChatSessions] = useState<
     Doc<"chatSessions">[]
   >([]);
@@ -41,31 +44,50 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [isChatsLoading, setIsChatsLoading] = useState(false);
-  const activeChatMessagesFetched = useQuery(
-    api.functions.chat.getChatById,
-    (activeSessionId && !activeSessionId.startsWith("chat-"))
-      ? { id: activeSessionId }
-      : "skip",
-  );
 
-  const setActiveSession = useCallback(
-    async (id: Id<"chatSessions"> | null) => {
+  const setActiveSession = useCallback(async (id: Id<"chatSessions"> | null) => {
+    try {
       setActiveSessionId(id);
       setActiveChatMessages([]);
-      setIsChatsLoading(true);
-    },
-    [],
-  );
+      if (id) {
+        setIsChatsLoading(true);
+        const fetchedMessages = await client.query(
+          api.functions.chat.getChatById,
+          { id },
+        );
+        setActiveChatMessages(
+          fetchedMessages
+            ? [...convertToUIMessages(fetchedMessages.messages)]
+            : [],
+        );
+      }
+    } catch (error) {
+      console.error("Error loading chat session:", error);
+      if (error instanceof Error) {
+        toast.error(`Failed to load chat session: ${error.message}`);
+      }
+      setActiveChatMessages([]);
+    } finally {
+      setIsChatsLoading(false);
+    }
+  }, []);
 
   const updateChatSessionTitle = useCallback(
-    (id: Id<"chatSessions">, title: string) => {
+    (
+      id: string | Id<"chatSessions">,
+      title: string,
+      generatedId: Id<"chatSessions">,
+    ) => {
       setUserChatSessions((prevSessions) =>
         prevSessions.map((session) =>
-          session._id === id
-            ? { ...session, title, updatedAt: Date.now() }
+          session._id === id || session._id === generatedId
+            ? { ...session, title, updatedAt: Date.now(), _id: generatedId }
             : session,
         ),
       );
+      if (id !== generatedId) {
+        setActiveSessionId(generatedId);
+      }
     },
     [],
   );
@@ -99,44 +121,23 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const fetchUserChatSessions = async () => {
-      const chatHistory = userChatSessionsFetched ?? [];
-      setUserChatSessions(chatHistory);
-      setIsLoading(false);
-    };
-    if (userChatSessionsFetched) {
-      fetchUserChatSessions();
-    } else {
-      setIsLoading(true);
-    }
-  }, [userChatSessionsFetched]);
-
-  useEffect(() => {
-    const fetchActiveChatMessages = async () => {
-      if (activeChatMessagesFetched && activeSessionId) {
-        const uiMessages = convertToUIMessages(
-          activeChatMessagesFetched.messages,
+      try {
+        setIsLoading(true);
+        const chatHistory = await client.query(
+          api.functions.chat.getUserChatSessions,
         );
-        setActiveChatMessages(uiMessages);
+        setUserChatSessions(chatHistory);
+      } catch (error) {
+        console.error("Error loading user chat sessions:", error);
+        if (error instanceof Error) {
+          toast.error(`Failed to load chat sessions: ${error.message}`);
+        }
+      } finally {
+        setIsLoading(false);
       }
-      setIsChatsLoading(false);
-      toast.success("Chat messages loaded");
     };
-
-    if (activeChatMessagesFetched && activeSessionId) {
-      fetchActiveChatMessages();
-    }
-    if (!activeSessionId) {
-      setIsChatsLoading(false);
-    }
-    else if (activeSessionId.startsWith("chat-")) {
-      // New chat session, no messages to load
-      setIsChatsLoading(false);
-    }
-    else {
-      toast.loading("Loading chat messages...");
-      setIsChatsLoading(true);
-    }
-  }, [activeChatMessagesFetched, activeSessionId]);
+    fetchUserChatSessions();
+  }, []);
 
   return (
     <ChatContext.Provider

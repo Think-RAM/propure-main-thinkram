@@ -30,11 +30,14 @@ export const getUserChatSessions = query({
     if (identity === null) {
       throw new Error("Not authenticated");
     }
-    const userId = (identity.metadata as any)?.applicationId as Id<"users">;
+    const userId = (identity.metadata as any)?.application_id as Id<"users">;
+    console.log(`User ID ${userId}`)
     const chatSessions = await ctx.db
       .query("chatSessions")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
+    console.log(`Returned Data Length ${chatSessions.length}`)
+    chatSessions.sort((a, b) => b.updatedAt - a.updatedAt);
     return chatSessions;
   },
 });
@@ -91,12 +94,18 @@ export const updateMessage = mutation({
       });
     } else {
       // equivalent to Prisma create
-      await ctx.db.insert("chatMessages", {
+      const newMessageId = await ctx.db.insert("chatMessages", {
         role,
         content: updatedParts,
         sessionId: chatSessionId,
         timestamp: Date.now(),
         createdAt: Date.now(),
+      });
+
+      const chatSession = await ctx.db.get("chatSessions", chatSessionId);
+      await ctx.db.patch("chatSessions", chatSessionId, {
+        updatedAt: Date.now(),
+        chatMessages: [...(chatSession?.chatMessages ?? []), newMessageId],
       });
     }
   },
