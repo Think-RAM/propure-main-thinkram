@@ -24,23 +24,36 @@ export const strategyStatus = v.union(
 
 export type StrategyStatus = Infer<typeof strategyStatus>;
 
+export const australianState = v.union(
+  v.literal("NSW"),
+  v.literal("VIC"),
+  v.literal("QLD"),
+  v.literal("WA"),
+  v.literal("SA"),
+  v.literal("TAS"),
+  v.literal("NT"),
+  v.literal("ACT"),
+);
+
+export type AustralianState = Infer<typeof australianState>;
+
 const propertyType = v.union(
-  v.literal("HOUSE"),
-  v.literal("APARTMENT"),
-  v.literal("TOWNHOUSE"),
-  v.literal("VILLA"),
-  v.literal("UNIT"),
-  v.literal("LAND"),
-  v.literal("RURAL"),
-  v.literal("COMMERCIAL"),
-  v.literal("INDUSTRIAL"),
+  v.literal("house"),
+  v.literal("apartment"),
+  v.literal("unit"),
+  v.literal("townhouse"),
+  v.literal("villa"),
+  v.literal("land"),
+  v.literal("rural"),
+  v.literal("commercial"),
+  v.literal("industrial"),
+  v.literal("other"),
 );
 
 const listingType = v.union(
-  v.literal("SALE"),
-  v.literal("RENT"),
-  v.literal("SOLD"),
-  v.literal("LEASED"),
+  v.literal("sale"),
+  v.literal("rent"),
+  v.literal("sold"),
 );
 
 const dataSource = v.union(
@@ -161,11 +174,33 @@ export default defineSchema({
     .index("by_city_name_postcode", ["cityId", "name", "postcode"])
     .index("by_centroid_lat", ["centroidLat"]),
 
+  scrapping_locations: defineTable({
+    state: australianState,
+    suburb: v.string(),
+    postcode: v.string(),
+    createdAt: v.float64(),
+    updatedAt: v.float64(),
+  })
+    .index("by_state", ["state"])
+    .index("by_state_suburb", ["state", "suburb"])
+    .index("by_postcode", ["postcode"]),
+
   // ── Properties ──
   properties: defineTable({
     externalId: v.optional(v.string()),
     suburbId: v.id("suburbs"),
     address: v.string(),
+    addressComponents: v.optional(
+      v.object({
+        streetNumber: v.optional(v.string()),
+        streetName: v.optional(v.string()),
+        streetType: v.optional(v.string()),
+        suburb: v.optional(v.string()),
+        state: v.optional(v.string()),
+        postcode: v.optional(v.string()),
+        displayAddress: v.optional(v.string()),
+      }),
+    ),
     latitude: v.optional(v.float64()),
     longitude: v.optional(v.float64()),
     propertyType: propertyType,
@@ -174,17 +209,28 @@ export default defineSchema({
     source: dataSource,
     sourceUrl: v.optional(v.string()),
     price: v.optional(v.float64()),
+    priceText: v.optional(v.string()),
+    priceValue: v.optional(v.float64()),
+    priceFrom: v.optional(v.float64()),
+    priceTo: v.optional(v.float64()),
     rentWeekly: v.optional(v.float64()),
     bedrooms: v.optional(v.float64()),
     bathrooms: v.optional(v.float64()),
     carSpaces: v.optional(v.float64()),
     landSize: v.optional(v.float64()),
     buildingSize: v.optional(v.float64()),
+    headline: v.optional(v.string()),
     description: v.optional(v.string()),
     features: v.optional(v.any()),
     images: v.optional(v.any()),
+    inspectionTimes: v.optional(v.array(v.string())),
+    listedAt: v.optional(v.float64()),
+    auctionAt: v.optional(v.float64()),
     agentId: v.optional(v.id("realEstateAgents")),
     agencyId: v.optional(v.id("agencies")),
+    agentName: v.optional(v.string()),
+    agentPhone: v.optional(v.string()),
+    agencyName: v.optional(v.string()),
     scrapedAt: v.optional(v.float64()),
     createdAt: v.float64(),
     updatedAt: v.float64(),
