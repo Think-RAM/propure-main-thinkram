@@ -503,6 +503,22 @@ importers:
         specifier: ^5
         version: 5.9.3
 
+  packages/workflow:
+    dependencies:
+      '@propure/mcp-shared':
+        specifier: workspace:*
+        version: link:../mcp-shared
+      workflow:
+        specifier: ^4.0.1-beta.50
+        version: 4.0.1-beta.50(@aws-sdk/client-sts@3.975.0)(@opentelemetry/api@1.9.0)(@swc/helpers@0.5.15)(next@15.2.4(@opentelemetry/api@1.9.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.19.3
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
 packages:
 
   '@ai-sdk/gateway@3.0.6':
@@ -9904,11 +9920,11 @@ snapshots:
 
   '@types/bunyan@1.8.11':
     dependencies:
-      '@types/node': 22.19.3
+      '@types/node': 25.0.10
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 22.19.3
+      '@types/node': 25.0.10
 
   '@types/d3-array@3.2.2': {}
 
@@ -10063,13 +10079,13 @@ snapshots:
 
   '@types/memcached@2.2.10':
     dependencies:
-      '@types/node': 22.19.3
+      '@types/node': 25.0.10
 
   '@types/ms@2.1.0': {}
 
   '@types/mysql@2.15.27':
     dependencies:
-      '@types/node': 22.19.3
+      '@types/node': 25.0.10
 
   '@types/node@20.19.27':
     dependencies:
@@ -10085,7 +10101,7 @@ snapshots:
 
   '@types/oracledb@6.5.2':
     dependencies:
-      '@types/node': 22.19.3
+      '@types/node': 25.0.10
 
   '@types/pg-pool@2.0.6':
     dependencies:
@@ -10093,7 +10109,7 @@ snapshots:
 
   '@types/pg@8.15.6':
     dependencies:
-      '@types/node': 22.19.3
+      '@types/node': 25.0.10
       pg-protocol: 1.10.3
       pg-types: 2.2.0
 
@@ -10111,7 +10127,7 @@ snapshots:
 
   '@types/tedious@4.0.14':
     dependencies:
-      '@types/node': 22.19.3
+      '@types/node': 25.0.10
 
   '@types/trusted-types@2.0.7':
     optional: true
@@ -10136,7 +10152,7 @@ snapshots:
 
   '@vercel/queue@0.0.0-alpha.33':
     dependencies:
-      '@vercel/oidc': 3.0.5
+      '@vercel/oidc': 3.1.0
       mixpart: 0.0.5-alpha.1
 
   '@workflow/astro@4.0.0-beta.24(@aws-sdk/client-sts@3.975.0)(@opentelemetry/api@1.9.0)(@swc/helpers@0.5.15)':
@@ -12861,7 +12877,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
-      '@types/node': 22.19.3
+      '@types/node': 25.0.10
       long: 5.3.2
 
   proxy-addr@2.0.7:
