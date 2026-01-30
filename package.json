@@ -6,7 +6,7 @@
   "scripts": {
     "preinstall": "node scripts/preinstall.js",
     "postinstall": "node scripts/setup-env.js",
-    "dev": "turbo dev",
+    "dev": "turbo dev && turbo convex:dev",
     "build": "turbo build",
     "lint": "turbo lint",
     "type-check": "turbo type-check",
@@ -14,6 +14,9 @@
     "db:generate": "turbo db:generate",
     "db:push": "turbo db:push",
     "db:migrate": "turbo db:migrate",
+    "convex:dev": "turbo convex:dev",
+    "convex:setup": "turbo convex:setup",
+    "convex:typecheck": "turbo convex:typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
@@ -25,6 +28,7 @@
   "dependencies": {
     "@ai-sdk/google": "^3.0.2",
     "@ai-sdk/react": "^3.0.7",
-    "ai": "^6.0.7"
+    "ai": "^6.0.7",
+    "domhandler": "^5.0.3"
   }
 }

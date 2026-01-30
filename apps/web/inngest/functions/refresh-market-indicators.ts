@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { inngest } from "../client";
-import { prisma } from "@propure/db";
 import { marketTools } from "@/lib/mcp/client";
 
 // Zod schema for event data validation
@@ -56,7 +55,8 @@ export const refreshMarketIndicators = inngest.createFunction(
     if (indicators.includes("rba")) {
       const rbaData = await step.run("fetch-rba-data", async () => {
         try {
-          return await marketTools.getRbaRates(true, true);
+          // TODO: Replace with actual MCP call
+          return {}
         } catch (error) {
           console.error("Failed to fetch RBA data:", error);
           return null;
@@ -66,24 +66,7 @@ export const refreshMarketIndicators = inngest.createFunction(
       if (rbaData) {
         // Store cash rate
         await step.run("store-rba-rates", async () => {
-          await prisma.marketIndicator.upsert({
-            where: {
-              indicatorType_scope_recordedAt: {
-                indicatorType: "cash_rate",
-                scope: "national",
-                recordedAt: now,
-              },
-            },
-            update: { value: rbaData.cashRate.current },
-            create: {
-              indicatorType: "cash_rate",
-              scope: "national",
-              value: rbaData.cashRate.current,
-              unit: "percent",
-              recordedAt: now,
-              source: "RBA",
-            },
-          });
+          // TODO: Replace with actual DB insertion
         });
 
         results.rba = rbaData;
@@ -96,7 +79,8 @@ export const refreshMarketIndicators = inngest.createFunction(
         "fetch-economic-indicators",
         async () => {
           try {
-            return await marketTools.getEconomicIndicators();
+            // TODO: Replace with actual MCP call
+            return {} as any
           } catch (error) {
             console.error("Failed to fetch economic indicators:", error);
             return null;
@@ -129,28 +113,7 @@ export const refreshMarketIndicators = inngest.createFunction(
             },
           ];
 
-          await prisma.$transaction(
-            indicatorOps.map((ind) =>
-              prisma.marketIndicator.upsert({
-                where: {
-                  indicatorType_scope_recordedAt: {
-                    indicatorType: ind.type,
-                    scope: "national",
-                    recordedAt: now,
-                  },
-                },
-                update: { value: ind.value },
-                create: {
-                  indicatorType: ind.type,
-                  scope: "national",
-                  value: ind.value,
-                  unit: ind.unit,
-                  recordedAt: now,
-                  source: "ABS",
-                },
-              }),
-            ),
-          );
+          // TODO: Replace with actual DB insertion
         });
 
         results.economic = economicData;
@@ -163,7 +126,8 @@ export const refreshMarketIndicators = inngest.createFunction(
         "fetch-building-approvals",
         async () => {
           try {
-            return await marketTools.getBuildingApprovals(state, 12);
+            // TODO: Replace with actual MCP call
+            return {} as any;
           } catch (error) {
             console.error("Failed to fetch building approvals:", error);
             return null;
@@ -178,24 +142,7 @@ export const refreshMarketIndicators = inngest.createFunction(
             b.period.localeCompare(a.period),
           );
           const latest = sorted[0];
-          await prisma.marketIndicator.upsert({
-            where: {
-              indicatorType_scope_recordedAt: {
-                indicatorType: "building_approvals",
-                scope: state || "national",
-                recordedAt: now,
-              },
-            },
-            update: { value: latest.totalDwellings },
-            create: {
-              indicatorType: "building_approvals",
-              scope: state || "national",
-              value: latest.totalDwellings,
-              unit: "dwellings",
-              recordedAt: now,
-              source: "ABS",
-            },
-          });
+          // TODO: Replace with actual DB insertion
         });
 
         results.building = buildingData;
@@ -208,7 +155,8 @@ export const refreshMarketIndicators = inngest.createFunction(
         "fetch-population-projections",
         async () => {
           try {
-            return await marketTools.getPopulationProjections(state);
+            // TODO: Replace with actual MCP call
+            return {} as any;
           } catch (error) {
             console.error("Failed to fetch population projections:", error);
             return null;
@@ -218,44 +166,7 @@ export const refreshMarketIndicators = inngest.createFunction(
 
       if (populationData) {
         await step.run("store-population-projections", async () => {
-          await prisma.$transaction([
-            prisma.marketIndicator.upsert({
-              where: {
-                indicatorType_scope_recordedAt: {
-                  indicatorType: "population_current",
-                  scope: state || "national",
-                  recordedAt: now,
-                },
-              },
-              update: { value: populationData.current },
-              create: {
-                indicatorType: "population_current",
-                scope: state || "national",
-                value: populationData.current,
-                unit: "people",
-                recordedAt: now,
-                source: "ABS",
-              },
-            }),
-            prisma.marketIndicator.upsert({
-              where: {
-                indicatorType_scope_recordedAt: {
-                  indicatorType: "population_growth_rate",
-                  scope: state || "national",
-                  recordedAt: now,
-                },
-              },
-              update: { value: populationData.growthRate },
-              create: {
-                indicatorType: "population_growth_rate",
-                scope: state || "national",
-                value: populationData.growthRate,
-                unit: "percent",
-                recordedAt: now,
-                source: "ABS",
-              },
-            }),
-          ]);
+          // TODO: Replace with actual DB insertion
         });
 
         results.population = populationData;
@@ -266,11 +177,8 @@ export const refreshMarketIndicators = inngest.createFunction(
     if (indicators.includes("demographic") && state) {
       const demographicData = await step.run("fetch-demographics", async () => {
         try {
-          return await marketTools.getAbsDemographics(
-            undefined,
-            undefined,
-            state,
-          );
+          // TODO: Replace with actual MCP call
+          return {} as any;
         } catch (error) {
           console.error("Failed to fetch demographics:", error);
           return null;
@@ -302,28 +210,7 @@ export const refreshMarketIndicators = inngest.createFunction(
             },
           ];
 
-          await prisma.$transaction(
-            demoIndicators.map((ind) =>
-              prisma.marketIndicator.upsert({
-                where: {
-                  indicatorType_scope_recordedAt: {
-                    indicatorType: ind.type,
-                    scope: state,
-                    recordedAt: now,
-                  },
-                },
-                update: { value: ind.value },
-                create: {
-                  indicatorType: ind.type,
-                  scope: state,
-                  value: ind.value,
-                  unit: ind.unit,
-                  recordedAt: now,
-                  source: "ABS",
-                },
-              }),
-            ),
-          );
+          // TODO: Replace with actual DB insertion
         });
 
         results.demographics = demographicData;

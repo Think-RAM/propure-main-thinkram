@@ -16,10 +16,15 @@
   "dependencies": {
     "@propure/mcp-shared": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.12.0",
+    "cheerio": "^1.1.2",
+    "pino": "^9.5.0",
+    "pino-pretty": "^11.3.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pino": "^7.0.5",
+    "tsx": "^4.20.3",
     "typescript": "^5"
   }
 }

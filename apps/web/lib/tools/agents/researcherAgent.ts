@@ -10,14 +10,14 @@ import { google } from "@ai-sdk/google";
 import { ChatMessageAI } from "@/types/ai";
 import z from "zod";
 import Exa from "exa-js";
-import {
-  getDemographics,
-  getEconomicIndicators,
-  getPopulationProjections,
-  getRbaRates,
-  getSuburbProfile,
-  getSuburbStats,
-} from "../marketTools";
+// import {
+//   getDemographics,
+//   getEconomicIndicators,
+//   getPopulationProjections,
+//   getRbaRates,
+//   getSuburbProfile,
+//   getSuburbStats,
+// } from "../marketTools";
 import { addressToCoordinatesGoogle } from "@/lib/map/geoEncoding";
 import { latLng } from "leaflet";
 
@@ -494,12 +494,12 @@ const ResearcherAgent = ({
     instructions: RESEARCHER_INSTRUCTIONS,
     tools: {
       webScraper: WebScraperTool({ searchContext, dataStream }),
-      getSuburbStats: getSuburbStats,
-      getSuburbProfile: getSuburbProfile,
-      getDemographics: getDemographics,
-      getPopulationProjections: getPopulationProjections,
-      getRbaRates: getRbaRates,
-      getEconomicIndicators: getEconomicIndicators,
+      // getSuburbStats: getSuburbStats,
+      // getSuburbProfile: getSuburbProfile,
+      // getDemographics: getDemographics,
+      // getPopulationProjections: getPopulationProjections,
+      // getRbaRates: getRbaRates,
+      // getEconomicIndicators: getEconomicIndicators,
     },
     // Note: Gemini doesn't support Output.object() with tools (function calling)
     // Using text output instead - the orchestrator will synthesize the response

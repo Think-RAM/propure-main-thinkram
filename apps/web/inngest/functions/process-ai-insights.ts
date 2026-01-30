@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { inngest } from "../client";
-import { prisma } from "@propure/db";
 
 // Zod schema for event data validation
 const AiInsightsEventSchema = z.object({
@@ -52,25 +51,11 @@ export const processAiInsights = inngest.createFunction(
 
         switch (entityType) {
           case "property":
-            return await prisma.property.findUnique({
-              where: { id: entityId },
-              include: {
-                suburb: { include: { city: { include: { state: true } } } },
-              },
-            });
+            //TODO: Replace with actual DB fetch
           case "suburb":
-            return await prisma.suburb.findUnique({
-              where: { id: entityId },
-              include: {
-                city: { include: { state: true } },
-                metrics: { orderBy: { recordedAt: "desc" }, take: 10 },
-              },
-            });
+            // TODO: Replace with actual DB fetch
           case "strategy":
-            return await prisma.strategy.findUnique({
-              where: { id: entityId },
-              include: { user: true },
-            });
+            // TODO: Replace with actual DB fetch
           default:
             return null;
         }

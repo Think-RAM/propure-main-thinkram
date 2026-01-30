@@ -1,35 +1,49 @@
 import "dotenv/config";
-import { searchDomainProperties } from "@propure/mcp-domain";
+import { searchDomainPropertiesWithScrapeDo } from "@propure/mcp-domain";
+import fs from "fs/promises";
+import path from "path";
+import { logger } from "../logger";
 
 async function main() {
-  if (!process.env.OXYLABS_USERNAME || !process.env.OXYLABS_PASSWORD) {
-    throw new Error(
-      "Missing OXYLABS_USERNAME or OXYLABS_PASSWORD in environment"
-    );
+  if (!process.env.SCRAPEDO_TOKEN) {
+    throw new Error("Missing SCRAPEDO_TOKEN in environment");
   }
 
-  const result = await searchDomainProperties({
+  const result = await searchDomainPropertiesWithScrapeDo({
     listingType: "sale",
     suburbs: ["Sydney"],
     state: "NSW",
     page: 1,
     postcode: "2000",
-    pageSize: 5,
   });
+  // "sydney-nsw-2000"
 
-  console.log("Domain search result: ", result);
+  // console.log("Domain search result: ", result);
 
   const listings = result.listings ?? [];
   if (listings.length === 0) {
-    console.log("No listings returned.");
+    logger.warn("No listings returned.");
     return;
   }
 
-  console.log("Listings count:", listings.length);
-  console.log("First listing:", listings[0]);
+  logger.info({ count: listings.length }, "Listings count");
+  logger.info({ listing: listings[0] }, "Listing preview");
+  // console.log("Listing:");
+  // console.dir(listings, { depth: Infinity });
+
+  // Save to reference/output.json
+  const referenceDir = path.join(
+    process.cwd(),
+    "packages/mcp-domain/reference",
+  );
+  await fs.mkdir(referenceDir, { recursive: true });
+
+  const outputPath = path.join(referenceDir, "output.json");
+  await fs.writeFile(outputPath, JSON.stringify(result, null, 2));
+  logger.info({ outputPath }, "Saved output to file");
 }
 
 main().catch((err) => {
-  console.error("Error running domain search:", err);
+  logger.error({ err }, "Error running domain search");
   process.exit(1);
 });

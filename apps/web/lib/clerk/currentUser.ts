@@ -8,7 +8,7 @@ export type CurrentUser = {
     email?: string | null;
     image?: string | null;
     isTwoFactorEnabled?: boolean;
-    clerkUserId?: string;
+    clerkUserId?: string; 
     publicMetadata: UserPublicMetadata | null;
 };
 export const currentUser = async () => {

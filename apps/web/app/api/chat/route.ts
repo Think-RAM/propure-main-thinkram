@@ -9,9 +9,7 @@ import {
   UIMessage,
 } from "ai";
 import { google } from "@ai-sdk/google";
-
 import { auth } from "@clerk/nextjs/server";
-import { ChatMessage, prisma } from "@propure/db";
 // import { searchDomainProperties, searchRealestateProperties } from "@/lib/tools/propertySearchTools";
 // import { getDemographics, getEconomicIndicators, getPopulationProjections, getRbaRates, getSuburbProfile, getSuburbStats } from "@/lib/tools/marketTools";
 // import { getAuctionResults, getSalesHistory, getSoldProperties } from "@/lib/tools/salesTools";
@@ -20,18 +18,41 @@ import { ChatMessage, prisma } from "@propure/db";
 import { v4 as generateUUID } from "uuid";
 import { ChatMessageAI } from "@/types/ai";
 import { ChatSDKError } from "@/lib/ai-error";
-import {
-  getChatById,
-  saveChatSession,
-  saveMessages,
-  updateChatTitleById,
-  updateMessage,
-} from "@/lib/chat/data";
-import { convertCurrency, convertToUIMessages } from "@/lib/utils";
-import { UserPreferences } from "@/types/types";
+// import {
+//   getChatById,
+//   saveChatSession,
+//   saveMessages,
+//   updateChatTitleById,
+//   updateMessage,
+// } from "@/lib/chat/data";
+// import { convertCurrency, convertToUIMessages } from "@/lib/utils";
+// import { UserPreferences } from "@/types/types";
 import { StrategyAgentTool } from "@/lib/tools/agents/strategistAgent";
 import { ResearcherAgentTool } from "@/lib/tools/agents/researcherAgent";
 import { AnalystAgentTool } from "@/lib/tools/agents/analystAgent";
+// import {
+//   searchDomainProperties,
+//   searchRealestateProperties,
+// } from "@/lib/tools/propertySearchTools";
+// import {
+//   getDemographics,
+//   getEconomicIndicators,
+//   getPopulationProjections,
+//   getRbaRates,
+//   getSuburbProfile,
+//   getSuburbStats,
+// } from "@/lib/tools/marketTools";
+// import { saveStrategy } from "@/lib/tools/strategyTools";
+// import {
+//   saveMessages,
+//   updateChatTitleById,
+//   updateMessage
+// } from "@/lib/chat/data";
+import { convertCurrency, convertToUIMessages } from "@/lib/utils";
+import { UserPreferences } from "@/types/types";
+import { client } from "@propure/convex/client";
+import { api } from "@propure/convex/api";
+import { Doc } from "@propure/convex/dataModel";
 
 /* ======================================================================
    SYSTEM PROMPT
@@ -69,7 +90,7 @@ function getTextFromMessage(message: ChatMessageAI[] | UIMessage[]): string {
       (msg): msg is NonNullable<typeof msg> => msg != null && msg.parts != null,
     )
     .flatMap((msg) => msg.parts)
-    .filter((part) => part?.type === "text")
+    .filter((part) => part.type === "text")
     .map((part) => (part as { type: "text"; text: string }).text)
     .join("");
 }
@@ -96,6 +117,8 @@ async function generateTitleFromUserMessage({
 
 export async function POST(req: Request) {
   const { id, message, messages, strategyId } = await req.json();
+  const isNewChat = id.startsWith("chat-") === true;
+  let chatSessionId = isNewChat ? null : id;
 
   try {
     /* ---------------- Message Validation ---------------- */
@@ -142,76 +165,37 @@ export async function POST(req: Request) {
     }
 
     /* ---------------- User Context ---------------- */
-
-    const user = await prisma.user.findUnique({
-      where: { clerkUserId: userId },
-      // include: {
-      //   strategies: {
-      //     where: strategyId
-      //       ? { id: strategyId }
-      //       : { status: "ACTIVE" },
-      //     take: 1,
-      //     orderBy: { updatedAt: "desc" },
-      //   },
-      // },
-    });
+    const user = await client.query(api.functions.user.GetUserByClerkId, { clerkUserId: userId });
 
     if (!user) {
       console.log("User not found in chat API:", userId);
       return new ChatSDKError("unauthorized:chat").toResponse();
     }
 
-    // const activeStrategy = user.strategies[0];
-    // const activeStrategyParams = activeStrategy ? activeStrategy.params as UserPreferences : null;
+    let chat = null;
+    if (chatSessionId) {
+      chat = await client.query(api.functions.chat.getChatById, { id: chatSessionId });
+    }
 
-    // const strategyContext = activeStrategy
-    //   ? `
-    //     Current Strategy:
-    //     - Type: ${activeStrategy.type}
-    //     - Status: ${activeStrategy.status}
-    //     - Budget: $${activeStrategy.budget ? convertCurrency(activeStrategy.budget) : "Not set"}
-    //     - Deposit: $${activeStrategy.deposit ? convertCurrency(activeStrategy.deposit) : "Not set"}
-    //     - Annual Income: $${activeStrategy.income ? convertCurrency(activeStrategy.income) : "Not set"}
-    //     - Risk Tolerance: ${activeStrategy.riskTolerance ?? "Unknown"}
-    //     - Investment Timeline: ${activeStrategy.timeline ?? "Not set"}
-    //     - Management Style: ${activeStrategy.managementStyle ?? "Not set"}
-
-    //     Investment Preferences:
-    //     - Target Regions: ${activeStrategyParams?.regions?.join(", ") ?? "Not specified"}
-    //     - Remote Investing: ${activeStrategyParams?.remoteInvesting ? "Yes" : "No"}
-    //     - Area Preference: ${activeStrategyParams?.areaPreference ?? "Not specified"}
-    //     - Property Type: ${activeStrategyParams?.propertyType ?? "Not specified"}
-    //     - Bedrooms: ${activeStrategyParams?.bedrooms ?? "Not specified"}
-    //     - Property Age: ${activeStrategyParams?.propertyAge ?? "Not specified"}
-    //     - Previous Experience: ${activeStrategyParams?.previousExperience ?? "Not specified"}
-    //     - Co-Investment: ${activeStrategyParams?.coInvestment ? "Open" : "Solo only"}
-    //     - Cashflow Expectations: ${activeStrategyParams?.cashflowExpectations ? convertCurrency(activeStrategyParams.cashflowExpectations) : "Not set"}
-    //     - Target Cashflow: $${activeStrategyParams?.cashflowAmount ? convertCurrency(activeStrategyParams.cashflowAmount) : "Not set"}
-    //   `
-    //   : "";
-
-    /* ---------------- Chat Persistance ---------------- */
-    const chat = await getChatById({ id });
-    let messagesFromDb: ChatMessage[] = [];
+    let messagesFromDb: Doc<"chatMessages">[] = [];
     let titlePromise: Promise<string> | null = null;
 
     if (chat) {
-      if (chat.userId !== user.id) {
+      if (chat.userId !== user._id) {
         return new ChatSDKError("forbidden:chat").toResponse();
       }
       messagesFromDb = chat.messages;
     } else if (message?.role === "user") {
       // Save chat immediately with placeholder title
-      await saveChatSession({
-        id,
-        userId: user.id,
+      chatSessionId = await client.mutation(api.functions.chat.saveChatSession, {
         title: "New chat",
-        // strategyId: activeStrategy?.id,
+        userId: user._id,
       });
     }
 
-    // Build UIMessages based on request type
-    let UIMessages: ChatMessageAI[];
+    let UIMessages = chat
+      ? [...convertToUIMessages(messagesFromDb), message as ChatMessageAI]
+      : [message as ChatMessageAI];
 
     if (isContinuationRequest) {
       // For continuation requests (tool approval, auto-continue after tool calls),
@@ -248,49 +232,50 @@ export async function POST(req: Request) {
       execute: async ({ writer: dataStream }) => {
         // Handle title generation in parallel
         if (titlePromise) {
-          titlePromise
-            .then((title) => {
-              try {
-                updateChatTitleById({ chatId: id, title });
-                dataStream.write({
-                  type: "data-chat-title",
-                  data: { title, id },
-                });
-              } catch (e) {
-                // Stream may be closed, that's OK - title is saved to DB
-                console.error("Title stream write failed:", e);
-              }
-            })
-            .catch((error) => {
-              console.error("Title generation failed:", error);
+          titlePromise.then((title) => {
+            client.mutation(api.functions.chat.updateChatTitleById, {
+              chatId: chatSessionId!,
+              title,
             });
+
+            // updateChatTitleById({ chatId: id, title });
+            dataStream.write({
+              type: "data-chat-title",
+              data: {
+                title,
+                id,
+                generatedId: chatSessionId!,
+              },
+            });
+          }
+          )
+          /* ---------------- AI Stream ---------------- */
+
+          const result = streamText({
+            model: google("gemini-2.5-flash"),
+            system: SYSTEM_PROMPT,
+            messages: await convertToModelMessages(UIMessages),
+            stopWhen: stepCountIs(10),
+            experimental_transform: smoothStream({ chunking: "word" }),
+            toolChoice: "auto",
+            tools: {
+              // Strategy Agent
+              strategist: StrategyAgentTool({ user, strategyId, dataStream }),
+              // Researcher Agent
+              researcher: ResearcherAgentTool({ dataStream }),
+              // Analyst Agent
+              analyst: AnalystAgentTool({ dataStream }),
+            },
+          });
+
+          result.consumeStream();
+
+          dataStream.merge(
+            result.toUIMessageStream({
+              sendReasoning: true,
+            }),
+          );
         }
-        /* ---------------- AI Stream ---------------- */
-
-        const result = streamText({
-          model: google("gemini-2.5-flash"),
-          system: SYSTEM_PROMPT,
-          messages: await convertToModelMessages(UIMessages),
-          stopWhen: stepCountIs(10),
-          experimental_transform: smoothStream({ chunking: "word" }),
-          toolChoice: "auto",
-          tools: {
-            // Strategy Agent
-            strategist: StrategyAgentTool({ user, strategyId, dataStream }),
-            // Researcher Agent
-            researcher: ResearcherAgentTool({ dataStream }),
-            // Analyst Agent
-            analyst: AnalystAgentTool({ dataStream }),
-          },
-        });
-
-        result.consumeStream();
-
-        dataStream.merge(
-          result.toUIMessageStream({
-            sendReasoning: true,
-          }),
-        );
       },
       generateId: generateUUID,
       onFinish: async ({ messages: finishedMessages }) => {
@@ -314,33 +299,45 @@ export async function POST(req: Request) {
           const existingMsg = UIMessages.find((m) => m?.id === finishedMsg.id);
           if (existingMsg) {
             updatedMessageIds.push(finishedMsg.id);
-            await updateMessage(
-              finishedMsg.id,
-              finishedMsg.parts,
-              finishedMsg.role,
-              id,
-            );
+            await client.mutation(api.functions.chat.updateMessage, {
+              // id: finishedMsg.id, // this id is not equivalent to convex _id
+              updatedParts: finishedMsg.parts,
+              role: finishedMsg.role,
+              chatSessionId: chatSessionId!,
+            });
+            // await updateMessage(
+            //   finishedMsg.id,
+            //   finishedMsg.parts,
+            //   finishedMsg.role,
+            //   id,
+            // );
           } else {
             newMessages.push({
               id: finishedMsg.id,
               role: finishedMsg.role,
               parts: finishedMsg.parts,
               createdAt: new Date(),
-              chatId: id,
+              chatId: chatSessionId!,
             });
           }
         }
 
         // Bulk save all new messages at once
         if (newMessages.length > 0) {
-          await saveMessages(newMessages);
+          // await saveMessages(newMessages);
+          await client.mutation(api.functions.chat.saveMessages, {
+            messages: newMessages.map(({ id, ...rest }) => ({
+              ...rest,
+              createdAt: rest.createdAt.getTime(),
+            })),
+          });
         }
       },
       onError: (error) => {
         console.error("Stream error:", {
           error,
           chatId: id,
-          userId: user.id,
+          userId: user._id,
           vercelId: req.headers.get("x-vercel-id"),
         });
 

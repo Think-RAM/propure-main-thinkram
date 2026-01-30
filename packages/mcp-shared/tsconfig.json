@@ -10,8 +10,10 @@
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    // "types": ["node"],
+    // "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../../types/env.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

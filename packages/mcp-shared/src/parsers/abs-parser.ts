@@ -1,0 +1,344 @@
+import { load, type Cheerio, type CheerioAPI } from "cheerio";
+import type { Element } from "domhandler";
+import type { MarketData } from "../schemas";
+
+interface TableHeader {
+  title: string;
+  subtitle?: string;
+}
+
+interface TableRow {
+  label: string;
+  count: number;
+  percentage: number | null;
+}
+
+interface ExtractRowOptions {
+  stripCurrency?: boolean;
+  allowMissingPercentage?: boolean;
+}
+
+const PEOPLE_HEADER_TITLE = "People";
+const PEOPLE_HEADER_SUBTITLE = "All people";
+
+const MARITAL_STATUS_HEADER_TITLE = "Registered marital status";
+const MARITAL_STATUS_HEADER_SUBTITLE = "People aged 15 years and over";
+
+const EDUCATION_HEADER_TITLE = "Level of highest educational attainment";
+const EDUCATION_HEADER_SUBTITLE = "People aged 15 years and over";
+
+const LABOR_FORCE_HEADER_TITLE = "Participation in the labour force";
+const LABOR_FORCE_HEADER_SUBTITLE = "People aged 15 years and over";
+
+const EMPLOYMENT_STATUS_HEADER_TITLE = "Employment status";
+const EMPLOYMENT_STATUS_HEADER_SUBTITLE =
+  "People who reported being in the labour force, aged 15 years and over";
+
+const OCCUPATION_HEADER_TITLE = "Occupation, top responses";
+const OCCUPATION_HEADER_SUBTITLE =
+  "Employed people aged 15 years and over";
+
+const INDUSTRY_HEADER_TITLE = "Industry of employment, top responses";
+const INDUSTRY_HEADER_SUBTITLE =
+  "Employed people aged 15 years and over";
+
+const MEDIAN_WEEKLY_INCOME_HEADER_TITLE = "Median weekly incomes (a)";
+const MEDIAN_WEEKLY_INCOME_HEADER_SUBTITLE = "People aged 15 years and over";
+
+const METHOD_OF_TRAVEL_HEADER_TITLE =
+  "Method of travel to work on the day of the Census, top responses";
+const METHOD_OF_TRAVEL_HEADER_SUBTITLE =
+  "Employed people aged 15 years and over";
+
+const FAMILY_COMPOSITION_HEADER_TITLE = "Family composition";
+const FAMILY_COMPOSITION_HEADER_SUBTITLE = "All families";
+
+const DWELLING_STRUCTURE_HEADER_TITLE = "Dwelling structure";
+const DWELLING_STRUCTURE_HEADER_SUBTITLE =
+  "Occupied private dwellings (excl. visitor only and other non-classifiable households)";
+
+const NUMBER_OF_BEDROOMS_HEADER_TITLE = "Number of bedrooms";
+const NUMBER_OF_BEDROOMS_HEADER_SUBTITLE =
+  "Occupied private dwellings (excl. visitor only and other non-classifiable households)";
+
+const TENURE_TYPE_HEADER_TITLE = "Tenure type";
+const TENURE_TYPE_HEADER_SUBTITLE =
+  "Occupied private dwellings (excl. visitor only and other non-classifiable households)";
+
+const RENT_WEEKLY_PAYMENTS_HEADER_TITLE = "Rent weekly payments";
+const RENT_WEEKLY_PAYMENTS_HEADER_SUBTITLE =
+  "Occupied private dwellings (excl. visitor only and other non-classifiable households) being rented";
+
+const MORTGAGE_MONTHLY_REPAYMENTS_HEADER_TITLE = "Mortgage monthly repayments";
+const MORTGAGE_MONTHLY_REPAYMENTS_HEADER_SUBTITLE =
+  "Occupied private dwellings (excl. visitor only and other non-classifiable households) owned with a mortgage or purchased under a shared equity scheme";
+
+/**
+ * Parse ABS "People" demographic table into a structured MarketData object.
+ */
+export function parseAbsMarketData(html: string): MarketData | null {
+  const $ = load(html);
+  const peopleRows = getBreakdownRows($, {
+    title: PEOPLE_HEADER_TITLE,
+    subtitle: PEOPLE_HEADER_SUBTITLE,
+  });
+  const maritalRows = getBreakdownRows($, {
+    title: MARITAL_STATUS_HEADER_TITLE,
+    subtitle: MARITAL_STATUS_HEADER_SUBTITLE,
+  });
+  const educationRows = getBreakdownRows($, {
+    title: EDUCATION_HEADER_TITLE,
+    subtitle: EDUCATION_HEADER_SUBTITLE,
+  });
+  const laborRows = getBreakdownRows($, {
+    title: LABOR_FORCE_HEADER_TITLE,
+    subtitle: LABOR_FORCE_HEADER_SUBTITLE,
+  });
+  const employmentRows = getBreakdownRows($, {
+    title: EMPLOYMENT_STATUS_HEADER_TITLE,
+    subtitle: EMPLOYMENT_STATUS_HEADER_SUBTITLE,
+  });
+  const occupationRows = getBreakdownRows($, {
+    title: OCCUPATION_HEADER_TITLE,
+    subtitle: OCCUPATION_HEADER_SUBTITLE,
+  });
+  const industryRows = getBreakdownRows($, {
+    title: INDUSTRY_HEADER_TITLE,
+    subtitle: INDUSTRY_HEADER_SUBTITLE,
+  });
+  const medianIncomeRows = getBreakdownRows(
+    $,
+    {
+      title: MEDIAN_WEEKLY_INCOME_HEADER_TITLE,
+      subtitle: MEDIAN_WEEKLY_INCOME_HEADER_SUBTITLE,
+    },
+    { stripCurrency: true },
+  );
+  const methodOfTravelRows = getBreakdownRows($, {
+    title: METHOD_OF_TRAVEL_HEADER_TITLE,
+    subtitle: METHOD_OF_TRAVEL_HEADER_SUBTITLE,
+  });
+  const familyCompositionRows = getBreakdownRows($, {
+    title: FAMILY_COMPOSITION_HEADER_TITLE,
+    subtitle: FAMILY_COMPOSITION_HEADER_SUBTITLE,
+  });
+  const dwellingStructureRows = getBreakdownRows($, {
+    title: DWELLING_STRUCTURE_HEADER_TITLE,
+    subtitle: DWELLING_STRUCTURE_HEADER_SUBTITLE,
+  });
+  const numberOfBedroomsRows = getBreakdownRows($, {
+    title: NUMBER_OF_BEDROOMS_HEADER_TITLE,
+    subtitle: NUMBER_OF_BEDROOMS_HEADER_SUBTITLE,
+  });
+  const tenureTypeRows = getBreakdownRows($, {
+    title: TENURE_TYPE_HEADER_TITLE,
+    subtitle: TENURE_TYPE_HEADER_SUBTITLE,
+  });
+  const rentWeeklyPaymentRows = getBreakdownRows(
+    $,
+    {
+      title: RENT_WEEKLY_PAYMENTS_HEADER_TITLE,
+      subtitle: RENT_WEEKLY_PAYMENTS_HEADER_SUBTITLE,
+    },
+    { stripCurrency: true },
+  );
+  const mortgageMonthlyRepaymentRows = getBreakdownRows(
+    $,
+    {
+      title: MORTGAGE_MONTHLY_REPAYMENTS_HEADER_TITLE,
+      subtitle: MORTGAGE_MONTHLY_REPAYMENTS_HEADER_SUBTITLE,
+    },
+    { stripCurrency: true },
+  );
+
+  if (
+    !peopleRows ||
+    !maritalRows ||
+    !educationRows ||
+    !laborRows ||
+    !employmentRows ||
+    !occupationRows ||
+    !industryRows ||
+    !medianIncomeRows ||
+    !methodOfTravelRows ||
+    !familyCompositionRows ||
+    !dwellingStructureRows ||
+    !numberOfBedroomsRows ||
+    !tenureTypeRows ||
+    !rentWeeklyPaymentRows ||
+    !mortgageMonthlyRepaymentRows
+  ) {
+    return null;
+  }
+
+  return {
+    people: peopleRows,
+    maritalStatus: maritalRows,
+    education: educationRows,
+    laborForce: laborRows,
+    employmentStatus: employmentRows,
+    occupationTopResponses: occupationRows,
+    industryTopResponses: industryRows,
+    medianWeeklyIncomes: medianIncomeRows,
+    methodOfTravelToWork: methodOfTravelRows,
+    familyComposition: familyCompositionRows,
+    dwellingStructure: dwellingStructureRows,
+    numberOfBedrooms: numberOfBedroomsRows,
+    tenureType: tenureTypeRows,
+    rentWeeklyPayments: rentWeeklyPaymentRows,
+    mortgageMonthlyRepayments: mortgageMonthlyRepaymentRows,
+  };
+}
+
+interface TableQuery {
+  title: string;
+  subtitle?: string;
+}
+
+function findTableByHeader(
+  $: CheerioAPI,
+  query: TableQuery,
+): Element | null {
+  const tables = $("table").toArray();
+
+  for (const table of tables) {
+    const header = extractHeader($, table);
+    if (!header) {
+      continue;
+    }
+
+    if (header.title !== query.title) {
+      continue;
+    }
+
+    if (query.subtitle && header.subtitle !== query.subtitle) {
+      continue;
+    }
+
+    return table;
+  }
+
+  return null;
+}
+
+function extractHeader($: CheerioAPI, table: Element): TableHeader | null {
+  const firstHeaderCell = $(table).find("th.firstCol").first();
+  if (firstHeaderCell.length === 0) {
+    return null;
+  }
+
+  const title = normalizeWhitespace(
+    firstHeaderCell.clone().children().remove().end().text(),
+  );
+  const subtitle = normalizeWhitespace(firstHeaderCell.find("span em").text());
+
+  if (!title) {
+    return null;
+  }
+
+  return { title, subtitle: subtitle || undefined };
+}
+
+function getBreakdownRows(
+  $: CheerioAPI,
+  query: TableQuery,
+  options?: ExtractRowOptions,
+): TableRow[] | null {
+  const table = findTableByHeader($, query);
+  if (!table) {
+    return null;
+  }
+
+  return extractTableRows($, table, options);
+}
+
+function extractTableRows(
+  $: CheerioAPI,
+  table: Element,
+  options?: ExtractRowOptions,
+): TableRow[] | null {
+  const rows: TableRow[] = [];
+  const mergedOptions: ExtractRowOptions = {
+    allowMissingPercentage: true,
+    ...options,
+  };
+
+  const elements = $(table).find("tr").toArray();
+
+  for (const element of elements) {
+    const parsedRow = extractRow($, $(element), mergedOptions);
+    if (parsedRow) {
+      rows.push(parsedRow);
+    }
+  }
+
+  return rows.length ? rows : null;
+}
+
+
+
+function extractRow(
+  $: CheerioAPI,
+  row: Cheerio<Element>,
+  options?: ExtractRowOptions,
+): TableRow | null {
+  const headerCell = row.find("th").first();
+  const usesDataAsLabel = headerCell.length === 0;
+  const fallbackLabelCell = row.find("td").first();
+  const labelSource = usesDataAsLabel ? fallbackLabelCell : headerCell;
+
+  if (!labelSource.length) {
+    return null;
+  }
+
+  const label = normalizeWhitespace(labelSource.text());
+  if (!label) {
+    return null;
+  }
+
+  const cells = usesDataAsLabel ? row.find("td").slice(1) : row.find("td");
+  if (cells.length === 0) {
+    return null;
+  }
+
+  const countRaw = cells.eq(0).text();
+  const countText = options?.stripCurrency
+    ? normalizeWhitespace(countRaw).replace(/[^0-9.,-]/g, "")
+    : cleanNumericText(countRaw);
+
+  if (!countText) {
+    return null;
+  }
+
+  const count = Number.parseFloat(countText.replace(/,/g, ""));
+  if (Number.isNaN(count)) {
+    return null;
+  }
+
+  const percentageCell = cells.eq(1);
+  const percentageText =
+    percentageCell.length > 0 ? cleanNumericText(percentageCell.text()) : "";
+  const allowMissingPercentage = options?.allowMissingPercentage ?? false;
+  if (!percentageText && !allowMissingPercentage) {
+    return null;
+  }
+
+  const percentage = percentageText ? Number.parseFloat(percentageText) : null;
+  if (percentage !== null && Number.isNaN(percentage)) {
+    return null;
+  }
+
+  return {
+    label,
+    count,
+    percentage,
+  };
+}
+
+function cleanNumericText(value: string): string {
+  return value.replace(/[^0-9.,-]/g, "").trim();
+}
+
+function normalizeWhitespace(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}

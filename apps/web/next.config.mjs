@@ -1,3 +1,6 @@
+import pkg from "workflow/next";
+const { withWorkflow } = pkg;
+
 let userConfig = undefined;
 try {
   // try to import ESM first
@@ -55,4 +58,4 @@ if (userConfig) {
   }
 }
 
-export default nextConfig;
+export default withWorkflow(nextConfig);

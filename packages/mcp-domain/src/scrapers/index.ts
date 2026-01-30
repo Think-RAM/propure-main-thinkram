@@ -1,10 +1,8 @@
 export {
-  searchDomainProperties,
-  getDomainPropertyDetails,
-  getDomainSuburbStats,
-  getDomainSalesHistory,
-  getDomainAgentInfo,
-  getDomainAuctionResults,
+  searchDomainPropertiesUsingOxylabs,
+  searchDomainPropertiesWithScrapeDo,
+  getDomainPropertyDetailsUsingOxylabs,
+  getDomainPropertyDetailsWithScrapeDo,
 } from "./domain-scraper";
 
 // Mock mode utilities

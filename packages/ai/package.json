@@ -12,7 +12,6 @@
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
-    "@propure/db": "workspace:*",
     "@propure/shared": "workspace:*"
   },
   "devDependencies": {

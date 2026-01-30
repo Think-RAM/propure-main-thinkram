@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
+import ConvexClientProvider from "@/context/ConvexClientProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -61,7 +62,7 @@ export default function RootLayout({
   if (!clerkPublishableKey) {
     // eslint-disable-next-line no-console
     console.warn(
-      "[propure/web] NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is missing; rendering without ClerkProvider."
+      "[propure/web] NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is missing; rendering without ClerkProvider.",
     );
     return appShell(
       <main className="min-h-screen bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
@@ -76,13 +77,13 @@ export default function RootLayout({
             env to enable authentication and run/build the app.
           </p>
         </div>
-      </main>
+      </main>,
     );
   }
 
   return (
     <ClerkProvider publishableKey={clerkPublishableKey}>
-      {appShell(children)}
+      <ConvexClientProvider>{appShell(children)}</ConvexClientProvider>
     </ClerkProvider>
   );
 }

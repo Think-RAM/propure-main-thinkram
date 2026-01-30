@@ -1,7 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { ChatSDKError, ErrorCode } from "./ai-error";
-import { ChatMessage } from "@prisma/client";
 import { ChatMessageAI, ChatTools } from "@/types/ai";
 import { UIDataTypes, UIMessagePart } from "ai";
 import { formatISO } from "date-fns";
@@ -15,6 +14,7 @@ import {
   StateCoords,
 } from "./map/layers";
 import { SearchResult } from "@/context/MapContext";
+import { Doc } from "@propure/convex/dataModel";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -42,50 +42,17 @@ export async function fetchWithErrorHandlers(
   }
 }
 
-/**
- * Validates and converts raw parts to UIMessagePart array.
- * Ensures each part has the required 'type' property, falling back to text for malformed parts.
- */
-function validateAndConvertParts(
-  rawParts: unknown,
-): UIMessagePart<UIDataTypes, ChatTools>[] {
-  if (!Array.isArray(rawParts)) {
-    return [];
-  }
-
-  return rawParts.map((part): UIMessagePart<UIDataTypes, ChatTools> => {
-    // Check if part is an object with a valid 'type' property
-    if (
-      part !== null &&
-      typeof part === "object" &&
-      "type" in part &&
-      typeof (part as { type: unknown }).type === "string"
-    ) {
-      return part as UIMessagePart<UIDataTypes, ChatTools>;
-    }
-
-    // Fallback for malformed parts - convert to text part
-    return {
-      type: "text",
-      text: String(part),
-    };
-  });
-}
-
-export function convertToUIMessages(messages: ChatMessage[]): ChatMessageAI[] {
-  return messages.map((message) => {
-    const rawParts = message.toolCalls;
-    const validatedParts = validateAndConvertParts(rawParts);
-
-    return {
-      id: message.id,
-      role: message.role as "user" | "assistant" | "system",
-      parts: validatedParts,
-      metadata: {
-        createdAt: formatISO(message.createdAt),
-      },
-    };
-  });
+export function convertToUIMessages(
+  messages: Doc<"chatMessages">[],
+): ChatMessageAI[] {
+  return messages.map((message) => ({
+    id: message._id,
+    role: message.role as "user" | "assistant" | "system",
+    parts: message.content as UIMessagePart<UIDataTypes, ChatTools>[],
+    metadata: {
+      createdAt: formatISO(message.timestamp),
+    },
+  }));
 }
 
 export function convertCurrency(

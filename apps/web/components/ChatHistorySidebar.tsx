@@ -10,11 +10,11 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { MessageSquare, Plus, PanelLeft } from "lucide-react";
-import { ChatSession } from "@prisma/client";
+import type { Doc } from "@propure/convex/dataModel";
 
 interface ChatSidebarProps {
   open: boolean;
-  sessions: ChatSession[];
+  sessions: Doc<"chatSessions">[];
   activeSessionId?: string;
   onSelect: (id: string) => void;
   onNewChat: () => void;
@@ -41,7 +41,7 @@ export function ChatSidebar({
           "border-r border-white/10",
           "shadow-2xl",
           "transition-transform duration-300 ease-in-out",
-          open ? "translate-x-0" : "-translate-x-full"
+          open ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#242b33]">
@@ -96,14 +96,12 @@ export function ChatSidebar({
           "border-r border-white/10",
           // Motion
           "transition-transform duration-300 ease-in-out",
-          open ? "translate-x-0" : "-translate-x-full"
+          open ? "translate-x-0" : "-translate-x-full",
         )}
       >
         {/* Header */}
-<div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#242b33]">
-          <span className="text-sm font-semibold text-[#f7f9fc]">
-           Chats
-          </span>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#242b33]">
+          <span className="text-sm font-semibold text-[#f7f9fc]">Chats</span>
 
           <div className="flex gap-1">
             <Tooltip>
@@ -135,18 +133,18 @@ export function ChatSidebar({
         <ScrollArea className="h-full px-2 py-3">
           <div className="space-y-1">
             {sessions.map((session) => {
-              const active = session.id === activeSessionId;
+              const active = session._id === activeSessionId;
 
               return (
                 <button
-                  key={session.id}
-                  onClick={() => onSelect(session.id)}
+                  key={session._id}
+                  onClick={() => onSelect(session._id)}
                   className={cn(
                     "group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left",
                     "transition-colors",
                     active
                       ? "bg-[#0d7377]/20 border border-[#0d7377]/40"
-                      : "hover:bg-white/5"
+                      : "hover:bg-white/5",
                   )}
                 >
                   <MessageSquare className="h-4 w-4 text-[#1a9599] shrink-0" />

@@ -30,6 +30,7 @@ next-env.d.ts
 .claude*
 CLAUDE.md
 AGENTS.md
+docs/planning.md
 .turbo*
 /*/.turbo*
 /*/.turbo/cache*
@@ -38,3 +39,4 @@ packages/*/node_modules
 /*/.next*
 /*/*/.next*
 /*/*/node_modules*
+**/_generated/

@@ -7,13 +7,13 @@ import {
 } from "ai";
 import { google } from "@ai-sdk/google";
 import { getStrategyTool, saveStrategy } from "../strategyTools";
-import { Strategy, User } from "@prisma/client";
 import z from "zod";
 import { ChatMessageAI } from "@/types/ai";
+import { Doc, Id } from "@propure/convex/dataModel";
 
 interface ResearcherAgentProps {
-  user: User & { strategies?: Strategy[] };
-  strategyId: string | null;
+  user: Doc<"users"> & { strategies?: Doc<"strategies">[] };
+  strategyId: Id<"strategies"> | null;
   dataStream: UIMessageStreamWriter<ChatMessageAI>;
 }
 
@@ -127,7 +127,7 @@ const StrategyAgent = ({
     model: google("gemini-2.5-flash"),
     instructions: STRATEGIST_INSTRUCTIONS,
     tools: {
-      getStrategy: getStrategyTool({ userId: user.id }),
+      getStrategy: getStrategyTool({ userId: user._id }),
       saveStrategy: saveStrategy({ user, strategyId }),
     },
     // Note: Gemini doesn't support Output.object() with tools (function calling)

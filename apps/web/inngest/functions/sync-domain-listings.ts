@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { inngest } from "../client";
-import { prisma } from "@propure/db";
 import { domainTools } from "@/lib/mcp/client";
 import type { PropertyListing } from "@propure/mcp-shared";
 
@@ -17,7 +16,7 @@ const SyncListingsEventSchema = z.object({
 });
 
 /**
- * Transform a Domain API property listing to Prisma Property model
+ * Transform a Domain API property listing to Property model
  */
 function transformListing(listing: PropertyListing, suburbId: string) {
   // Extract address as string from the address object
@@ -132,27 +131,19 @@ export const syncDomainListings = inngest.createFunction(
     const suburbsToSync = await step.run("get-suburbs-to-sync", async () => {
       if (suburbs && suburbs.length > 0) {
         // If specific suburb names provided, look them up
-        return prisma.suburb.findMany({
-          where: { name: { in: suburbs } },
-          include: { city: { include: { state: true } } },
-        });
+        // TODO: Replace with actual DB fetch
+        return [] as any[];
       }
       if (suburbIds && suburbIds.length > 0) {
-        return prisma.suburb.findMany({
-          where: { id: { in: suburbIds } },
-          include: { city: { include: { state: true } } },
-        });
+        // TODO: Replace with actual DB fetch
+        return [] as any[];
       }
       // Otherwise, get stale suburbs (not updated in 24 hours)
       const staleDate = forceRefresh
         ? new Date() // All suburbs if force refresh
         : new Date(Date.now() - 24 * 60 * 60 * 1000);
-
-      return prisma.suburb.findMany({
-        where: { updatedAt: { lt: staleDate } },
-        include: { city: { include: { state: true } } },
-        take: 50,
-      });
+      // TODO: Replace with actual DB fetch
+      return [] as any[];
     });
 
     if (suburbsToSync.length === 0) {
@@ -176,13 +167,8 @@ export const syncDomainListings = inngest.createFunction(
       // Fetch listings via MCP
       const result = await step.run(`fetch-${suburb.id}`, async () => {
         try {
-          return await domainTools.searchProperties({
-            suburbs: [suburb.name],
-            state: state || suburbState,
-            listingType: listingType,
-            pageSize: pageSize,
-            page: 1,
-          });
+          // TODO: Replace with actual MCP call
+          return {} as any
         } catch (error) {
           console.error(`Failed to fetch listings for ${suburb.name}:`, error);
           return { listings: [], totalCount: 0, hasMore: false };
@@ -198,21 +184,9 @@ export const syncDomainListings = inngest.createFunction(
       // Store listings
       // Note: listing.externalId already includes the 'domain-' prefix from the parser
       const storedCount = await step.run(`store-${suburb.id}`, async () => {
-        const operations = listings.map((listing) =>
-          prisma.property.upsert({
-            where: { externalId: listing.externalId },
-            update: {
-              ...transformListing(listing, suburb.id),
-              updatedAt: new Date(),
-            },
-            create: {
-              externalId: listing.externalId,
-              ...transformListing(listing, suburb.id),
-            },
-          }),
-        );
+        const operations = [] as any[];
 
-        const results = await prisma.$transaction(operations);
+        const results = [] as any[];
         return results.length;
       });
 
@@ -220,10 +194,8 @@ export const syncDomainListings = inngest.createFunction(
 
       // Update suburb's updatedAt timestamp
       await step.run(`update-suburb-${suburb.id}`, async () => {
-        await prisma.suburb.update({
-          where: { id: suburb.id },
-          data: { updatedAt: new Date() },
-        });
+        // TODO: Replace with actual DB update
+        return [];
       });
 
       // Add a small delay between suburbs to respect rate limits

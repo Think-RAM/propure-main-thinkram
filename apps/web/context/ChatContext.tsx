@@ -1,8 +1,6 @@
 "use client";
-import { getChatById, getUserChatSessions } from "@/lib/chat/data";
 import { convertToUIMessages } from "@/lib/utils";
 import { ChatMessageAI } from "@/types/ai";
-import { ChatSession } from "@prisma/client";
 import {
   createContext,
   useContext,
@@ -12,12 +10,20 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { v4 as generateUUID } from "uuid";
+// import { useQuery } from "@propure/convex";
+import { api } from "@propure/convex/api";
+import type { Doc, Id } from "@propure/convex/dataModel";
+import { useConvex } from "@propure/convex";
 
 interface ChatContextType {
-  userChatSessions: ChatSession[];
-  activeSessionId: string | null;
-  setActiveSession: (id: string | null) => void;
-  updateChatSessionTitle: (id: string, title: string) => void;
+  userChatSessions: Doc<"chatSessions">[];
+  activeSessionId: Id<"chatSessions"> | null;
+  setActiveSession: (id: Id<"chatSessions"> | null) => void;
+  updateChatSessionTitle: (
+    id: string | Id<"chatSessions">,
+    title: string,
+    generatedId: Id<"chatSessions">,
+  ) => void;
   createNewChatSession: (send: string) => void;
   activeChatMessages: ChatMessageAI[];
   historyLoading: boolean;
@@ -27,25 +33,32 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
-  const [userChatSessions, setUserChatSessions] = useState<ChatSession[]>([]);
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const client = useConvex();
+  const [userChatSessions, setUserChatSessions] = useState<
+    Doc<"chatSessions">[]
+  >([]);
+  const [activeSessionId, setActiveSessionId] =
+    useState<Id<"chatSessions"> | null>(null);
   const [activeChatMessages, setActiveChatMessages] = useState<ChatMessageAI[]>(
-    []
+    [],
   );
   const [isLoading, setIsLoading] = useState(false);
   const [isChatsLoading, setIsChatsLoading] = useState(false);
 
-  const setActiveSession = useCallback(async (id: string | null) => {
+  const setActiveSession = useCallback(async (id: Id<"chatSessions"> | null) => {
     try {
       setActiveSessionId(id);
       setActiveChatMessages([]);
       if (id) {
         setIsChatsLoading(true);
-        const fetchedMessages = await getChatById({ id });
+        const fetchedMessages = await client.query(
+          api.functions.chat.getChatById,
+          { id },
+        );
         setActiveChatMessages(
           fetchedMessages
             ? [...convertToUIMessages(fetchedMessages.messages)]
-            : []
+            : [],
         );
       }
     } catch (error) {
@@ -59,31 +72,50 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  const updateChatSessionTitle = useCallback((id: string, title: string) => {
-    setUserChatSessions((prevSessions) =>
-      prevSessions.map((session) =>
-        session.id === id ? { ...session, title, updatedAt: new Date() } : session
-      )
-    );
-  }, []);
+  const updateChatSessionTitle = useCallback(
+    (
+      id: string | Id<"chatSessions">,
+      title: string,
+      generatedId: Id<"chatSessions">,
+    ) => {
+      setUserChatSessions((prevSessions) =>
+        prevSessions.map((session) =>
+          session._id === id || session._id === generatedId
+            ? { ...session, title, updatedAt: Date.now(), _id: generatedId }
+            : session,
+        ),
+      );
+      if (id !== generatedId) {
+        setActiveSessionId(generatedId);
+      }
+    },
+    [],
+  );
 
   const createNewChatSession = useCallback((send: string) => {
-    const newSession: ChatSession = {
-      id: generateUUID(),
+    const newSession: Doc<"chatSessions"> = {
+      _id: `chat-${generateUUID()}` as Id<"chatSessions">,
       title: "New Chat",
-      userId: "",
-      strategyId: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      userId: "" as Id<"users">,
+      strategyId: undefined,
+      _creationTime: Date.now(),
+      updatedAt: Date.now(),
+      createdAt: Date.now(),
+      chatMessages: [],
     };
-    setUserChatSessions((prevSessions) => [...prevSessions, newSession].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()));
-    setActiveSessionId(newSession.id);
+    setUserChatSessions((prevSessions) =>
+      [...prevSessions, newSession].sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      ),
+    );
+    setActiveSessionId(newSession._id);
     setActiveChatMessages([
       {
         id: generateUUID(),
         role: "user",
         parts: [{ type: "text", text: send }],
-      }
+      },
     ]);
   }, []);
 
@@ -91,7 +123,9 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     const fetchUserChatSessions = async () => {
       try {
         setIsLoading(true);
-        const chatHistory = await getUserChatSessions();
+        const chatHistory = await client.query(
+          api.functions.chat.getUserChatSessions,
+        );
         setUserChatSessions(chatHistory);
       } catch (error) {
         console.error("Error loading user chat sessions:", error);

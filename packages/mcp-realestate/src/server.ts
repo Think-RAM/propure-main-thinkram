@@ -24,11 +24,11 @@ export function createRealEstateServer(): McpServer {
 
   // Tool: Search Properties
   server.registerTool(
-    "search_properties",
+    "scrape_realestate",
     {
-      title: "Search RealEstate.com.au Properties",
+      title: "Scrape RealEstate Properties",
       description:
-        "Search property listings on RealEstate.com.au with filters for location, price, bedrooms, and property type",
+        "Scrape property listings on RealEstate.com.au with filters for location, price, bedrooms, and property type",
       inputSchema: {
         suburbs: z
           .array(z.string())
@@ -107,131 +107,6 @@ export function createRealEstateServer(): McpServer {
             },
           ],
           structuredContent: property,
-        };
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Unknown error occurred";
-        return {
-          content: [{ type: "text" as const, text: `Error: ${message}` }],
-          isError: true,
-        };
-      }
-    },
-  );
-
-  // Tool: Get Suburb Profile
-  server.registerTool(
-    "get_suburb_profile",
-    {
-      title: "Get Suburb Profile",
-      description:
-        "Get suburb demographics and market data including median price, population, and income statistics",
-      inputSchema: {
-        suburb: z.string().describe("Suburb name"),
-        state: AustralianState.describe("Australian state"),
-        postcode: z.string().describe("Postcode"),
-      },
-    },
-    async ({ suburb, state, postcode }) => {
-      try {
-        const profile = await getReaSuburbProfile(suburb, state, postcode);
-        if (!profile) {
-          return {
-            content: [
-              { type: "text" as const, text: "Suburb profile not found" },
-            ],
-            isError: true,
-          };
-        }
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(profile, null, 2),
-            },
-          ],
-          structuredContent: profile,
-        };
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Unknown error occurred";
-        return {
-          content: [{ type: "text" as const, text: `Error: ${message}` }],
-          isError: true,
-        };
-      }
-    },
-  );
-
-  // Tool: Get Sold Properties
-  server.registerTool(
-    "get_sold_properties",
-    {
-      title: "Get Sold Properties",
-      description:
-        "Get recently sold properties in a suburb to understand market trends and comparable sales",
-      inputSchema: {
-        suburb: z.string().describe("Suburb name"),
-        state: AustralianState.describe("Australian state"),
-        postcode: z.string().optional().describe("Postcode"),
-      },
-    },
-    async ({ suburb, state, postcode }) => {
-      try {
-        const soldProperties = await getReaSoldProperties(
-          suburb,
-          state,
-          postcode,
-        );
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(
-                { soldProperties, count: soldProperties.length },
-                null,
-                2,
-              ),
-            },
-          ],
-          structuredContent: { soldProperties, count: soldProperties.length },
-        };
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Unknown error occurred";
-        return {
-          content: [{ type: "text" as const, text: `Error: ${message}` }],
-          isError: true,
-        };
-      }
-    },
-  );
-
-  // Tool: Get Agency Listings
-  server.registerTool(
-    "get_agency_listings",
-    {
-      title: "Get Agency Listings",
-      description: "Get all current listings by a specific real estate agency",
-      inputSchema: {
-        agencyId: z.string().describe("The RealEstate.com.au agency ID"),
-      },
-    },
-    async ({ agencyId }) => {
-      try {
-        const listings = await getReaAgencyListings(agencyId);
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(
-                { listings, count: listings.length },
-                null,
-                2,
-              ),
-            },
-          ],
-          structuredContent: { listings, count: listings.length },
         };
       } catch (error) {
         const message =

@@ -1,13 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import {
-  searchDomainProperties,
-  getDomainPropertyDetails,
-  getDomainSuburbStats,
-  getDomainSalesHistory,
-  getDomainAgentInfo,
-  getDomainAuctionResults,
-} from "@propure/mcp-domain";
+import { domainTools } from "@/lib/mcp/client";
 import {
   AustralianState,
   PropertySearchParamsSchema,
@@ -172,17 +165,17 @@ async function executeTool(
   switch (tool) {
     case "search_properties": {
       const validated = SearchPropertiesArgsSchema.parse(args);
-      return searchDomainProperties(validated);
+      return domainTools.searchProperties(validated);
     }
 
     case "get_property_details": {
       const validated = GetPropertyDetailsArgsSchema.parse(args);
-      return getDomainPropertyDetails(validated.listingId);
+      return domainTools.getPropertyDetails(validated.listingId);
     }
 
     case "get_suburb_stats": {
       const validated = GetSuburbStatsArgsSchema.parse(args);
-      return getDomainSuburbStats(
+      return domainTools.getSuburbStats(
         validated.suburb,
         validated.state,
         validated.postcode,
@@ -191,7 +184,7 @@ async function executeTool(
 
     case "get_sales_history": {
       const validated = GetSalesHistoryArgsSchema.parse(args);
-      return getDomainSalesHistory(
+      return domainTools.getSalesHistory(
         validated.address,
         validated.suburb,
         validated.state,
@@ -200,12 +193,12 @@ async function executeTool(
 
     case "get_agent_info": {
       const validated = GetAgentInfoArgsSchema.parse(args);
-      return getDomainAgentInfo(validated.agentId);
+      return domainTools.getAgentInfo(validated.agentId);
     }
 
     case "get_auction_results": {
       const validated = GetAuctionResultsArgsSchema.parse(args);
-      return getDomainAuctionResults(validated.suburb, validated.state);
+      return domainTools.getAuctionResults(validated.suburb, validated.state);
     }
 
     default:

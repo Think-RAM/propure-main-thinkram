@@ -1,3 +1,4 @@
+import { Id } from "@propure/convex/dataModel";
 import { Plan, UserPreferences } from "./types";
 
 export {};
@@ -11,7 +12,7 @@ declare global {
   }
 
   interface UserPrivateMetadata {
-    application_id: string;
+    application_id: Id<"users">;
   }
 
   interface UserPublicMetadata {
@@ -26,6 +27,7 @@ declare global {
       inApp: boolean;
       email: boolean;
     };
+    application_id?: Id<"users">;
   }
   interface OrganizationMembershipPublicMetadata {
     onboardingComplete?: boolean;

@@ -23,6 +23,7 @@ import { Response } from "./elements/response";
 import { ScrollArea } from "./ui/scroll-area";
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 import { useMap } from "@/context/MapContext";
+import { Id } from "@propure/convex/dataModel";
 
 interface ChatSidebarProps {
   open: boolean;
@@ -100,8 +101,9 @@ export function ChatSidebar({
         console.log("Data Parts: ", dataPart);
         switch (dataPart.type) {
           case "data-chat-title":
-            const titleData = dataPart.data as { title: string; id: string };
-            updateChatSessionTitle(titleData.id, titleData.title);
+            const titleData = dataPart.data as { title: string; id: string; generatedId: Id<"chatSessions"> };
+            console.log("DATA PART", titleData)
+            updateChatSessionTitle(titleData.id, titleData.title, titleData.generatedId);
             break;
           case "data-properties-found":
             console.log("Properties Found Data: ", dataPart.data);

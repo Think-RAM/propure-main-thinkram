@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { inngest } from "../client";
-import { prisma } from "@propure/db";
 
 // Zod schema for event data validation
 const SuburbMetricsEventSchema = z.object({
@@ -50,20 +49,8 @@ export const calculateSuburbMetrics = inngest.createFunction(
       "fetch-properties",
       async (): Promise<PropertyWithSuburb[]> => {
         try {
-          const whereClause = suburbIds?.length
-            ? { suburbId: { in: suburbIds } }
-            : {};
-
-          const props = await prisma.property.findMany({
-            where: whereClause,
-            select: {
-              id: true,
-              suburbId: true,
-              price: true,
-              rentWeekly: true,
-              suburb: { select: { id: true, name: true } },
-            },
-          });
+          //TODO: Replace with actual DB fetch
+          const props: PropertyWithSuburb[] = []; // Placeholder for fetched properties
           console.log(
             `Fetched ${props.length} properties for metric calculation`,
           );
@@ -165,10 +152,7 @@ export const calculateSuburbMetrics = inngest.createFunction(
         ]);
 
         if (metricRecords.length > 0) {
-          await prisma.suburbMetric.createMany({
-            data: metricRecords,
-            skipDuplicates: true,
-          });
+          // TODO: Replace with actual DB insertion
         }
         console.log(`Stored ${metricRecords.length} metric records`);
       } catch (error) {

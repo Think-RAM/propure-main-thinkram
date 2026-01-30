@@ -1,11 +1,14 @@
 import {
-  scrapeRealEstate,
+  scrapeRealEstateWithWebScraper,
+  // scrapeRealEstate,
   parseReaPropertyListing,
   parseReaSearchResults,
   type PropertyListing,
   type PropertySearchParams,
   type AustralianState,
 } from "@propure/mcp-shared";
+import { writeFileSync, existsSync, mkdirSync } from "fs";
+import { join } from "path";
 
 import {
   isMockModeEnabled,
@@ -19,10 +22,10 @@ import {
 /**
  * Build RealEstate.com.au search URL from params
  */
-function buildSearchUrl(params: PropertySearchParams): string {
+export function buildSearchUrl(params: PropertySearchParams): string {
   const baseUrl = "https://www.realestate.com.au";
 
-  // Build listing type path
+  // Build listing type path (buy|rent|sold)
   let listingPath = "buy";
   if (params.listingType === "rent") {
     listingPath = "rent";
@@ -30,12 +33,13 @@ function buildSearchUrl(params: PropertySearchParams): string {
     listingPath = "sold";
   }
 
-  // Build location part
+  // Build location part: REA expects plus-separated suburb + state + optional postcode
   let location = "";
   if (params.suburbs?.length) {
-    const suburbSlug = params.suburbs[0].toLowerCase().replace(/\s+/g, "-");
-    const state = params.state?.toLowerCase() || "nsw";
-    location = `in-${suburbSlug},+${state}+${params.postcode || ""}`;
+    const suburbSlug = params.suburbs[0].toLowerCase().replace(/\s+/g, "+");
+    const state = (params.state || "nsw").toLowerCase();
+    const postcode = params.postcode ? `+${params.postcode}` : "";
+    location = `in-${suburbSlug},+${state}${postcode}`;
   } else if (params.state) {
     location = `in-${params.state.toLowerCase()}`;
   }
@@ -82,13 +86,12 @@ function buildSearchUrl(params: PropertySearchParams): string {
     searchParams.set("minBathrooms", String(params.minBaths));
   }
 
-  // Page
-  if (params.page && params.page > 1) {
-    searchParams.set("page", String(params.page));
-  }
+  // Page: REA encodes page in path as /list-N (default list-1)
+  const pageSegment =
+    params.page && params.page > 1 ? `/list-${params.page}` : "/list-1";
 
   const queryString = searchParams.toString();
-  const url = `${baseUrl}/${listingPath}/${location}${queryString ? `?${queryString}` : ""}`;
+  const url = `${baseUrl}/${listingPath}/${location}${pageSegment}${queryString ? `?${queryString}` : ""}`;
 
   return url;
 }
@@ -110,12 +113,20 @@ export async function searchReaProperties(
   }
 
   const url = buildSearchUrl(params);
-  const html = await scrapeRealEstate(url);
-  const listings = parseReaSearchResults(html);
+  const html = await scrapeRealEstateWithWebScraper(url);
 
+  // Save reference HTML for debugging/parser development
+  const referenceDir = join(process.cwd(), "packages/mcp-realestate/reference");
+  if (!existsSync(referenceDir)) {
+    mkdirSync(referenceDir, { recursive: true });
+  }
+  writeFileSync(join(referenceDir, "rea-search-results.html"), html);
+
+  // const listings = parseReaSearchResults(html);
+  const listings: PropertyListing[] = [];
+  
   // REA typically shows 20-25 results per page
-  const pageSize = params.pageSize || 20;
-  const hasMore = listings.length >= pageSize;
+  const hasMore = listings.length >= 20;
 
   return {
     listings,
@@ -141,16 +152,29 @@ export async function getReaPropertyDetails(
   // REA property URLs are like: https://www.realestate.com.au/property-house-nsw-sydney-123456
   // or with just the ID: https://www.realestate.com.au/123456
   let url: string;
-  if (listingId.includes("/")) {
-    url = `https://www.realestate.com.au${listingId.startsWith("/") ? "" : "/"}${listingId}`;
+  if (listingId.startsWith("http")) {
+    url = listingId;
+  } else if (listingId.startsWith("/")) {
+    url = `https://www.realestate.com.au${listingId}`;
   } else if (listingId.includes("-")) {
+    // If it looks like a slug but no leading slash
     url = `https://www.realestate.com.au/property-${listingId}`;
   } else {
-    url = `https://www.realestate.com.au/${listingId}`;
+    // Numeric ID or unrecognized format
+    url = `https://www.realestate.com.au/property-details-${listingId}`;
   }
 
-  const html = await scrapeRealEstate(url);
-  return parseReaPropertyListing(html);
+  const html = await scrapeRealEstateWithWebScraper(url);
+
+  // Save reference HTML for debugging/parser development
+  const referenceDir = join(process.cwd(), "packages/mcp-realestate/reference");
+  if (!existsSync(referenceDir)) {
+    mkdirSync(referenceDir, { recursive: true });
+  }
+  writeFileSync(join(referenceDir, "rea-property-details.html"), html);
+
+  // return parseReaPropertyListing(html);
+  return null;
 }
 
 /**
@@ -185,7 +209,7 @@ export async function getReaSuburbProfile(
   const url = `https://www.realestate.com.au/neighbourhoods/${suburbSlug}-${postcode}-${state.toLowerCase()}`;
 
   try {
-    const html = await scrapeRealEstate(url);
+    const html = await scrapeRealEstateWithWebScraper(url);
 
     // Try to extract from ArgonautExchange
     const argonautMatch = html.match(
@@ -277,7 +301,6 @@ export async function getReaSoldProperties(
     state,
     postcode,
     listingType: "sold",
-    pageSize: 50,
     page: 1,
   };
 
@@ -302,8 +325,9 @@ export async function getReaAgencyListings(
   const url = `https://www.realestate.com.au/agency/${agencyId}/listings`;
 
   try {
-    const html = await scrapeRealEstate(url);
-    return parseReaSearchResults(html);
+    const html = await scrapeRealEstateWithWebScraper(url);
+    // return parseReaSearchResults(html);
+    return [];
   } catch (error) {
     console.error(`Failed to get agency listings for ${agencyId}:`, error);
     return [];

@@ -63,5 +63,6 @@ export const RATE_LIMITS = {
   },
   market: {
     api: { tokensPerInterval: 100, interval: "minute" } as RateLimiterConfig,
+    absScrape: { tokensPerInterval: 20, interval: "minute" } as RateLimiterConfig,
   },
 } as const;
