@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { logger } from "@propure/mcp-shared";
+// import { logger } from "@propure/mcp-shared";
 import { scrapeABSWithScrapeDo } from "../sources/scrape-abs";
 
 /**
@@ -17,7 +17,7 @@ async function main(): Promise<void> {
     throw new Error("Parsed ABS market data is empty");
   }
 
-  logger.info(
+  console.info(
     {
       referencePath: referencePath ?? "not saved",
       sample: {
@@ -30,6 +30,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-  logger.error({ err }, "ABS Scrape.do test failed");
+  console.error({ err }, "ABS Scrape.do test failed");
   process.exit(1);
 });

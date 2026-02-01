@@ -1,6 +1,6 @@
 import pino from "pino";
 
-const isProd = process.env.NODE_ENV === "production";
+const isProd = "production";
 
 const baseOptions = {
   name: "propure-domain",

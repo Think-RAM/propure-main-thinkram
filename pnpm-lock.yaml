@@ -84,6 +84,9 @@ importers:
       '@propure/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@propure/workflow':
+        specifier: workspace:*
+        version: link:../../packages/workflow
       '@radix-ui/react-accordion':
         specifier: ^1.2.2
         version: 1.2.12(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -505,6 +508,12 @@ importers:
 
   packages/workflow:
     dependencies:
+      '@propure/convex':
+        specifier: workspace:*
+        version: link:../convex
+      '@propure/mcp-domain':
+        specifier: workspace:*
+        version: link:../mcp-domain
       '@propure/mcp-shared':
         specifier: workspace:*
         version: link:../mcp-shared

@@ -3,7 +3,7 @@ import {
   RATE_LIMITS,
   type RateLimiterConfig,
 } from "../rate-limiter";
-import { logger } from "../logger";
+// import { logger } from "../logger";
 
 export type ScrapeDoDevice = "desktop" | "mobile" | "tablet";
 export type ScrapeDoWaitUntil = "load" | "domcontentloaded" | "networkidle";
@@ -183,11 +183,14 @@ export class ScrapeDoWebScraper {
     const params = this.buildSearchParams(options);
     const requestUrl = `${this.baseUrl}?${params.toString()}`;
 
-    logger.debug({
-      url: options.url,
-      render: options.render,
-      geoCode: options.geoCode,
-    }, "Scrape.do request");
+    console.debug(
+      {
+        url: options.url,
+        render: options.render,
+        geoCode: options.geoCode,
+      },
+      "Scrape.do request",
+    );
 
     const response = await fetch(requestUrl, {
       method: "GET",
@@ -204,7 +207,7 @@ export class ScrapeDoWebScraper {
     }
 
     const payload = await response.text();
-    logger.debug({ url: options.url }, "Scrape.do response received");
+    console.debug({ url: options.url }, "Scrape.do response received");
     return payload;
   }
 
@@ -215,9 +218,9 @@ export class ScrapeDoWebScraper {
     options: ScrapeDoOptions,
     rateLimitKey: string,
     rateLimitConfig: RateLimiterConfig,
-    ): Promise<string> {
+  ): Promise<string> {
     await waitForRateLimit(rateLimitKey, rateLimitConfig);
-    logger.trace({ rateLimitKey }, "Scrape.do rate limit gate passed");
+    console.trace({ rateLimitKey }, "Scrape.do rate limit gate passed");
     return this.scrape(options);
   }
 }

@@ -9,7 +9,7 @@ import {
   type AustralianState,
   type ListingType,
 } from "@propure/mcp-shared";
-import { logger } from "../logger";
+// import { logger } from "../logger";
 
 import {
   isMockModeEnabled,
@@ -133,7 +133,7 @@ async function enrichListingsWithDetails(
         } satisfies PropertyListing;
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        logger.error(
+        console.error(
           {
             listingId: listing.externalId,
             err: message,
@@ -155,7 +155,7 @@ async function performDomainSearch(
   fetchDetails: (listingId: string, listingType: ListingType) => Promise<PropertyListing | null>,
 ): Promise<DomainSearchResult> {
   if (isMockModeEnabled()) {
-    logger.info("[Mock Mode] Returning mock property listings");
+    console.info("[Mock Mode] Returning mock property listings");
     return filterMockListings(params);
   }
 
@@ -197,7 +197,7 @@ async function performDomainSearch(
    */
   const processPage = async (pageNumber: number): Promise<void> => {
     const url = buildSearchUrl(params, pageNumber);
-    logger.info({ page: pageNumber, url }, "Fetching Domain search page");
+    console.info({ page: pageNumber, url }, "Fetching Domain search page");
 
     let html: string;
     try {
@@ -301,7 +301,7 @@ export async function getDomainPropertyDetailsUsingOxylabs(
 ): Promise<PropertyListing | null> {
   // Check for mock mode
   if (isMockModeEnabled()) {
-    logger.info({ listingId }, "[Mock Mode] Returning mock property details");
+    console.info({ listingId }, "[Mock Mode] Returning mock property details");
     return getMockPropertyDetails(listingId);
   }
 
@@ -326,7 +326,7 @@ export async function getDomainPropertyDetailsWithScrapeDo(
   listingType: ListingType = "sale",
 ): Promise<PropertyListing | null> {
   if (isMockModeEnabled()) {
-    logger.info({ listingId }, "[Mock Mode] Returning mock property details");
+    console.info({ listingId }, "[Mock Mode] Returning mock property details");
     return getMockPropertyDetails(listingId);
   }
 

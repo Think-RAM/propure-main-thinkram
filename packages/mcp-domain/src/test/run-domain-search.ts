@@ -2,7 +2,7 @@ import "dotenv/config";
 import { searchDomainPropertiesWithScrapeDo } from "@propure/mcp-domain";
 import fs from "fs/promises";
 import path from "path";
-import { logger } from "../logger";
+// import { logger } from "../logger";
 
 async function main() {
   if (!process.env.SCRAPEDO_TOKEN) {
@@ -22,12 +22,12 @@ async function main() {
 
   const listings = result.listings ?? [];
   if (listings.length === 0) {
-    logger.warn("No listings returned.");
+    console.warn("No listings returned.");
     return;
   }
 
-  logger.info({ count: listings.length }, "Listings count");
-  logger.info({ listing: listings[0] }, "Listing preview");
+  console.info({ count: listings.length }, "Listings count");
+  console.info({ listing: listings[0] }, "Listing preview");
   // console.log("Listing:");
   // console.dir(listings, { depth: Infinity });
 
@@ -40,10 +40,10 @@ async function main() {
 
   const outputPath = path.join(referenceDir, "output.json");
   await fs.writeFile(outputPath, JSON.stringify(result, null, 2));
-  logger.info({ outputPath }, "Saved output to file");
+  console.info({ outputPath }, "Saved output to file");
 }
 
 main().catch((err) => {
-  logger.error({ err }, "Error running domain search");
+  console.error({ err }, "Error running domain search");
   process.exit(1);
 });
