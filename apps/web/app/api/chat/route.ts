@@ -223,7 +223,8 @@ export async function POST(req: Request) {
               type: "data-chat-title",
               data: {
                 title,
-                id: chatSessionId!,
+                id,
+                generatedId: chatSessionId!,
               },
             });
           });

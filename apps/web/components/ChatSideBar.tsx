@@ -98,8 +98,9 @@ export function ChatSidebar({
         console.log("Data Parts: ", dataPart);
         switch (dataPart.type) {
           case "data-chat-title":
-            const titleData = dataPart.data as { title: string; id: Id<"chatSessions"> };
-            updateChatSessionTitle(titleData.id, titleData.title);
+            const titleData = dataPart.data as { title: string; id: string; generatedId: Id<"chatSessions"> };
+            console.log("DATA PART", titleData)
+            updateChatSessionTitle(titleData.id, titleData.title, titleData.generatedId);
             break;
         }
       },
