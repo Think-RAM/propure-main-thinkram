@@ -24,7 +24,7 @@ export default async function AuthLayout({
           </div>
         </div>
       </header>
-      <main className="flex-grow flex py-12 px-4 sm:px-6 lg:px-8">
+      <main className="flex-grow flex">
         <div className="w-full space-y-8">
           {children}
         </div>

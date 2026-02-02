@@ -1,4 +1,4 @@
-import InvestmentWizard from "@/components/investment-wizard";
+import OnboardingWizard from "@/components/onboarding-wizard";
 import { currentUser } from "@/lib/clerk/currentUser";
 import { use } from "react";
 
@@ -7,14 +7,17 @@ export default function OnboardingPage() {
 
   if (!user?.clerkUserId) {
     return (
-      <main className="min-h-min bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-xl mx-auto bg-white rounded-2xl shadow-md p-8 space-y-3">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Authentication isn’t configured
+      <main className="min-h-screen bg-[#0f1419] flex items-center justify-center px-4">
+        <div className="max-w-xl w-full bg-[#1a1f26] rounded-2xl border border-white/[0.08] p-8 space-y-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-[#0d7377] to-[#095456] rounded-xl flex items-center justify-center font-serif font-bold text-xl text-white mb-4">
+            P
+          </div>
+          <h1 className="text-2xl font-semibold text-[#f7f9fc]">
+            Authentication isn&apos;t configured
           </h1>
-          <p className="text-gray-600">
-            Set <code className="font-mono">CLERK_SECRET_KEY</code> and{" "}
-            <code className="font-mono">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</code>{" "}
+          <p className="text-[#9ba3af]">
+            Set <code className="font-mono bg-[#242b33] px-1.5 py-0.5 rounded text-[#1a9599]">CLERK_SECRET_KEY</code> and{" "}
+            <code className="font-mono bg-[#242b33] px-1.5 py-0.5 rounded text-[#1a9599]">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</code>{" "}
             to access onboarding.
           </p>
         </div>
@@ -22,5 +25,5 @@ export default function OnboardingPage() {
     );
   }
 
-  return <InvestmentWizard userId={user?.clerkUserId as string} />;
+  return <OnboardingWizard userId={user?.clerkUserId as string} />;
 }

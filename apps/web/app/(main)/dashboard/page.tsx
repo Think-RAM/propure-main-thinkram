@@ -16,6 +16,11 @@ export default function Page() {
 
   const toggleSidebar = (close = false) => {
     setIsSidebarOpen(close ? false : !isSidebarOpen);
+    if( !close ) {
+      setActiveSession(null);
+      console.log("Sidebar opened, active session cleared",userChatSessions, activeSessionId, isSidebarOpen,close);
+    }
+    console.log("Sidebar toggled:", userChatSessions,isSidebarOpen, close, activeSessionId);
   };
 
   return (
@@ -42,6 +47,7 @@ export default function Page() {
             toggleSidebar(true);
           }}
           loading={historyLoading}
+          onBackToHistory={() => toggleSidebar(true)}
         />
       </div>
     </TooltipProvider>

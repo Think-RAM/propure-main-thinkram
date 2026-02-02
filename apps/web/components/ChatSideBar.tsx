@@ -6,10 +6,15 @@ import { DefaultChatTransport } from "ai";
 import {
   ArrowDownIcon,
   Bot,
+  PanelLeft,
   SendHorizonalIcon,
   SparklesIcon,
 } from "lucide-react";
-
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { cn, fetchWithErrorHandlers } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -28,6 +33,7 @@ interface ChatSidebarProps {
   activeSessionId?: string;
   initialMessages: ChatMessageAI[];
   isLoading: boolean;
+  onBackToHistory: () => void;
 }
 
 export function ChatSidebar({
@@ -36,6 +42,7 @@ export function ChatSidebar({
   initialMessages,
   activeSessionId,
   isLoading,
+  onBackToHistory,
 }: ChatSidebarProps) {
   const [input, setInput] = useState("");
   const lastSentRef = useRef<string | null>(null);
@@ -157,60 +164,66 @@ export function ChatSidebar({
     setMessages,
   });
 
+  if(!open) return null
+
   if (isLoading) {
     return (
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-20 w-96",
-          "bg-gradient-to-b from-white/95 via-white/90 to-cyan-50/95 backdrop-blur-lg",
-          "border-r border-cyan-200/50 shadow-xl",
-          "transition-transform duration-300 ease-in-out",
-          "flex flex-col",
-          open ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 left-0 z-20 w-[40vw] min-w-[320px] max-w-[420px]",
+          "bg-[#1a1f26]/95 backdrop-blur-xl border-r border-white/10",
+          "transition-transform duration-300 ease-in-out flex flex-col",
+          open ? "translate-x-0" : "-translate-x-[-100%]"
         )}
       >
-        <div className="flex-1 min-h-0">
-          <ScrollArea className="h-full px-4 py-3">
-            <div className="flex flex-col gap-3">
-              {[...Array(6)].map((_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "flex gap-2",
-                    i % 2 === 0 ? "justify-end" : "justify-start"
-                  )}
-                >
-                  {i % 2 !== 0 && (
-                    <div className="h-8 w-8 rounded-full bg-cyan-100 animate-pulse" />
-                  )}
-
-                  <div
-                    className={cn(
-                      "h-10 rounded-lg animate-pulse",
-                      i % 2 === 0
-                        ? "w-[60%] bg-cyan-100"
-                        : "w-[75%] bg-white border"
-                    )}
-                  />
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/10 bg-[#242b33]">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0d7377] to-[#095456] flex items-center justify-center font-serif font-bold text-lg text-white">P</div>
+            <span className="font-serif text-xl font-semibold text-[#f7f9fc]">Propure</span>
+          </div>
+          <div className="h-8 w-8 bg-gray-700 rounded animate-pulse" />
         </div>
-
-        <form className="border-t border-cyan-200/40 px-4 py-3">
+        {/* Loading skeleton */}
+        <ScrollArea className="h-full px-4 py-6">
+          <div className="flex flex-col gap-3">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "flex gap-2",
+                  i % 2 === 0 ? "justify-end" : "justify-start"
+                )}
+              >
+                {i % 2 !== 0 && (
+                  <div className="h-8 w-8 rounded-full bg-gray-700 animate-pulse" />
+                )}
+                <div
+                  className={cn(
+                    "h-10 rounded-lg animate-pulse",
+                    i % 2 === 0
+                      ? "w-[60%] bg-gray-700"
+                      : "w-[75%] bg-[#242b33] border border-white/10"
+                  )}
+                />
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+        {/* Disabled input */}
+        <form className="border-t border-white/10 px-4 py-3 bg-[#242b33]">
           <div className="relative">
             <Textarea
               disabled
               rows={1}
               placeholder="Ask about properties, data, or insights…"
-              className="resize-none pr-12 rounded-lg border border-cyan-200/60 bg-white/90 text-sm focus-visible:ring-0"
+              className="resize-none pr-12 rounded-lg border border-white/10 bg-[#1a1f26]/80 text-sm focus-visible:ring-0"
             />
             <Button
               type="submit"
               size="icon"
               disabled
-              className="absolute right-2 bottom-2 h-8 w-8 rounded-full bg-cyan-200 text-cyan-600"
+              className="absolute right-2 bottom-2 h-8 w-8 rounded-full bg-[#0d7377]/40 text-[#0d7377]"
             >
               <SendHorizonalIcon className="h-4 w-4" />
             </Button>
@@ -223,101 +236,104 @@ export function ChatSidebar({
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-20 w-96",
-        "bg-gradient-to-b from-white/95 via-white/90 to-cyan-50/95 backdrop-blur-lg",
-        "border-r border-cyan-200/50 rounded-r-xl shadow-xl",
-        "transition-transform duration-300 ease-in-out",
-        "flex flex-col", // ✅ critical
-        open ? "translate-x-0" : "-translate-x-full"
+        "fixed inset-y-0 left-0 z-20 w-[40vw] min-w-[320px] max-w-[420px]",
+        "bg-[#1a1f26]/95 backdrop-blur-xl border-r border-white/10",
+        "transition-transform duration-300 ease-in-out flex flex-col",
+        open ? "translate-x-0" : "-translate-x-[-100%]"
       )}
     >
-      {/* ================= Messages ================= */}
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-5 border-b border-white/10 bg-[#242b33]">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0d7377] to-[#095456] flex items-center justify-center font-serif font-bold text-lg text-white">P</div>
+          <span className="font-serif text-xl font-semibold text-[#f7f9fc]">Propure</span>
+        </div>
+        {/* Optional: Add a toggle button or avatar here */}
+        <div className="h-8 w-8 rounded" >
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={onBackToHistory}
+                className="
+                          bg-[#1a1f26]/90 backdrop-blur-md
+                          border border-white/10
+                          shadow-lg
+                          hover:bg-[#242b33]
+                        "
+              >
+                <PanelLeft className="h-5 w-5 text-[#0d7377]" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Open chats</TooltipContent>
+          </Tooltip>
+        </div>
+      </div>
+      {/* Chat messages */}
       <div className="flex-1 min-h-0">
-        <ScrollArea className="h-full">
-          <ScrollAreaPrimitive.Viewport className="h-full px-4 py-3">
-            <div className="flex flex-col gap-4">
-              {messages.map(
-                (msg) =>
-                  msg.parts.some(
-                    (part) =>
-                      part.type === "text" && part.text.trim().length > 0
-                  ) && (
+        <ScrollArea className="h-full px-4 py-3">
+          <div className="flex flex-col gap-4">
+            {messages.map(
+              (msg) =>
+                msg.parts.some(
+                  (part) =>
+                    part.type === "text" && part.text.trim().length > 0
+                ) && (
+                  <div
+                    key={msg.id}
+                    className={cn(
+                      "flex gap-2",
+                      msg.role === "user" ? "justify-end" : "justify-start"
+                    )}
+                  >
+                    {/* Agent Avatar */}
+                    {msg.role !== "user" && (
+                      <Avatar className="h-8 w-8 mt-0.5 border border-[#0d7377] bg-[#242b33]">
+                        <AvatarFallback className="bg-[#0d7377] text-white">
+                          <Bot className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    {/* Message Bubble */}
                     <div
-                      key={msg.id}
                       className={cn(
-                        "flex gap-2",
-                        msg.role === "user" ? "justify-end" : "justify-start"
+                        "max-w-[85%] rounded-lg px-3 py-2 text-sm leading-relaxed",
+                        msg.role === "user"
+                          ? "bg-[#0d7377]/20 text-[#f7f9fc]"
+                          : "bg-[#242b33] text-[#f7f9fc] border border-[#0d7377]/30"
                       )}
                     >
-                      {/* Agent Avatar */}
-                      {msg.role !== "user" && (
-                        <Avatar className="h-8 w-8 mt-0.5 border border-cyan-200 bg-white">
-                          <AvatarFallback className="bg-cyan-50 text-cyan-700">
-                            <Bot className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-
-                      {/* Message Bubble */}
-                      <div
-                        className={cn(
-                          "max-w-[85%] rounded-lg px-3 py-2 text-sm leading-relaxed",
-                          msg.role === "user"
-                            ? "bg-cyan-100/70 text-gray-900"
-                            : "bg-white/80 text-gray-800 border border-cyan-100"
-                        )}
-                      >
-                        {msg.parts.map((part, i) =>
-                          part.type === "text" ? (
-                            <div
-                              key={i}
-                              className="prose prose-sm prose-cyan m-0 p-0"
+                      {msg.parts.map((part, i) =>
+                        part.type === "text" ? (
+                          <div
+                            key={i}
+                            className="prose prose-sm prose-invert m-0 p-0"
+                          >
+                            <Response
+                              controls={{ table: true }}
+                              remarkPlugins={[remarkGfm]}
                             >
-                              <Response
-                                controls={{
-                                  table: true, // Show table download button
-                                }}
-                                remarkPlugins={[remarkGfm]}
-                              >
-                                {part.text}
-                              </Response>
-                            </div>
-                          ) : null
-                        )}
-                      </div>
+                              {part.text}
+                            </Response>
+                          </div>
+                        ) : null
+                      )}
                     </div>
-                  )
-              )}
-
-              {status === "streaming" && <ThinkingMessage />}
-              {error && (
-                <div className="max-w-[85%] rounded-lg bg-red-100/70 text-red-900 self-center px-3 py-2 text-sm leading-relaxed">
-                  {error.message ||
-                    "An error occurred while processing your chat."}
-                </div>
-              )}
-            </div>
-          </ScrollAreaPrimitive.Viewport>
+                  </div>
+                )
+            )}
+            {status === "streaming" && <ThinkingMessage />}
+            {error && (
+              <div className="max-w-[85%] rounded-lg bg-red-100/70 text-red-900 self-center px-3 py-2 text-sm leading-relaxed">
+                {error.message ||
+                  "An error occurred while processing your chat."}
+              </div>
+            )}
+          </div>
         </ScrollArea>
-
-        {/* Scroll to bottom button */}
-        <button
-          type="button"
-          aria-label="Scroll to bottom"
-          onClick={() => scrollToBottom()}
-          className={cn(
-            "absolute bottom-24 left-1/2 -translate-x-1/2 z-50",
-            "rounded-full border bg-white p-2 shadow-lg transition-all",
-            isAtBottom
-              ? "pointer-events-none opacity-0 scale-90"
-              : "opacity-100 scale-100 hover:bg-muted"
-          )}
-        >
-          <ArrowDownIcon className="h-4 w-4" />
-        </button>
       </div>
-
-      {/* ================= Composer ================= */}
+      {/* Composer */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -325,7 +341,7 @@ export function ChatSidebar({
           sendMessage({ parts: [{ type: "text", text: input }] });
           setInput("");
         }}
-        className="border-t border-cyan-200/40 px-4 py-3"
+        className="border-t border-white/10 px-4 py-3 bg-[#242b33]"
       >
         <div className="relative">
           <Textarea
@@ -351,9 +367,8 @@ export function ChatSidebar({
                 }
               }
             }}
-            className="resize-none pr-12 rounded-lg border border-cyan-200/60 bg-white/90 text-sm focus-visible:ring-0"
+            className="resize-none pr-12 rounded-lg border border-white/10 bg-[#1a1f26]/80 text-sm focus-visible:ring-0"
           />
-
           <Button
             type="submit"
             size="icon"
@@ -363,8 +378,8 @@ export function ChatSidebar({
             className={cn(
               "absolute right-2 bottom-2 h-8 w-8 rounded-full",
               input.trim()
-                ? "bg-gradient-to-br from-cyan-400 to-teal-500 text-white"
-                : "bg-cyan-200 text-cyan-600"
+                ? "bg-gradient-to-br from-[#0d7377] to-[#095456] text-white"
+                : "bg-[#0d7377]/40 text-[#0d7377]"
             )}
           >
             <SendHorizonalIcon className="h-4 w-4" />
