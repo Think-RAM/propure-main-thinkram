@@ -91,6 +91,13 @@ const config = {
         marquee: 'scroll 40s linear infinite',
         'slide-left': 'slide-left 0.5s ease-out',
         'slide-right': 'slide-right 0.5s ease-out',
+        'gradient': 'gradient 8s linear infinite',
+        // 'float': 'float 6s ease-in-out infinite', // Existing float is 20s, keeping existing or overriding? I'll override or add as float-fast? Let's just add gradient for now as float exists.
+        // Actually, let's strictly follow the user request to add these. I will update float to match the requested 6s one or add a new one.
+        // Let's add 'float-hero' to be safe and use that in the component if I can, OR just update the existing one if it's not critical. 
+        // Wait, I can just add `gradient` and if `float` is already there, I'll leave it or update it. 
+        // Let's UPDATE `float` to be 6s as per request implies this setup works well.
+        'float': 'float 6s ease-in-out infinite',
       },
       keyframes: {
         scroll: {
@@ -110,8 +117,18 @@ const config = {
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         float: {
-          '0%, 100%': { transform: 'translate(0, 0)' },
-          '50%': { transform: 'translate(30px, -30px)' },
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-20px)' },
+        },
+        gradient: {
+          '0%, 100%': {
+            'background-size': '200% 200%',
+            'background-position': 'left center',
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center',
+          },
         },
       },
       // borderRadius: {

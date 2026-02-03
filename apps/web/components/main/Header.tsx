@@ -1,7 +1,7 @@
 'use client'
-
+import { motion, AnimatePresence } from "framer-motion";
 import { Layers, Menu } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from "next/navigation"
 import { UserButton, useUser } from '@clerk/nextjs'
 
@@ -10,16 +10,37 @@ type HeaderProps = {
 }
 
 export default function Header({ path }: HeaderProps) {
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false)
   const router = useRouter()
 
   const { isLoaded, isSignedIn, user } = useUser()
+  console.log("Checking path: ", path);
+  useEffect(() => {
+    if (path !== '/') {
+      setIsScrolled(true);
+      return;
+    }
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 60);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [path]);
 
 
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 h-20 bg-paper border-b border-grid-20 flex items-center justify-between px-10 z-50">
+      <motion.nav
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5 }}
+        className={`fixed top-0 left-0 right-0 h-20 border-b border-grid-20 flex items-center justify-between px-10 z-50 transition-all duration-300 ${isScrolled
+          ? 'bg-paper backdrop-blur-md shadow-lg py-4'
+          : 'bg-transparent'
+          }`}
+      >
         <div className="flex items-center gap-4 cursor-pointer">
           <div className="w-8 h-8 bg-primary flex items-center justify-center">
             <Layers className="text-white" size={14} />
@@ -28,10 +49,10 @@ export default function Header({ path }: HeaderProps) {
         </div>
 
         <nav className="hidden lg:flex gap-16">
-          <NavLink href="/" index="01" path={path == '/'}>Home</NavLink>
-          <NavLink href="/pricing" index="02" path={path == '/pricing'}>Pricing</NavLink>
-          <NavLink href="/about-us" index="03" path={path == '/about-us'}>About us</NavLink>
-          <NavLink href="/contact-us" index="04" path={path == '/contact-us'}>Contact us</NavLink>
+          <NavLink href="/" index="01" path={path == '/'} isScrolled={isScrolled}>Home</NavLink>
+          <NavLink href="/pricing" index="02" path={path == '/pricing'} isScrolled={isScrolled}>Pricing</NavLink>
+          <NavLink href="/about-us" index="03" path={path == '/about-us'} isScrolled={isScrolled}>About us</NavLink>
+          <NavLink href="/contact-us" index="04" path={path == '/contact-us'} isScrolled={isScrolled}>Contact us</NavLink>
         </nav>
 
         <div className="flex gap-3">
@@ -45,18 +66,21 @@ export default function Header({ path }: HeaderProps) {
             Get Access
           </button>
         </div>
-      </header>
+      </motion.nav>
+      {/* <header className=" ">
+
+      </header> */}
 
       {isModalOpen && <AccessModal onClose={() => setIsModalOpen(false)} />}
     </>
   )
 }
 
-function NavLink({ href, index, path, children }: { href: string; index: string; path: boolean; children: React.ReactNode }) {
+function NavLink({ href, index, path, isScrolled, children }: { href: string; index: string; path: boolean; isScrolled: boolean; children: React.ReactNode }) {
   return (
     <a
       href={href}
-      className={`mono-label ${path ? 'text-primary' : 'text-grid'} relative py-1 hover:text-primary transition-colors group`}
+      className={`mono-label ${path ? 'text-primary': !isScrolled ?'text-white/90' : 'text-grid'} relative py-1 hover:text-primary transition-colors group`}
     >
       {/* <span className="text-primary font-bold mr-2">{index}.</span> */}
       {children}
