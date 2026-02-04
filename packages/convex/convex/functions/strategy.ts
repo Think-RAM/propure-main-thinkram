@@ -1,6 +1,5 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
-import { Doc } from "../_generated/dataModel";
 import {
   strategyType,
   strategyStatus,
@@ -15,8 +14,8 @@ export const GetStrategyByUserId = query({
   handler: async (ctx, { userId }) => {
     const strategy = await ctx.db
       .query("strategies")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .first();
+      .withIndex("by_user_status", (q) => q.eq("userId", userId).eq("status", "ACTIVE"))
+      .unique();
     return strategy;
   },
 });
@@ -114,5 +113,149 @@ export const CreateUpdateStrategy = mutation({
       updatedAt: Date.now(),
     });
     return newStrategy;
+  },
+});
+
+export const updateUserProfile = mutation({
+  args: {
+    userId: v.id("users"),
+
+    // Either a top-level field OR a params key
+    field: v.optional(
+      v.union(
+        v.literal("budget"),
+        v.literal("deposit"),
+        v.literal("income"),
+        v.literal("riskTolerance"),
+        v.literal("timeline"),
+        v.literal("managementStyle"),
+      ),
+    ),
+
+    paramKey: v.optional(v.string()), // e.g. "regions", "bedrooms"
+    value: v.any(),
+
+    context: v.optional(v.string()),
+  },
+
+  handler: async (ctx, { userId, field, paramKey, value }) => {
+    if (!field && !paramKey) {
+      throw new Error("Either field or paramKey must be provided");
+    }
+
+    // 1️⃣ Always target DISCOVERY strategy
+    let strategy = await ctx.db
+      .query("strategies")
+      .withIndex("by_user_status", (q) =>
+        q.eq("userId", userId).eq("status", "DISCOVERY"),
+      )
+      .first();
+
+    // 2️⃣ Create DISCOVERY if missing
+    if (!strategy) {
+      const strategyId = await ctx.db.insert("strategies", {
+        userId,
+        type: "CASH_FLOW", // placeholder until recommendation
+        status: "DISCOVERY",
+        params: {},
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+
+      strategy = await ctx.db.get("strategies", strategyId);
+    }
+
+    if (!strategy) {
+      throw new Error("Failed to fetch or create DISCOVERY strategy");
+    }
+
+    // 3️⃣ Build patch safely
+    const patch: Record<string, any> = {
+      updatedAt: Date.now(),
+    };
+
+    if (field) {
+      patch[field] = value;
+    }
+
+    if (paramKey) {
+      patch.params = {
+        ...(strategy.params ?? {}),
+        [paramKey]: value,
+      };
+    }
+
+    await ctx.db.patch(strategy._id, patch);
+
+    return {
+      strategyId: strategy._id,
+      updatedField: field ?? `params.${paramKey}`,
+    };
+  },
+});
+
+
+export const saveRecommendation = mutation({
+  args: {
+    userId: v.id("users"),
+    strategyType: strategyType,
+    confidence: v.number(),
+    reasons: v.array(v.string()),
+    alternativeStrategies: v.array(strategyType),
+  },
+  handler: async (ctx, { userId, strategyType, confidence, reasons, alternativeStrategies }) => {
+    // 1. Archive any existing ACTIVE strategy
+    const active = await ctx.db
+      .query("strategies")
+      .withIndex("by_user_status", (q) =>
+        q.eq("userId", userId).eq("status", "ACTIVE"),
+      )
+      .collect();
+
+    for (const s of active) {
+      await ctx.db.patch(s._id, {
+        status: "ARCHIVED",
+        updatedAt: Date.now(),
+      });
+    }
+
+    // 2. Fetch DISCOVERY strategy
+    let strategy = await ctx.db
+      .query("strategies")
+      .withIndex("by_user_status", (q) =>
+        q.eq("userId", userId).eq("status", "DISCOVERY"),
+      )
+      .first();
+
+    // 3. If none exists, create one
+    if (!strategy) {
+      const id = await ctx.db.insert("strategies", {
+        userId,
+        type: strategyType,
+        status: "ACTIVE",
+        params: {
+          confidence,
+          reasons,
+          alternatives: alternativeStrategies,
+        },
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      return id;
+    }
+
+    // 4. Promote DISCOVERY → ACTIVE
+    await ctx.db.patch(strategy._id, {
+      type: strategyType,
+      status: "ACTIVE",
+      params: {
+        confidence,
+        reasons,
+        alternatives: alternativeStrategies,
+      },
+      updatedAt: Date.now(),
+    });
+
+    return strategy._id;
   },
 });

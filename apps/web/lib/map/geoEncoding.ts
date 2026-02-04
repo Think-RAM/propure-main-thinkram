@@ -1,6 +1,14 @@
 "use server";
 
-type GeocodeResult = { lat: number; lng: number; placeId?: string };
+type GeocodeResult = {
+  lat: number;
+  lng: number;
+  placeId?: string;
+  bbounds?: {
+    northeast: { lat: number; lng: number },
+    southwest: { lat: number; lng: number }
+  };
+};
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY!;
 
@@ -22,7 +30,17 @@ export const addressToCoordinatesGoogle = async (
       status: string;
       results: Array<{
         place_id: string;
-        geometry: { location: { lat: number; lng: number } };
+        geometry: {
+          location: { lat: number; lng: number },
+          bounds: {
+            northeast: { lat: number; lng: number },
+            southwest: { lat: number; lng: number }
+          },
+          viewport: {
+            northeast: { lat: number; lng: number },
+            southwest: { lat: number; lng: number }
+          }
+        };
       }>;
       error_message?: string;
     } = await res.json();
@@ -30,7 +48,14 @@ export const addressToCoordinatesGoogle = async (
     if (data.status !== "OK" || !data.results.length) return null;
 
     const loc = data.results[0].geometry.location;
-    return { lat: loc.lat, lng: loc.lng, placeId: data.results[0].place_id };
+    const bounds = data.results[0].geometry.bounds || data.results[0].geometry.viewport;
+    const place_id = data.results[0].place_id;
+    return {
+      lat: loc.lat,
+      lng: loc.lng,
+      placeId: place_id,
+      bbounds: bounds
+    };
   } catch (error) {
     console.error("addressToCoordinatesGoogle error:", error);
     return null;

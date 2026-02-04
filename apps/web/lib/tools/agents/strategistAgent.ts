@@ -6,10 +6,10 @@ import {
   UIMessageStreamWriter,
 } from "ai";
 import { google } from "@ai-sdk/google";
-import { getStrategyTool, saveStrategy } from "../strategyTools";
 import z from "zod";
 import { ChatMessageAI } from "@/types/ai";
 import { Doc, Id } from "@propure/convex/dataModel";
+import { captureDiscoveryInput, clarifyGoal, recommendStrategy, summarizeProfile } from "../strategyTools";
 
 interface ResearcherAgentProps {
   user: Doc<"users"> & { strategies?: Doc<"strategies">[] };
@@ -117,7 +117,30 @@ export const strategistOutputSchema = z.object({
 
 export type StrategistOutput = z.infer<typeof strategistOutputSchema>;
 
-const STRATEGIST_INSTRUCTIONS = `You are a strategic planning agent. Your task is to develop comprehensive strategies based on user goals and context. Use the available tools to gather information, validate assumptions, and refine your strategy iteratively.`;
+const STRATEGIST_INSTRUCTIONS = `
+You are a property investment strategy advisor. Your role is to:
+
+1. DISCOVER the user's situation through conversational questions:
+   - Financial: Income, deposit, borrowing capacity, existing debts
+   - Goals: Primary objective (cash flow vs growth), timeline, portfolio size
+   - Personal: Risk tolerance, time availability, DIY capability
+   - Constraints: Budget limits, geographic preferences, property types
+   - Experience: Previous investments, management style
+
+2. RECOMMEND the best investment strategy:
+   - Cash Flow: Positive rental income, typically regional areas
+   - Capital Growth: Long-term appreciation, metro/growth corridors
+   - Renovation/Flip: Buy-renovate-sell, requires hands-on
+   - Development: Land subdivision/construction, high capital required
+   - SMSF: Superannuation-funded, specific compliance requirements
+   - Commercial: Office/retail/industrial, different dynamics
+   - Mixed: Combination strategies for diversification
+
+3. EXPLAIN your reasoning clearly, connecting their situation to the strategy.
+
+Ask one discovery question at a time. Be conversational, not interrogative.
+Use tool calls to capture inputs and update the strategy.
+`;
 
 const StrategyAgent = ({
   user,
@@ -127,8 +150,10 @@ const StrategyAgent = ({
     model: google("gemini-2.5-flash"),
     instructions: STRATEGIST_INSTRUCTIONS,
     tools: {
-      getStrategy: getStrategyTool({ userId: user._id }),
-      saveStrategy: saveStrategy({ user, strategyId }),
+      captureDiscoveryInput: captureDiscoveryInput,
+      recommendStrategy: recommendStrategy,
+      clarifyGoal: clarifyGoal,
+      summarizeProfile: summarizeProfile,
     },
     // Note: Gemini doesn't support Output.object() with tools (function calling)
     // Using text output instead - the orchestrator will synthesize the response

@@ -10,46 +10,13 @@ import {
 } from "ai";
 import { google } from "@ai-sdk/google";
 import { auth } from "@clerk/nextjs/server";
-// import { searchDomainProperties, searchRealestateProperties } from "@/lib/tools/propertySearchTools";
-// import { getDemographics, getEconomicIndicators, getPopulationProjections, getRbaRates, getSuburbProfile, getSuburbStats } from "@/lib/tools/marketTools";
-// import { getAuctionResults, getSalesHistory, getSoldProperties } from "@/lib/tools/salesTools";
-// import { calculateCashFlow, calculateROI } from "@/lib/tools/financialTools";
-// import { saveStrategy } from "@/lib/tools/strategyTools";
 import { v4 as generateUUID } from "uuid";
 import { ChatMessageAI } from "@/types/ai";
 import { ChatSDKError } from "@/lib/ai-error";
-// import {
-//   getChatById,
-//   saveChatSession,
-//   saveMessages,
-//   updateChatTitleById,
-//   updateMessage,
-// } from "@/lib/chat/data";
-// import { convertCurrency, convertToUIMessages } from "@/lib/utils";
-// import { UserPreferences } from "@/types/types";
 import { StrategyAgentTool } from "@/lib/tools/agents/strategistAgent";
 import { ResearcherAgentTool } from "@/lib/tools/agents/researcherAgent";
 import { AnalystAgentTool } from "@/lib/tools/agents/analystAgent";
-// import {
-//   searchDomainProperties,
-//   searchRealestateProperties,
-// } from "@/lib/tools/propertySearchTools";
-// import {
-//   getDemographics,
-//   getEconomicIndicators,
-//   getPopulationProjections,
-//   getRbaRates,
-//   getSuburbProfile,
-//   getSuburbStats,
-// } from "@/lib/tools/marketTools";
-// import { saveStrategy } from "@/lib/tools/strategyTools";
-// import {
-//   saveMessages,
-//   updateChatTitleById,
-//   updateMessage
-// } from "@/lib/chat/data";
-import { convertCurrency, convertToUIMessages } from "@/lib/utils";
-import { UserPreferences } from "@/types/types";
+import { convertToUIMessages } from "@/lib/utils";
 import { client } from "@propure/convex/client";
 import { api } from "@propure/convex/api";
 import { Doc } from "@propure/convex/dataModel";

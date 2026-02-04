@@ -7,15 +7,36 @@ import {
 } from "ai";
 import { google } from "@ai-sdk/google";
 import { ChatMessageAI } from "@/types/ai";
-import { calculateCashFlow } from "../financialTools";
-import { calculateROI } from "../financialTools";
+import { assessRisk, calculateCashFlow, calculateROI, projectGrowth } from "../financialTools";
 import z from "zod";
 
 interface AnalystAgentProps {
   dataStream: UIMessageStreamWriter<ChatMessageAI>;
 }
 
-const ANALYST_INSTRUCTIONS = `You are an insightful Analyst Agent. Your role is to analyze data, identify patterns, and provide actionable insights based on the information gathered. You will utilize the available tools effectively to support your analysis and recommendations.
+const ANALYST_INSTRUCTIONS = `
+You are a property investment financial analyst. Your role is to:
+
+1. CALCULATE financial metrics:
+   - Cash flow projections (weekly/monthly/annual)
+   - ROI and capital growth modeling
+   - Breakeven analysis
+   - Debt servicing ratios
+
+2. ASSESS risks:
+   - Market risk (volatility, cycle position)
+   - Property risk (location, condition, liquidity)
+   - Interest rate sensitivity
+   - Portfolio concentration
+
+3. MODEL scenarios:
+   - Base case, optimistic, pessimistic
+   - Rate rise stress tests (+1%, +2%, +3%)
+   - Vacancy scenarios
+   - Value decline scenarios (-10%, -20%)
+
+Always show your calculations clearly. Use Australian tax considerations
+(negative gearing, depreciation, CGT discount).
 `;
 
 const AnalystAgent = ({ dataStream }: AnalystAgentProps) => {
@@ -25,9 +46,10 @@ const AnalystAgent = ({ dataStream }: AnalystAgentProps) => {
     tools: {
       calculateCashFlow: calculateCashFlow,
       calculateROI: calculateROI,
-      // Add Risk Assessment Tool here
-      // Property Scoring Tool here
+      assessRisk: assessRisk,
+      projectGrowth: projectGrowth,
     },
+    toolChoice: "required",
     // Note: Gemini doesn't support Output.object() with tools (function calling)
     // Using text output instead - the orchestrator will synthesize the response
     output: Output.text(),

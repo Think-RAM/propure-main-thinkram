@@ -128,7 +128,8 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_type", ["type"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_user_status", ["userId", "status"]),
 
   // ── Saved Searches ──
   savedSearches: defineTable({
