@@ -190,6 +190,19 @@ export default defineSchema({
     .index("by_state_suburb", ["state", "suburb"])
     .index("by_postcode", ["postcode"]),
 
+  // SA2 Geocodes
+  sa2Geocodes: defineTable({
+    suburb: v.string(),
+    state: australianState,
+    sa2Code: v.string(),
+    sa2Name: v.string(),
+    longitude: v.optional(v.float64()),
+    latitude: v.optional(v.float64()),
+    createdAt: v.float64(),
+  })
+    .index("by_sa2_code", ["sa2Code"])
+    .index("by_suburb_state", ["suburb", "state"]),
+
   // ── Properties ──
   properties: defineTable({
     externalId: v.string(),
