@@ -28,6 +28,58 @@ async function upsertListings(listings: any[]) {
   });
 }
 
+// Parameterised step: scrape a single listingType for a location. Kept as a
+// "use step" so the workflow runtime can retry network/parsing failures.
+type ListingType = "rent" | "sold" | "sale";
+
+async function scrapeTypeStep(
+  loc: ScrappingLocationWithStatus,
+  listingType: ListingType,
+) {
+  "use step";
+
+  return await searchDomainPropertiesWithScrapeDo({
+    suburbs: [loc.suburb],
+    state: loc.state as any,
+    postcode: loc.postcode,
+    page: 1,
+    listingType,
+    pageSize: 20,
+  });
+}
+
+// Workflow wrapper per listing type. This is a workflow so each listing-type
+// run gets its own workflow trace but still uses step-level scrape/upsert so
+// retries are isolated and atomic.
+export async function processLocationListingTypeWorkflow(
+  loc: ScrappingLocationWithStatus,
+  listingType: ListingType,
+): Promise<{
+  listingType: ListingType;
+  success: boolean;
+  listingsCount?: number;
+  error?: string;
+}> {
+  "use workflow";
+
+  try {
+    const scrapeResult = await scrapeTypeStep(loc, listingType);
+    const listings = (scrapeResult as any).listings ?? [];
+
+    if (listings.length > 0) {
+      await upsertListings(listings);
+    }
+
+    return { listingType, success: true, listingsCount: listings.length };
+  } catch (err: any) {
+    console.error(
+      `Listing-type workflow failed for ${loc.suburb} (${listingType}):`,
+      err,
+    );
+    return { listingType, success: false, error: String(err) };
+  }
+}
+
 // We will call convex properties.bulkUpsertProperties to insert listings
 
 type ScrappingLocationRecord = Doc<"scrapping_locations">;
@@ -99,21 +151,44 @@ async function processPendingLocations(
 
   for (const loc of pending) {
     try {
-      // Scrape the location using the dedicated step function
-      const scrapeResult = await scrapeLocation(loc);
-      const listings = (scrapeResult as any).listings ?? [];
+      // Run three listing-type workflows in parallel (rent, sold, sale).
+      // Each listing-type workflow uses step-level scrape/upsert so retries
+      // remain atomic. We use strict completion: only mark completed when
+      // all three listing-type workflows succeed.
+      const types: ListingType[] = ["rent", "sold", "sale"];
+      const promises = types.map((t) =>
+        processLocationListingTypeWorkflow(loc, t),
+      );
 
-      if (listings.length > 0) {
-        try {
-          await upsertListings(listings);
-        } catch (err) {
-          console.error("Failed to upsert listings for", loc, err);
-          continue; // leave status pending
+      const settled = await Promise.allSettled(promises);
+
+      const results = settled.map((s) =>
+        s.status === "fulfilled"
+          ? s.value
+          : { success: false, error: String((s as any).reason) },
+      );
+
+      // Log per-type results and determine overall success
+      let allSucceeded = true;
+      results.forEach((r: any) => {
+        if (r.success) {
+          console.info(
+            `Processed ${loc.suburb} - ${r.listingType}: ${r.listingsCount} listings`,
+          );
+        } else {
+          allSucceeded = false;
+          console.error(`Failed ${loc.suburb} - ${r.listingType}: ${r.error}`);
         }
-      }
+      });
 
-      // Mark in-memory status as completed
-      loc.status = "completed";
+      if (allSucceeded) {
+        loc.status = "completed";
+      } else {
+        // leave status pending for strict retry semantics
+        console.info(
+          `Location ${loc.suburb} left pending due to failures in one or more listing-type workflows`,
+        );
+      }
     } catch (error) {
       console.error(`Failed to process location ${loc.suburb}:`, error);
       // leave status pending so it can be retried later

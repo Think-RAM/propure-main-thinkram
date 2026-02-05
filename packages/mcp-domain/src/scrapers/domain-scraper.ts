@@ -35,7 +35,12 @@ interface DomainSearchResult {
  */
 function buildSearchUrl(params: PropertySearchParams, page?: number): string {
   const baseUrl = "https://www.domain.com.au";
-  const path = params.listingType === "rent" ? "/rent" : "/sale";
+  const path =
+    params.listingType === "rent"
+      ? "/rent"
+      : params.listingType === "sold"
+        ? "sold-listings"
+        : "/sale";
 
   // Build location part
   let location = "";
@@ -101,7 +106,10 @@ function hasListingPrice(listing: PropertyListing): boolean {
  */
 async function enrichListingsWithDetails(
   listings: PropertyListing[],
-  fetchDetails: (listingId: string, listingType: ListingType) => Promise<PropertyListing | null>,
+  fetchDetails: (
+    listingId: string,
+    listingType: ListingType,
+  ) => Promise<PropertyListing | null>,
 ): Promise<PropertyListing[]> {
   return Promise.all(
     listings.map(async (listing) => {
@@ -152,7 +160,10 @@ async function enrichListingsWithDetails(
 async function performDomainSearch(
   params: PropertySearchParams,
   fetchHtml: DomainHtmlFetcher,
-  fetchDetails: (listingId: string, listingType: ListingType) => Promise<PropertyListing | null>,
+  fetchDetails: (
+    listingId: string,
+    listingType: ListingType,
+  ) => Promise<PropertyListing | null>,
 ): Promise<DomainSearchResult> {
   if (isMockModeEnabled()) {
     console.info("[Mock Mode] Returning mock property listings");
