@@ -258,6 +258,18 @@ export const MarketDataSchema = z.object({
   tenureType: z.array(BreakdownEntrySchema),
   rentWeeklyPayments: z.array(BreakdownEntrySchema),
   mortgageMonthlyRepayments: z.array(BreakdownEntrySchema),
+  // Additional ABS summary fields
+  totalPopulation: z.number().nullable().optional(),
+  medianAge: z.number().nullable().optional(),
+  populationGrowth: z.number().nullable().optional(), // YoY %
+  malePercentage: z.number().nullable().optional(),
+  femalePercentage: z.number().nullable().optional(),
+
+  medianWeeklyPersonalIncome: z.number().nullable().optional(),
+  medianWeeklyHouseholdIncome: z.number().nullable().optional(),
+  medianWeeklyFamilyIncome: z.number().nullable().optional(),
+  medianMonthlyMortgageRepayment: z.number().nullable().optional(),
+  medianWeeklyRent: z.number().nullable().optional(),
 });
 export type MarketData = z.infer<typeof MarketDataSchema>;
 
