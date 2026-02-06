@@ -55,7 +55,7 @@ export class ScrapeDoWebScraper {
    * Initialize the Scrape.do client, falling back to SCRAPEDO_TOKEN env var when no token is provided.
    */
   constructor(token?: string) {
-    this.token = token || process.env.SCRAPEDO_TOKEN || "bb2abaa1a3aa4f17aeaba54fd8c21200a5e6466a7cc";
+    this.token = token || process.env.SCRAPEDO_TOKEN || "";
 
     if (!this.token) {
       throw new Error(

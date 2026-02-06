@@ -12,7 +12,7 @@ import { client } from "@propure/convex/client";
 import { api } from "@propure/convex/genereated";
 import { DOMParser } from "@xmldom/xmldom";
 import type { AbsPopulationProjection } from "@propure/mcp-shared";
-import { writeFileSync } from "fs";
+// import { writeFileSync } from "fs";
 
 interface AbsDemographics {
   suburb?: string;
