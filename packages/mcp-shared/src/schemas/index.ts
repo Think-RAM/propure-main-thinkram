@@ -289,6 +289,20 @@ export type TenureType = Array<BreakdownEntry>;
 export type RentWeeklyPayments = Array<BreakdownEntry>;
 export type MortgageMonthlyRepayments = Array<BreakdownEntry>;
 
+// Population projection schema (ABS)
+export const AbsPopulationProjectionSchema = z.object({
+  suburb: z.string(),
+  state: AustralianState,
+  year: z.number(), // 2024-2040
+  projectedPopulation: z.number(),
+  growthRate: z.number(), // % change from previous year
+});
+export type AbsPopulationProjection = z.infer<
+  typeof AbsPopulationProjectionSchema
+>;
+
+
+
 // Infrastructure project schema
 export const InfrastructureProjectSchema = z.object({
   id: z.string(),

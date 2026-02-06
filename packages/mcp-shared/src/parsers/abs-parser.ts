@@ -381,3 +381,122 @@ function cleanNumericText(value: string): string {
 function normalizeWhitespace(value: string): string {
   return value.replace(/\s+/g, " ").trim();
 }
+
+export interface AbsPopulationProjection {
+  suburb?: string;
+  state: string;
+  year: number;
+  projectedPopulation: number;
+  growthRate: number; // percent, e.g. 1.5 === 1.5%
+}
+
+export function parseAbsPopulationProjections(
+  html: string,
+  // opts?: { state?: string; series?: string; suburb?: string },
+): AbsPopulationProjection[] {
+  const $ = load(html);
+  const targetStates = [
+    "New South Wales",
+    "Victoria",
+    "Queensland",
+    "South Australia",
+    "Western Australia",
+    "Tasmania",
+    "Northern Territory",
+    "Australian Capital Territory",
+  ];
+
+  // const wantedState = opts?.state;
+  const seriesName = "Medium series";
+  // const suburb = opts?.suburb ?? "";
+
+  const final: AbsPopulationProjection[] = [];
+
+  // find all chart-table blocks and parse their table only
+  const blocks = $(".abs-chart-table").toArray();
+  // console.log(`Found ${blocks.length} .abs-chart-table blocks in the HTML`);
+  // console.log($(blocks[0]).html());
+  for (const b of blocks) {
+    const block = $(b);
+
+    // Find the table inside this block
+    const table = block.find("table.responsive-enabled").first();
+    if (!table.length) continue;
+
+    // Extract caption text
+    const title = normalizeWhitespace(table.find("caption").text() || "");
+
+    // console.log("Found table with title:", title);
+    if (!title) continue;
+
+    // expect title like: "Projected population, New South Wales"
+    const titleLower = title.toLowerCase();
+
+    if (!titleLower.includes("projected population")) continue;
+
+    const matchedState = targetStates.find((s) =>
+      titleLower.includes(s.toLowerCase()),
+    );
+    if (!matchedState) continue;
+    // if (wantedState && wantedState !== matchedState) continue;
+
+    // find the table (table view)
+    const results: {
+      year: number;
+      mediumSeries: number;
+    }[] = [];
+
+    // Select all table body rows
+    let mediumColIndex = -1;
+
+    table.find("thead th").each((index, th) => {
+      const headerText = $(th).text().trim().toLowerCase();
+      if (headerText === "medium series") {
+        mediumColIndex = index;
+      }
+    });
+
+    if (mediumColIndex === -1) {
+      throw new Error("Medium series column not found");
+    }
+
+    // 2️⃣ Extract rows
+    table.find("tbody tr").each((_, tr) => {
+      const yearText = $(tr).find("th.row-header").text().trim();
+      if (!yearText) return;
+
+      const mediumText = $(tr)
+        .find("td")
+        .eq(mediumColIndex - 1) // subtract 1 because first column is <th>
+        .text()
+        .trim();
+
+      if (!mediumText) return;
+
+      results.push({
+        year: Number(yearText),
+        mediumSeries: Number(mediumText.replace(/,/g, "")),
+      });
+    });
+
+    // compute growth rates and push
+    let prev: number | null = null;
+    for (let i = 0; i < results.length; i++) {
+      const year = results[i].year;
+      const value = results[i].mediumSeries;
+      const growth = prev === null ? 0 : ((value - prev) / prev) * 100;
+      final.push({
+        // suburb,
+        state: matchedState,
+        year,
+        projectedPopulation: value,
+        growthRate: Number.isFinite(growth)
+          ? Number(Number(growth.toFixed(6)))
+          : 0,
+      });
+      prev = value;
+    }
+  }
+
+  return final;
+}

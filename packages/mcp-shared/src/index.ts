@@ -39,7 +39,6 @@ export {
   type RateLimiterConfig,
 } from "./rate-limiter";
 
-
 // Schemas
 export * from "./schemas";
 
@@ -52,6 +51,7 @@ export {
   parseReaPropertyListing,
   parseReaSearchResults,
   parseAbsMarketData,
+  parseAbsPopulationProjections,
 } from "./parsers";
 
 export { logger, createChildLogger } from "./logger";

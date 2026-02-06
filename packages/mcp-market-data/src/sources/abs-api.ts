@@ -5,11 +5,14 @@ import {
   waitForRateLimit,
   RATE_LIMITS,
   type AustralianState,
+  parseAbsPopulationProjections,
 } from "@propure/mcp-shared";
 import type { MarketData } from "@propure/mcp-shared";
 import { client } from "@propure/convex/client";
 import { api } from "@propure/convex/genereated";
 import { DOMParser } from "@xmldom/xmldom";
+import type { AbsPopulationProjection } from "@propure/mcp-shared";
+import { writeFileSync } from "fs";
 
 interface AbsDemographics {
   suburb?: string;
@@ -197,39 +200,53 @@ export function getEstimatedBuildingApprovals(
 /**
  * Get population projections
  */
-export async function getAbsPopulationProjections(
-  state?: AustralianState,
-): Promise<{
-  current: number;
-  projected2030: number;
-  projected2040: number;
-  growthRate: number;
-}> {
-  await waitForRateLimit("market-api", RATE_LIMITS.market.api);
+export async function getAbsPopulationProjections(): Promise<
+  AbsPopulationProjection[]
+> {
+  // await waitForRateLimit("market-api", RATE_LIMITS.market.api);
+  // Validate params shape (lightweight)
+  // const { suburb, state, yearFrom = 2024, yearTo = 2030 } = params;
 
-  // Population projections by state
-  const projections: Record<
-    string,
-    { current: number; p2030: number; p2040: number; growth: number }
-  > = {
-    NSW: { current: 8166369, p2030: 9100000, p2040: 10200000, growth: 1.2 },
-    VIC: { current: 6503491, p2030: 7400000, p2040: 8500000, growth: 1.4 },
-    QLD: { current: 5156138, p2030: 6000000, p2040: 7000000, growth: 1.6 },
-    WA: { current: 2660026, p2030: 3000000, p2040: 3400000, growth: 1.3 },
-    SA: { current: 1771703, p2030: 1900000, p2040: 2000000, growth: 0.7 },
-    TAS: { current: 557571, p2030: 600000, p2040: 640000, growth: 0.7 },
-    NT: { current: 232605, p2030: 250000, p2040: 270000, growth: 0.8 },
-    ACT: { current: 454499, p2030: 520000, p2040: 600000, growth: 1.4 },
-  };
+  // if (!suburb || !state) {
+  //   throw new Error("suburb and state are required");
+  // }
 
-  const data = projections[state || "NSW"] || projections.NSW;
+  // // Clamp years to supported range 2024..2040
+  // const from = Math.max(2024, yearFrom);
+  // const to = Math.min(2040, yearTo);
 
-  return {
-    current: data.current,
-    projected2030: data.p2030,
-    projected2040: data.p2040,
-    growthRate: data.growth,
-  };
+  const ABS_PROJECTIONS_URL =
+    "https://www.abs.gov.au/statistics/people/population/population-projections-australia/latest-release";
+
+  try {
+    const html = await requestAbsWithScrapeDo(ABS_PROJECTIONS_URL);
+    // create a file in references named test.html and write the html into it for debugging
+    // writeFileSync("reference/abs-projections-test.html", html);
+
+    // console.log(html.substring(0, 500)); // Log a snippet of the HTML for debugging
+    const parsed = parseAbsPopulationProjections(html);
+    // console.log(parsed);
+
+    // filter and clamp years
+    // const filtered = (parsed as any[])
+    //   // .filter((p) => p.year >= from && p.year <= to)
+    //   .sort((a, b) => a.year - b.year);
+
+    // recompute growth rates to ensure consistency
+    // for (let i = 0; i < filtered.length; i++) {
+    //   if (i === 0) filtered[i].growthRate = 0;
+    //   else {
+    //     const prev = filtered[i - 1].projectedPopulation;
+    //     const curr = filtered[i].projectedPopulation;
+    //     filtered[i].growthRate = prev > 0 ? ((curr - prev) / prev) * 100 : 0;
+    //   }
+    // }
+
+    return parsed as AbsPopulationProjection[];
+  } catch (err) {
+    console.error("Failed to scrape ABS projections:", err);
+    return [];
+  }
 }
 
 interface SA2GeocodeResult {
