@@ -418,4 +418,172 @@ export default defineSchema({
     .index("by_scope", ["scope"])
     .index("by_type_scope", ["indicatorType", "scope"])
     .index("by_type_scope_time", ["indicatorType", "scope", "recordedAt"]),
+
+  // ABS Market Data (broken-out MarketDataSchema columns)
+  absMarketData: defineTable({
+    // sa2Id and sa2Code removed per request (no SA2 relation)
+    postcode: v.optional(v.string()),
+    suburb: v.optional(v.string()),
+    lga: v.optional(v.string()),
+    state: v.optional(australianState),
+
+    // Canonical top-level metrics (if available)
+    population: v.optional(v.float64()),
+    medianAge: v.optional(v.float64()),
+    medianWeeklyIncome: v.optional(v.float64()),
+    medianMonthlyMortgage: v.optional(v.float64()),
+    medianWeeklyRent: v.optional(v.float64()),
+    ownerOccupied: v.optional(v.float64()),
+    rented: v.optional(v.float64()),
+    unemploymentRate: v.optional(v.float64()),
+
+    // Breakdown columns (arrays of small objects)
+    people: v.optional(
+      v.array(
+        v.object({
+          label: v.string(),
+          count: v.float64(),
+          percentage: v.optional(v.float64()),
+        }),
+      ),
+    ),
+    maritalStatus: v.optional(
+      v.array(
+        v.object({
+          label: v.string(),
+          count: v.float64(),
+          percentage: v.optional(v.float64()),
+        }),
+      ),
+    ),
+    education: v.optional(
+      v.array(
+        v.object({
+          label: v.string(),
+          count: v.float64(),
+          percentage: v.optional(v.float64()),
+        }),
+      ),
+    ),
+    laborForce: v.optional(
+      v.array(
+        v.object({
+          label: v.string(),
+          count: v.float64(),
+          percentage: v.optional(v.float64()),
+        }),
+      ),
+    ),
+    employmentStatus: v.optional(
+      v.array(
+        v.object({
+          label: v.string(),
+          count: v.float64(),
+          percentage: v.optional(v.float64()),
+        }),
+      ),
+    ),
+    occupationTopResponses: v.optional(
+      v.array(
+        v.object({
+          label: v.string(),
+          count: v.float64(),
+          percentage: v.optional(v.float64()),
+        }),
+      ),
+    ),
+    industryTopResponses: v.optional(
+      v.array(
+        v.object({
+          label: v.string(),
+          count: v.float64(),
+          percentage: v.optional(v.float64()),
+        }),
+      ),
+    ),
+    medianWeeklyIncomes: v.optional(
+      v.array(
+        v.object({
+          label: v.string(),
+          count: v.float64(),
+          percentage: v.optional(v.float64()),
+        }),
+      ),
+    ),
+    methodOfTravelToWork: v.optional(
+      v.array(
+        v.object({
+          label: v.string(),
+          count: v.float64(),
+          percentage: v.optional(v.float64()),
+        }),
+      ),
+    ),
+    familyComposition: v.optional(
+      v.array(
+        v.object({
+          label: v.string(),
+          count: v.float64(),
+          percentage: v.optional(v.float64()),
+        }),
+      ),
+    ),
+    dwellingStructure: v.optional(
+      v.array(
+        v.object({
+          label: v.string(),
+          count: v.float64(),
+          percentage: v.optional(v.float64()),
+        }),
+      ),
+    ),
+    numberOfBedrooms: v.optional(
+      v.array(
+        v.object({
+          label: v.string(),
+          count: v.float64(),
+          percentage: v.optional(v.float64()),
+        }),
+      ),
+    ),
+    tenureType: v.optional(
+      v.array(
+        v.object({
+          label: v.string(),
+          count: v.float64(),
+          percentage: v.optional(v.float64()),
+        }),
+      ),
+    ),
+    rentWeeklyPayments: v.optional(
+      v.array(
+        v.object({
+          label: v.string(),
+          count: v.float64(),
+          percentage: v.optional(v.float64()),
+        }),
+      ),
+    ),
+    mortgageMonthlyRepayments: v.optional(
+      v.array(
+        v.object({
+          label: v.string(),
+          count: v.float64(),
+          percentage: v.optional(v.float64()),
+        }),
+      ),
+    ),
+
+    // Full validated marketData (from shared MarketDataSchema) and raw/debug
+    marketData: v.optional(v.any()),
+    url: v.optional(v.string()),
+    referencePath: v.optional(v.string()),
+    source: v.optional(dataSource),
+    scrapedAt: v.float64(),
+    createdAt: v.float64(),
+    extra: v.optional(v.any()),
+  })
+    .index("by_postcode", ["postcode"])
+    .index("by_state", ["state"])
+    .index("by_scraped_at", ["scrapedAt"]),
 });
