@@ -203,6 +203,24 @@ export default defineSchema({
     .index("by_sa2_code", ["sa2Code"])
     .index("by_suburb_state", ["suburb", "state"]),
 
+  // ABS Building Approvals (normalized relation to sa2Geocodes)
+  absBuildingApprovals: defineTable({
+    sa2Id: v.optional(v.id("sa2Geocodes")), // reference to sa2Geocodes when available
+    month: v.string(), // 'YYYY-MM'
+    totalApprovals: v.float64(),
+    houseApprovals: v.float64(),
+    apartmentApprovals: v.float64(),
+    observationValue: v.float64(),
+    source: v.optional(dataSource), // e.g. 'ABS' or 'MANUAL'
+    isEstimate: v.optional(v.boolean()),
+    scrapedAt: v.float64(),
+    createdAt: v.float64(),
+    extra: v.optional(v.any()), // optional raw payload or parsing metadata
+  })
+    .index("by_sa2_month", ["sa2Id", "month"])
+    .index("by_month", ["month"])
+    .index("by_source", ["source"]),
+
   // ── Properties ──
   properties: defineTable({
     externalId: v.string(),

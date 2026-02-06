@@ -420,9 +420,15 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.12.0
         version: 1.25.1(hono@4.11.3)(zod@3.25.76)
+      '@propure/convex':
+        specifier: workspace:*
+        version: link:../convex
       '@propure/mcp-shared':
         specifier: workspace:*
         version: link:../mcp-shared
+      '@xmldom/xmldom':
+        specifier: ^0.8.11
+        version: 0.8.11
       zod:
         specifier: ^3.24.1
         version: 3.25.76
@@ -430,6 +436,9 @@ importers:
       '@types/node':
         specifier: ^20
         version: 20.19.27
+      tsx:
+        specifier: ^4.20.3
+        version: 4.21.0
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -3613,6 +3622,10 @@ packages:
     resolution: {integrity: sha512-2u7/iHFDP4ADPZYBarH7xQsM10aY5sQjPYm2BGefgFA35UV3rxrJcT8OYaxhF4v6iM/q8QCSqvJFp/7xIobrxQ==}
     peerDependencies:
       zod: 4.1.11
+
+  '@xmldom/xmldom@0.8.11':
+    resolution: {integrity: sha512-cQzWCtO6C8TQiYl1ruKNn2U6Ao4o4WBBcbL61yJl84x+j5sOWWFU9X7DpND8XZG3daDppSsigMdfAIl2upQBRw==}
+    engines: {node: '>=10.0.0'}
 
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
@@ -10394,6 +10407,8 @@ snapshots:
   '@workflow/world@4.0.1-beta.13(zod@4.1.11)':
     dependencies:
       zod: 4.1.11
+
+  '@xmldom/xmldom@0.8.11': {}
 
   abort-controller@3.0.0:
     dependencies:
