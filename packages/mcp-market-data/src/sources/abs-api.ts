@@ -1,6 +1,4 @@
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
+// removed fs/path imports — no local reference file persistence anymore
 import {
   parseAbsMarketData,
   scrapeAbsWithScrapeDo as requestAbsWithScrapeDo,
@@ -42,9 +40,6 @@ interface BuildingApprovalData {
  */
 const ABS_API_BASE = "https://api.data.abs.gov.au";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 function buildURL(postcode: string) {
   return `https://www.abs.gov.au/census/find-census-data/quickstats/2021/POA${postcode}`;
 }
@@ -72,33 +67,13 @@ export async function getAbsDemographics(
       throw new Error("Failed to parse ABS market data from fetched HTML");
     }
 
-    let referencePath: string | undefined;
-    const shouldPersistReference = process.env.SAVE_ABS_REFERENCE === "true";
-
-    if (shouldPersistReference) {
-      const referenceDir = path.join(__dirname, "../reference/abs");
-      await fs.mkdir(referenceDir, { recursive: true });
-
-      referencePath = path.join(referenceDir, `POA${postcode}.html`);
-      await fs.writeFile(referencePath, html, "utf8");
-      console.info({ referencePath }, "Saved ABS HTML reference");
-    } else {
-      console.debug(
-        {
-          postcode,
-        },
-        "Skipping ABS reference persistence (SAVE_ABS_REFERENCE != 'true')",
-      );
-    }
-
-    return { url, referencePath, marketData };
+    // No local persistence of HTML reference anymore — return parsed data directly
+    return { url, referencePath: undefined, marketData };
   } catch (error) {
     console.error({ err: error, url, postcode }, "Failed to scrape ABS page");
     throw error;
   }
 }
-
-
 
 /**
  * Get building approvals data from ABS
