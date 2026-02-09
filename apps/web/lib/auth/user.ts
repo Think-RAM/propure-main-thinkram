@@ -1,7 +1,7 @@
 import { UserJSON } from "@clerk/nextjs/server";
 import updateUserMetadata from "../clerk/updateMetadata";
 import { client } from "@propure/convex/client";
-import { api } from "@propure/convex/api";
+import { api } from "@propure/convex/genereated";
 
 export async function verifyAndCreateUser(user: UserJSON) {
   try {

@@ -2,9 +2,9 @@
 import { Plan } from "@/types/types";
 import clerkClient from "../clerk";
 import { client } from "@propure/convex/client";
-import { api } from "@propure/convex/api";
+import { api } from "@propure/convex/genereated";
 import { StrategyType } from "@propure/convex";
-import { Id } from "@propure/convex/dataModel";
+import type { Id } from "@propure/convex/genereated";
 
 export interface UserPreferences {
   primaryGoal: string;

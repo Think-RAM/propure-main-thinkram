@@ -23,7 +23,7 @@ import { Response } from "./elements/response";
 import { ScrollArea } from "./ui/scroll-area";
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 import { useMap } from "@/context/MapContext";
-import { Id } from "@propure/convex/dataModel";
+import type { Id } from "@propure/convex/genereated";
 
 interface ChatSidebarProps {
   open: boolean;

@@ -10,7 +10,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { MessageSquare, Plus, PanelLeft } from "lucide-react";
-import type { Doc } from "@propure/convex/dataModel";
+import type { Doc } from "@propure/convex/genereated";
 
 interface ChatSidebarProps {
   open: boolean;

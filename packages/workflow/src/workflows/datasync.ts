@@ -1,6 +1,6 @@
 import { client } from "@propure/convex/client";
-import { api } from "@propure/convex/api";
-import type { Doc } from "@propure/convex/dataModel";
+import { api } from "@propure/convex/genereated";
+import type { Doc } from "@propure/convex/genereated";
 import { searchDomainPropertiesWithScrapeDo } from "@propure/mcp-domain";
 
 // Step wrapper: scrape a single location. Marked with "use step" so the

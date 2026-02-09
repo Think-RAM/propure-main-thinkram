@@ -8,7 +8,7 @@ import {
 import { google } from "@ai-sdk/google";
 import z from "zod";
 import { ChatMessageAI } from "@/types/ai";
-import { Doc, Id } from "@propure/convex/dataModel";
+import type { Doc, Id } from "@propure/convex/genereated";
 import { captureDiscoveryInput, clarifyGoal, recommendStrategy, summarizeProfile } from "../strategyTools";
 
 interface ResearcherAgentProps {

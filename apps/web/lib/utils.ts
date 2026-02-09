@@ -14,7 +14,7 @@ import {
   StateCoords,
 } from "./map/layers";
 import { SearchResult } from "@/context/MapContext";
-import { Doc } from "@propure/convex/dataModel";
+import type { Doc } from "@propure/convex/genereated";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -186,29 +186,32 @@ export async function fetchDetailsAtPoint(
 
 type LatLng = { lat: number; lng: number };
 
+export type ListingData = {
+  title: string;
+  address: string;
+  suburb: string;
+  state?: string;
+  postcode?: string;
+  latLng?: LatLng;
+  priceText?: string;
+  beds?: number;
+  baths?: number;
+  cars?: number;
+  url: string;
+  website: string;
+  estimatedWeeklyRent?: number;
+  estimatedGrossYieldPct?: number;
+  listedAt?: string;
+  externalId?: string;
+}
+
 export type PropertiesFoundPayload = {
   count: number;
   suburb: {
     name: string;
     latLng?: LatLng;
   };
-  listings: Array<{
-    title: string;
-    address: string;
-    suburb: string;
-    state?: string;
-    postcode?: string;
-    latLng?: LatLng;
-    priceText?: string;
-    beds?: number;
-    baths?: number;
-    cars?: number;
-    url: string;
-    website: string;
-    estimatedWeeklyRent?: number;
-    estimatedGrossYieldPct?: number;
-    listedAt?: string;
-  }>;
+  listings: Array<ListingData>;
 };
 
 export const AUS_CENTER: LatLng = { lat: -25.2744, lng: 133.7751 };

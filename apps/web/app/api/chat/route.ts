@@ -18,8 +18,10 @@ import { ResearcherAgentTool } from "@/lib/tools/agents/researcherAgent";
 import { AnalystAgentTool } from "@/lib/tools/agents/analystAgent";
 import { convertToUIMessages } from "@/lib/utils";
 import { client } from "@propure/convex/client";
-import { api } from "@propure/convex/api";
-import { Doc } from "@propure/convex/dataModel";
+import { 
+ api,
+ Doc
+} from "@propure/convex/genereated";
 
 /* ======================================================================
    SYSTEM PROMPT

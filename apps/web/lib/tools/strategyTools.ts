@@ -1,8 +1,8 @@
 import { tool } from "ai";
 import z from "zod";
 import { client } from "@propure/convex/client";
-import { Doc, Id } from "@propure/convex/dataModel";
-import { api } from "@propure/convex/api";
+import type { Doc, Id } from "@propure/convex/genereated";
+import { api } from "@propure/convex/genereated";
 import { StrategyType } from "@propure/convex";
 
 /**
