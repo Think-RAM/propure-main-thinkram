@@ -1,3 +1,3 @@
 export { createMarketDataServer } from "./server";
 export * from "./sources";
-export { scrapeABSWithScrapeDo } from "./sources/scrape-abs";
+export { getAbsDemographics } from "./sources/abs-api";

@@ -1,8 +1,18 @@
+// removed fs/path imports — no local reference file persistence anymore
 import {
+  parseAbsMarketData,
+  scrapeAbsWithScrapeDo as requestAbsWithScrapeDo,
   waitForRateLimit,
   RATE_LIMITS,
   type AustralianState,
+  parseAbsPopulationProjections,
 } from "@propure/mcp-shared";
+import type { MarketData } from "@propure/mcp-shared";
+import { client } from "@propure/convex/client";
+import { api } from "@propure/convex/genereated";
+import { DOMParser } from "@xmldom/xmldom";
+import type { AbsPopulationProjection } from "@propure/mcp-shared";
+// import { writeFileSync } from "fs";
 
 interface AbsDemographics {
   suburb?: string;
@@ -33,191 +43,117 @@ interface BuildingApprovalData {
  */
 const ABS_API_BASE = "https://api.data.abs.gov.au";
 
-/**
- * Get suburb/LGA demographics from ABS Census data
- */
-export async function getAbsDemographics(
-  suburb?: string,
-  lga?: string,
-  state?: AustralianState,
-): Promise<AbsDemographics | null> {
-  await waitForRateLimit("market-api", RATE_LIMITS.market.api);
-
-  // ABS uses specific geographic codes (SA2, LGA, STE)
-  // For now, we'll provide aggregated state-level data
-  // In production, this would map suburbs to SA2 codes
-
-  const stateCode = state || "NSW";
-
-  try {
-    // ABS Census QuickStats API
-    // Note: This is a simplified version - production would use proper SA2 geocoding
-    const response = await fetch(
-      `${ABS_API_BASE}/data/ABS,C21_G01_LGA,1.0.0/all?format=json`,
-      {
-        headers: {
-          Accept: "application/json",
-          "User-Agent":
-            "Mozilla/5.0 (compatible; PropureBot/1.0; +https://propure.com.au)",
-        },
-      },
-    );
-
-    if (!response.ok) {
-      // Return estimated values for the state
-      return getEstimatedDemographics(suburb, lga, stateCode);
-    }
-
-    const data = await response.json();
-
-    // Parse ABS SDMX response
-    // This would need proper implementation based on actual API structure
-    return getEstimatedDemographics(suburb, lga, stateCode);
-  } catch {
-    return getEstimatedDemographics(suburb, lga, stateCode);
-  }
+function buildURL(postcode: string) {
+  return `https://www.abs.gov.au/census/find-census-data/quickstats/2021/POA${postcode}`;
 }
 
-function getEstimatedDemographics(
-  suburb?: string,
-  lga?: string,
-  state?: string,
-): AbsDemographics {
-  // State-level median values from 2021 Census
-  const stateData: Record<string, Partial<AbsDemographics>> = {
-    NSW: {
-      population: 8166369,
-      medianAge: 38,
-      medianWeeklyIncome: 805,
-      medianMonthlyMortgage: 2167,
-      medianWeeklyRent: 470,
-      ownerOccupied: 64.5,
-      rented: 31.2,
-      unemploymentRate: 4.2,
-    },
-    VIC: {
-      population: 6503491,
-      medianAge: 37,
-      medianWeeklyIncome: 773,
-      medianMonthlyMortgage: 1942,
-      medianWeeklyRent: 395,
-      ownerOccupied: 66.3,
-      rented: 28.5,
-      unemploymentRate: 4.5,
-    },
-    QLD: {
-      population: 5156138,
-      medianAge: 38,
-      medianWeeklyIncome: 750,
-      medianMonthlyMortgage: 1850,
-      medianWeeklyRent: 410,
-      ownerOccupied: 63.1,
-      rented: 32.5,
-      unemploymentRate: 4.8,
-    },
-    WA: {
-      population: 2660026,
-      medianAge: 37,
-      medianWeeklyIncome: 848,
-      medianMonthlyMortgage: 1950,
-      medianWeeklyRent: 380,
-      ownerOccupied: 66.8,
-      rented: 27.8,
-      unemploymentRate: 3.8,
-    },
-    SA: {
-      population: 1771703,
-      medianAge: 40,
-      medianWeeklyIncome: 699,
-      medianMonthlyMortgage: 1550,
-      medianWeeklyRent: 320,
-      ownerOccupied: 66.2,
-      rented: 27.6,
-      unemploymentRate: 4.9,
-    },
-    TAS: {
-      population: 557571,
-      medianAge: 42,
-      medianWeeklyIncome: 653,
-      medianMonthlyMortgage: 1408,
-      medianWeeklyRent: 300,
-      ownerOccupied: 67.3,
-      rented: 26.8,
-      unemploymentRate: 5.2,
-    },
-    NT: {
-      population: 232605,
-      medianAge: 33,
-      medianWeeklyIncome: 940,
-      medianMonthlyMortgage: 1950,
-      medianWeeklyRent: 450,
-      ownerOccupied: 45.2,
-      rented: 37.8,
-      unemploymentRate: 4.1,
-    },
-    ACT: {
-      population: 454499,
-      medianAge: 35,
-      medianWeeklyIncome: 1039,
-      medianMonthlyMortgage: 2400,
-      medianWeeklyRent: 530,
-      ownerOccupied: 65.5,
-      rented: 30.2,
-      unemploymentRate: 3.2,
-    },
-  };
+interface ScrapeAbsResult extends Record<string, unknown> {
+  url: string;
+  marketData: MarketData;
+  referencePath?: string;
+}
 
-  const stateStats = stateData[state || "NSW"] || stateData.NSW;
+/**
+ * Fetch ABS quick stats HTML via Scrape.do, persist it as a reference artifact,
+ * and return the parsed market data breakdowns.
+ */
+export async function getAbsDemographics(
+  postcode: string,
+): Promise<ScrapeAbsResult> {
+  const url = buildURL(postcode);
+  try {
+    console.info({ url, postcode }, "Scraping ABS quick stats page");
+    const html = await requestAbsWithScrapeDo(url);
 
-  return {
-    suburb,
-    lga,
-    state: state || "NSW",
-    population: stateStats.population || 0,
-    medianAge: stateStats.medianAge || 38,
-    medianWeeklyIncome: stateStats.medianWeeklyIncome || 800,
-    medianMonthlyMortgage: stateStats.medianMonthlyMortgage || 2000,
-    medianWeeklyRent: stateStats.medianWeeklyRent || 400,
-    ownerOccupied: stateStats.ownerOccupied || 65,
-    rented: stateStats.rented || 30,
-    unemploymentRate: stateStats.unemploymentRate || 4.5,
-  };
+    const marketData = parseAbsMarketData(html);
+    if (!marketData) {
+      throw new Error("Failed to parse ABS market data from fetched HTML");
+    }
+
+    // No local persistence of HTML reference anymore — return parsed data directly
+    return { url, referencePath: undefined, marketData };
+  } catch (error) {
+    console.error({ err: error, url, postcode }, "Failed to scrape ABS page");
+    throw error;
+  }
 }
 
 /**
  * Get building approvals data from ABS
  */
-export async function getAbsBuildingApprovals(
-  state?: AustralianState,
-  months: number = 12,
-): Promise<BuildingApprovalData[]> {
-  await waitForRateLimit("market-api", RATE_LIMITS.market.api);
 
-  try {
-    // ABS Building Approvals dataset
-    const response = await fetch(
-      `${ABS_API_BASE}/data/ABS,BUILDING_APPROVALS,1.0.0/all?format=json&detail=dataonly`,
-      {
-        headers: {
-          Accept: "application/json",
-          "User-Agent":
-            "Mozilla/5.0 (compatible; PropureBot/1.0; +https://propure.com.au)",
-        },
-      },
-    );
-
-    if (!response.ok) {
-      return getEstimatedBuildingApprovals(state, months);
-    }
-
-    // Parse and return - simplified for now
-    return getEstimatedBuildingApprovals(state, months);
-  } catch {
-    return getEstimatedBuildingApprovals(state, months);
-  }
+interface AbsBuildingApprovals {
+  sa2Code: string;
+  sa2Name: string;
+  month: string; // ISO format: '2025-01'
+  totalApprovals: number;
+  houseApprovals: number;
+  apartmentApprovals: number;
+  observationValue: number; // Raw value from XML
 }
 
-function getEstimatedBuildingApprovals(
+// Fetch building approvals from ABS API (XML response)
+export async function getAbsBuildingApprovals(params: {
+  sa2Code: string;
+  startPeriod?: string; // ISO format: '2025-01'
+}): Promise<AbsBuildingApprovals[]> {
+  const { sa2Code, startPeriod = "2024-01" } = params;
+
+  const url = `https://data.api.abs.gov.au/rest/data/ABS,BA_SA2,2.0.0/1.9.TOT.TOT..${sa2Code}.M?startPeriod=${startPeriod}&dimensionAtObservation=AllDimensions`;
+
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/vnd.sdmx.genericdata+xml;version=2.1",
+    },
+  });
+
+  const xmlText = await response.text();
+
+  // Parse XML response (SDMX-ML Generic format)
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+  // Extract observations from XML
+  const observations = xmlDoc.getElementsByTagName("generic:Obs");
+  const approvals: AbsBuildingApprovals[] = [];
+
+  for (const obs of Array.from(observations)) {
+    // Get TIME_PERIOD from ObsKey
+    const obsKey = obs.getElementsByTagName("generic:ObsKey")[0];
+    const timePeriodValue = Array.from(
+      obsKey.getElementsByTagName("generic:Value"),
+    ).find((v) => v.getAttribute("id") === "TIME_PERIOD");
+    const month = timePeriodValue?.getAttribute("value");
+
+    // Get actual value from ObsValue
+    const obsValue = obs.getElementsByTagName("generic:ObsValue")[0];
+    const value = parseFloat(obsValue?.getAttribute("value") || "0");
+
+    if (month && !isNaN(value)) {
+      approvals.push({
+        sa2Code,
+        sa2Name:
+          (
+            await client.query(
+              api.functions.sa2geocode.getSa2GeocodeBySa2Code,
+              {
+                sa2Code: sa2Code,
+              },
+            )
+          )?.sa2Name || "", // Reverse lookup
+        month,
+        totalApprovals: value,
+        houseApprovals: Math.round(value * 0.4), // Approximation - breakdown requires separate data dimensions
+        apartmentApprovals: Math.round(value * 0.6),
+        observationValue: value,
+      });
+    }
+  }
+
+  return approvals;
+}
+
+export function getEstimatedBuildingApprovals(
   state?: string,
   months: number = 12,
 ): BuildingApprovalData[] {
@@ -264,37 +200,154 @@ function getEstimatedBuildingApprovals(
 /**
  * Get population projections
  */
-export async function getAbsPopulationProjections(
-  state?: AustralianState,
-): Promise<{
-  current: number;
-  projected2030: number;
-  projected2040: number;
-  growthRate: number;
-}> {
-  await waitForRateLimit("market-api", RATE_LIMITS.market.api);
+export async function getAbsPopulationProjections(): Promise<
+  AbsPopulationProjection[]
+> {
+  // await waitForRateLimit("market-api", RATE_LIMITS.market.api);
+  // Validate params shape (lightweight)
+  // const { suburb, state, yearFrom = 2024, yearTo = 2030 } = params;
 
-  // Population projections by state
-  const projections: Record<
-    string,
-    { current: number; p2030: number; p2040: number; growth: number }
-  > = {
-    NSW: { current: 8166369, p2030: 9100000, p2040: 10200000, growth: 1.2 },
-    VIC: { current: 6503491, p2030: 7400000, p2040: 8500000, growth: 1.4 },
-    QLD: { current: 5156138, p2030: 6000000, p2040: 7000000, growth: 1.6 },
-    WA: { current: 2660026, p2030: 3000000, p2040: 3400000, growth: 1.3 },
-    SA: { current: 1771703, p2030: 1900000, p2040: 2000000, growth: 0.7 },
-    TAS: { current: 557571, p2030: 600000, p2040: 640000, growth: 0.7 },
-    NT: { current: 232605, p2030: 250000, p2040: 270000, growth: 0.8 },
-    ACT: { current: 454499, p2030: 520000, p2040: 600000, growth: 1.4 },
+  // if (!suburb || !state) {
+  //   throw new Error("suburb and state are required");
+  // }
+
+  // // Clamp years to supported range 2024..2040
+  // const from = Math.max(2024, yearFrom);
+  // const to = Math.min(2040, yearTo);
+
+  const ABS_PROJECTIONS_URL =
+    "https://www.abs.gov.au/statistics/people/population/population-projections-australia/latest-release";
+
+  try {
+    const html = await requestAbsWithScrapeDo(ABS_PROJECTIONS_URL);
+    // create a file in references named test.html and write the html into it for debugging
+    // writeFileSync("reference/abs-projections-test.html", html);
+
+    // console.log(html.substring(0, 500)); // Log a snippet of the HTML for debugging
+    const parsed = parseAbsPopulationProjections(html);
+    // console.log(parsed);
+
+    // filter and clamp years
+    // const filtered = (parsed as any[])
+    //   // .filter((p) => p.year >= from && p.year <= to)
+    //   .sort((a, b) => a.year - b.year);
+
+    // recompute growth rates to ensure consistency
+    // for (let i = 0; i < filtered.length; i++) {
+    //   if (i === 0) filtered[i].growthRate = 0;
+    //   else {
+    //     const prev = filtered[i - 1].projectedPopulation;
+    //     const curr = filtered[i].projectedPopulation;
+    //     filtered[i].growthRate = prev > 0 ? ((curr - prev) / prev) * 100 : 0;
+    //   }
+    // }
+
+    return parsed as AbsPopulationProjection[];
+  } catch (err) {
+    console.error("Failed to scrape ABS projections:", err);
+    return [];
+  }
+}
+
+interface SA2GeocodeResult {
+  sa2Code: string;
+  sa2Name: string;
+  state: string;
+  geometry?: {
+    x: number; // Longitude
+    y: number; // Latitude
   };
+}
 
-  const data = projections[state || "NSW"] || projections.NSW;
+async function getSA2CodeForSuburb(
+  suburb: string,
+  state: string,
+): Promise<SA2GeocodeResult> {
+  const url = new URL(
+    "https://geo.abs.gov.au/arcgis/rest/services/ASGS2021/SA2/MapServer/find",
+  );
+
+  url.searchParams.set("searchText", suburb);
+  url.searchParams.set("contains", "true");
+  url.searchParams.set("searchFields", "SA2_NAME_2021");
+  url.searchParams.set("layers", "0");
+  url.searchParams.set("returnGeometry", "true");
+  url.searchParams.set("f", "json");
+
+  const response = await fetch(url.toString());
+  const data: any = await response.json();
+
+  if (!data?.results || data.results.length === 0) {
+    throw new Error(`No SA2 found for suburb: ${suburb}`);
+  }
+
+  // Filter results by state if multiple matches
+  let result = data.results[0];
+  if (data.results.length > 1) {
+    const stateMatch = data.results.find((r: any) =>
+      r.attributes.STE_NAME_2021?.includes(state),
+    );
+    if (stateMatch) result = stateMatch;
+  }
 
   return {
-    current: data.current,
-    projected2030: data.p2030,
-    projected2040: data.p2040,
-    growthRate: data.growth,
+    sa2Code: result.attributes.SA2_CODE_2021,
+    sa2Name: result.attributes.SA2_NAME_2021,
+    state: result.attributes.STE_NAME_2021 || state,
+    geometry: result.geometry
+      ? {
+          x: result.geometry.x,
+          y: result.geometry.y,
+        }
+      : undefined,
   };
+}
+
+export async function getSA2CodeForSuburbCached(
+  suburb: string,
+  state: AustralianState,
+): Promise<SA2GeocodeResult> {
+  const normalizedSuburb = suburb.trim().toLowerCase();
+
+  try {
+    const cached: any = await client.query(
+      api.functions.sa2geocode.getSa2GeocodeBySuburbState,
+      { suburb: normalizedSuburb, state },
+    );
+
+    if (cached) {
+      return {
+        sa2Code: cached.sa2Code,
+        sa2Name: cached.sa2Name,
+        state: cached.state,
+        geometry:
+          typeof cached.longitude === "number" &&
+          typeof cached.latitude === "number"
+            ? { x: cached.longitude, y: cached.latitude }
+            : undefined,
+      };
+    }
+  } catch (err) {
+    console.error("Convex query failed while reading SA2 cache:", err);
+    // continue to fetch from external API
+  }
+
+  // Fetch from API
+  const sa2Info = await getSA2CodeForSuburb(suburb, state);
+
+  // Persist into Convex (best-effort)
+  try {
+    await client.mutation(api.functions.sa2geocode.insertSa2Geocode, {
+      suburb: normalizedSuburb,
+      state: sa2Info.state as AustralianState,
+      sa2Code: sa2Info.sa2Code,
+      sa2Name: sa2Info.sa2Name,
+      longitude: sa2Info.geometry?.x,
+      latitude: sa2Info.geometry?.y,
+    });
+  } catch (err) {
+    console.error("Convex mutation failed while inserting SA2 geocode:", err);
+  }
+
+  return sa2Info;
 }

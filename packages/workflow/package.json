@@ -13,7 +13,9 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@propure/convex": "workspace:*",
     "@propure/mcp-shared": "workspace:*",
+    "@propure/mcp-domain": "workspace:*",
     "workflow": "^4.0.1-beta.50"
   },
   "devDependencies": {

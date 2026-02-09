@@ -3,7 +3,7 @@ import {
   RATE_LIMITS,
   type RateLimiterConfig,
 } from "../rate-limiter";
-import { logger } from "../logger";
+// import { logger } from "../logger";
 
 export interface WebScraperOptions {
   url: string;
@@ -28,8 +28,8 @@ export class OxylabsWebScraper {
   constructor(username?: string, password?: string) {
     this.username = username || process.env.OXYLABS_USERNAME || "";
     this.password = password || process.env.OXYLABS_PASSWORD || "";
-    logger.debug({ username: this.username }, "OxylabsWebScraper username");
-    logger.debug("OxylabsWebScraper password resolved from env");
+    console.debug({ username: this.username }, "OxylabsWebScraper username");
+    console.debug("OxylabsWebScraper password resolved from env");
     if (!this.username || !this.password) {
       throw new Error(
         "Oxylabs credentials not configured. Set OXYLABS_USERNAME and OXYLABS_PASSWORD environment variables."
@@ -48,7 +48,7 @@ export class OxylabsWebScraper {
    * Scrape a URL using Oxylabs Web Scraper API
    */
   async scrape(options: WebScraperOptions): Promise<string> {
-    logger.info({ url: options.url }, "Oxylabs scrape request");
+    console.info({ url: options.url }, "Oxylabs scrape request");
 
     const response = await fetch(this.baseUrl, {
       method: "post",

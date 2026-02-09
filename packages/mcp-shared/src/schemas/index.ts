@@ -258,6 +258,18 @@ export const MarketDataSchema = z.object({
   tenureType: z.array(BreakdownEntrySchema),
   rentWeeklyPayments: z.array(BreakdownEntrySchema),
   mortgageMonthlyRepayments: z.array(BreakdownEntrySchema),
+  // Additional ABS summary fields
+  totalPopulation: z.number().nullable().optional(),
+  medianAge: z.number().nullable().optional(),
+  populationGrowth: z.number().nullable().optional(), // YoY %
+  malePercentage: z.number().nullable().optional(),
+  femalePercentage: z.number().nullable().optional(),
+
+  medianWeeklyPersonalIncome: z.number().nullable().optional(),
+  medianWeeklyHouseholdIncome: z.number().nullable().optional(),
+  medianWeeklyFamilyIncome: z.number().nullable().optional(),
+  medianMonthlyMortgageRepayment: z.number().nullable().optional(),
+  medianWeeklyRent: z.number().nullable().optional(),
 });
 export type MarketData = z.infer<typeof MarketDataSchema>;
 
@@ -276,6 +288,20 @@ export type NumberOfBedrooms = Array<BreakdownEntry>;
 export type TenureType = Array<BreakdownEntry>;
 export type RentWeeklyPayments = Array<BreakdownEntry>;
 export type MortgageMonthlyRepayments = Array<BreakdownEntry>;
+
+// Population projection schema (ABS)
+export const AbsPopulationProjectionSchema = z.object({
+  suburb: z.string(),
+  state: AustralianState,
+  year: z.number(), // 2024-2040
+  projectedPopulation: z.number(),
+  growthRate: z.number(), // % change from previous year
+});
+export type AbsPopulationProjection = z.infer<
+  typeof AbsPopulationProjectionSchema
+>;
+
+
 
 // Infrastructure project schema
 export const InfrastructureProjectSchema = z.object({

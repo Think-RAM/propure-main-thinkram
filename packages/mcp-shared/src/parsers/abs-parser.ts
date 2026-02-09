@@ -35,12 +35,10 @@ const EMPLOYMENT_STATUS_HEADER_SUBTITLE =
   "People who reported being in the labour force, aged 15 years and over";
 
 const OCCUPATION_HEADER_TITLE = "Occupation, top responses";
-const OCCUPATION_HEADER_SUBTITLE =
-  "Employed people aged 15 years and over";
+const OCCUPATION_HEADER_SUBTITLE = "Employed people aged 15 years and over";
 
 const INDUSTRY_HEADER_TITLE = "Industry of employment, top responses";
-const INDUSTRY_HEADER_SUBTITLE =
-  "Employed people aged 15 years and over";
+const INDUSTRY_HEADER_SUBTITLE = "Employed people aged 15 years and over";
 
 const MEDIAN_WEEKLY_INCOME_HEADER_TITLE = "Median weekly incomes (a)";
 const MEDIAN_WEEKLY_INCOME_HEADER_SUBTITLE = "People aged 15 years and over";
@@ -151,42 +149,88 @@ export function parseAbsMarketData(html: string): MarketData | null {
     { stripCurrency: true },
   );
 
-  if (
-    !peopleRows ||
-    !maritalRows ||
-    !educationRows ||
-    !laborRows ||
-    !employmentRows ||
-    !occupationRows ||
-    !industryRows ||
-    !medianIncomeRows ||
-    !methodOfTravelRows ||
-    !familyCompositionRows ||
-    !dwellingStructureRows ||
-    !numberOfBedroomsRows ||
-    !tenureTypeRows ||
-    !rentWeeklyPaymentRows ||
-    !mortgageMonthlyRepaymentRows
-  ) {
+  if (!peopleRows) {
+    return null;
+  }
+
+  // Extract summary container numeric values
+  const summary = load(html)("#summary-container");
+  const dwellingTable = summary.find("table.summaryTable.qsDwelling");
+  const peopleTable = summary.find("table.summaryTable.qsPeople");
+  const familiesTable = summary.find("table.summaryTable.qsFamilies");
+
+  function parseCellNumber(text: string): number | null {
+    if (!text) return null;
+    const cleaned = text.replace(/[^0-9.\-]/g, "").trim();
+    if (!cleaned) return null;
+    const n = Number.parseFloat(cleaned.replace(/,/g, ""));
+    return Number.isNaN(n) ? null : n;
+  }
+
+  // helper to find row by header text inside a table
+  function findRowValue(
+    $table: Cheerio<Element>,
+    headerRegex: RegExp,
+  ): string | null {
+    const rows = ($table as any).find("tr").toArray();
+    for (const r of rows) {
+      const $r = load(r);
+      const th = $r("th").first();
+      const label = th.text() ? th.text().trim().replace(/\s+/g, " ") : "";
+      if (headerRegex.test(label)) {
+        const td = $r("td").first();
+        return td.text().trim();
+      }
+    }
     return null;
   }
 
   return {
     people: peopleRows,
-    maritalStatus: maritalRows,
-    education: educationRows,
-    laborForce: laborRows,
-    employmentStatus: employmentRows,
-    occupationTopResponses: occupationRows,
-    industryTopResponses: industryRows,
-    medianWeeklyIncomes: medianIncomeRows,
-    methodOfTravelToWork: methodOfTravelRows,
-    familyComposition: familyCompositionRows,
-    dwellingStructure: dwellingStructureRows,
-    numberOfBedrooms: numberOfBedroomsRows,
-    tenureType: tenureTypeRows,
-    rentWeeklyPayments: rentWeeklyPaymentRows,
-    mortgageMonthlyRepayments: mortgageMonthlyRepaymentRows,
+    maritalStatus: maritalRows ?? [],
+    education: educationRows ?? [],
+    laborForce: laborRows ?? [],
+    employmentStatus: employmentRows ?? [],
+    occupationTopResponses: occupationRows ?? [],
+    industryTopResponses: industryRows ?? [],
+    medianWeeklyIncomes: medianIncomeRows ?? [],
+    methodOfTravelToWork: methodOfTravelRows ?? [],
+    familyComposition: familyCompositionRows ?? [],
+    dwellingStructure: dwellingStructureRows ?? [],
+    numberOfBedrooms: numberOfBedroomsRows ?? [],
+    tenureType: tenureTypeRows ?? [],
+    rentWeeklyPayments: rentWeeklyPaymentRows ?? [],
+    mortgageMonthlyRepayments: mortgageMonthlyRepaymentRows ?? [],
+    // summary numeric fields
+    totalPopulation:
+      parseCellNumber(findRowValue(peopleTable, /People$/) ?? "") ?? null,
+    medianAge:
+      parseCellNumber(findRowValue(peopleTable, /Median age/i) ?? "") ?? null,
+    populationGrowth: null, // not available in summary
+    malePercentage:
+      parseCellNumber(
+        findRowValue(peopleTable, /Male/i)?.replace("%", "") ?? "",
+      ) ?? null,
+    femalePercentage:
+      parseCellNumber(
+        findRowValue(peopleTable, /Female/i)?.replace("%", "") ?? "",
+      ) ?? null,
+
+    medianWeeklyPersonalIncome: null, // not present in sample
+    medianWeeklyHouseholdIncome:
+      parseCellNumber(
+        findRowValue(dwellingTable, /Median weekly household income/i) ?? "",
+      ) ?? null,
+    medianWeeklyFamilyIncome: null, // not present in sample
+    medianMonthlyMortgageRepayment:
+      parseCellNumber(
+        findRowValue(dwellingTable, /Median monthly mortgage repayments/i) ??
+          "",
+      ) ?? null,
+    medianWeeklyRent:
+      parseCellNumber(
+        findRowValue(dwellingTable, /Median weekly rent/i) ?? "",
+      ) ?? null,
   };
 }
 
@@ -195,10 +239,7 @@ interface TableQuery {
   subtitle?: string;
 }
 
-function findTableByHeader(
-  $: CheerioAPI,
-  query: TableQuery,
-): Element | null {
+function findTableByHeader($: CheerioAPI, query: TableQuery): Element | null {
   const tables = $("table").toArray();
 
   for (const table of tables) {
@@ -275,8 +316,6 @@ function extractTableRows(
   return rows.length ? rows : null;
 }
 
-
-
 function extractRow(
   $: CheerioAPI,
   row: Cheerio<Element>,
@@ -341,4 +380,123 @@ function cleanNumericText(value: string): string {
 
 function normalizeWhitespace(value: string): string {
   return value.replace(/\s+/g, " ").trim();
+}
+
+export interface AbsPopulationProjection {
+  suburb?: string;
+  state: string;
+  year: number;
+  projectedPopulation: number;
+  growthRate: number; // percent, e.g. 1.5 === 1.5%
+}
+
+export function parseAbsPopulationProjections(
+  html: string,
+  // opts?: { state?: string; series?: string; suburb?: string },
+): AbsPopulationProjection[] {
+  const $ = load(html);
+  const targetStates = [
+    "New South Wales",
+    "Victoria",
+    "Queensland",
+    "South Australia",
+    "Western Australia",
+    "Tasmania",
+    "Northern Territory",
+    "Australian Capital Territory",
+  ];
+
+  // const wantedState = opts?.state;
+  const seriesName = "Medium series";
+  // const suburb = opts?.suburb ?? "";
+
+  const final: AbsPopulationProjection[] = [];
+
+  // find all chart-table blocks and parse their table only
+  const blocks = $(".abs-chart-table").toArray();
+  // console.log(`Found ${blocks.length} .abs-chart-table blocks in the HTML`);
+  // console.log($(blocks[0]).html());
+  for (const b of blocks) {
+    const block = $(b);
+
+    // Find the table inside this block
+    const table = block.find("table.responsive-enabled").first();
+    if (!table.length) continue;
+
+    // Extract caption text
+    const title = normalizeWhitespace(table.find("caption").text() || "");
+
+    // console.log("Found table with title:", title);
+    if (!title) continue;
+
+    // expect title like: "Projected population, New South Wales"
+    const titleLower = title.toLowerCase();
+
+    if (!titleLower.includes("projected population")) continue;
+
+    const matchedState = targetStates.find((s) =>
+      titleLower.includes(s.toLowerCase()),
+    );
+    if (!matchedState) continue;
+    // if (wantedState && wantedState !== matchedState) continue;
+
+    // find the table (table view)
+    const results: {
+      year: number;
+      mediumSeries: number;
+    }[] = [];
+
+    // Select all table body rows
+    let mediumColIndex = -1;
+
+    table.find("thead th").each((index, th) => {
+      const headerText = $(th).text().trim().toLowerCase();
+      if (headerText === "medium series") {
+        mediumColIndex = index;
+      }
+    });
+
+    if (mediumColIndex === -1) {
+      throw new Error("Medium series column not found");
+    }
+
+    // 2️⃣ Extract rows
+    table.find("tbody tr").each((_, tr) => {
+      const yearText = $(tr).find("th.row-header").text().trim();
+      if (!yearText) return;
+
+      const mediumText = $(tr)
+        .find("td")
+        .eq(mediumColIndex - 1) // subtract 1 because first column is <th>
+        .text()
+        .trim();
+
+      if (!mediumText) return;
+
+      results.push({
+        year: Number(yearText),
+        mediumSeries: Number(mediumText.replace(/,/g, "")),
+      });
+    });
+
+    // compute growth rates and push
+    let prev: number | null = null;
+    for (let i = 0; i < results.length; i++) {
+      const year = results[i].year;
+      const value = results[i].mediumSeries;
+      const growth = prev === null ? 0 : ((value - prev) / prev) * 100;
+      final.push({
+        // suburb,
+        state: matchedState,
+        year,
+        projectedPopulation: value,
+        growthRate: Number.isFinite(growth)
+          ? Number(Number(growth.toFixed(6)))
+          : 0,
+      });
+      prev = value;
+    }
+  }
+
+  return final;
 }

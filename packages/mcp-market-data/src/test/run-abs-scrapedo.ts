@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { logger } from "@propure/mcp-shared";
-import { scrapeABSWithScrapeDo } from "../sources/scrape-abs";
+// import { logger } from "@propure/mcp-shared";
+import { getAbsDemographics } from "../sources/abs-api";
 
 /**
  * Execute the ABS Scrape.do workflow for postcode 2000 and verify the reference artifact exists.
@@ -11,13 +11,13 @@ async function main(): Promise<void> {
   }
 
   const postcode = "2000";
-  const { referencePath, marketData } = await scrapeABSWithScrapeDo(postcode);
+  const { referencePath, marketData } = await getAbsDemographics(postcode);
 
   if (!marketData || marketData.people.length === 0) {
     throw new Error("Parsed ABS market data is empty");
   }
 
-  logger.info(
+  console.info(
     {
       referencePath: referencePath ?? "not saved",
       sample: {
@@ -30,6 +30,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-  logger.error({ err }, "ABS Scrape.do test failed");
+  console.error({ err }, "ABS Scrape.do test failed");
   process.exit(1);
 });

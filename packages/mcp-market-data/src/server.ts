@@ -1,15 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { AustralianState } from "@propure/mcp-shared";
-import {
-  getRbaCashRate,
-  getRbaLendingRates,
-  getRbaEconomicIndicators,
-  getAbsDemographics,
-  getAbsBuildingApprovals,
-  getAbsPopulationProjections,
-} from "./sources/market-sources";
-import { scrapeABSWithScrapeDo } from "./sources/scrape-abs";
+import { getAbsDemographics } from "./sources/abs-api";
 
 /**
  * Create and configure the Market Data MCP server
@@ -20,7 +11,7 @@ export function createMarketDataServer(): McpServer {
     version: "1.0.0",
   });
 
-  // Tool: Get RBA Cash Rate
+  //
   server.registerTool(
     "scrape_abs",
     {
@@ -33,7 +24,7 @@ export function createMarketDataServer(): McpServer {
     },
     async ({ postcode }) => {
       try {
-        const result = await scrapeABSWithScrapeDo(postcode);
+        const result = await getAbsDemographics(postcode);
 
         return {
           content: [

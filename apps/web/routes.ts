@@ -1,13 +1,5 @@
-export const authRoutes = [
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-];
+export const authRoutes = ["/sign-in(.*)", "/sign-up(.*)"];
 
-export const publicRoutes = [
-  "/",
-  "/api(.*)",
-];
+export const publicRoutes = ["/", "/api(.*)", "/.well-known(.*)"];
 
-export const onBoardingRoutes = [
-  "/onboarding(.*)",
-];
+export const onBoardingRoutes = ["/onboarding(.*)"];

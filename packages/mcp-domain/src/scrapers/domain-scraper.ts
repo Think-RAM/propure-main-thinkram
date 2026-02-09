@@ -9,7 +9,7 @@ import {
   type AustralianState,
   type ListingType,
 } from "@propure/mcp-shared";
-import { logger } from "../logger";
+// import { logger } from "../logger";
 
 import {
   isMockModeEnabled,
@@ -35,7 +35,12 @@ interface DomainSearchResult {
  */
 function buildSearchUrl(params: PropertySearchParams, page?: number): string {
   const baseUrl = "https://www.domain.com.au";
-  const path = params.listingType === "rent" ? "/rent" : "/sale";
+  const path =
+    params.listingType === "rent"
+      ? "/rent"
+      : params.listingType === "sold"
+        ? "sold-listings"
+        : "/sale";
 
   // Build location part
   let location = "";
@@ -101,7 +106,10 @@ function hasListingPrice(listing: PropertyListing): boolean {
  */
 async function enrichListingsWithDetails(
   listings: PropertyListing[],
-  fetchDetails: (listingId: string, listingType: ListingType) => Promise<PropertyListing | null>,
+  fetchDetails: (
+    listingId: string,
+    listingType: ListingType,
+  ) => Promise<PropertyListing | null>,
 ): Promise<PropertyListing[]> {
   return Promise.all(
     listings.map(async (listing) => {
@@ -133,7 +141,7 @@ async function enrichListingsWithDetails(
         } satisfies PropertyListing;
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        logger.error(
+        console.error(
           {
             listingId: listing.externalId,
             err: message,
@@ -152,10 +160,13 @@ async function enrichListingsWithDetails(
 async function performDomainSearch(
   params: PropertySearchParams,
   fetchHtml: DomainHtmlFetcher,
-  fetchDetails: (listingId: string, listingType: ListingType) => Promise<PropertyListing | null>,
+  fetchDetails: (
+    listingId: string,
+    listingType: ListingType,
+  ) => Promise<PropertyListing | null>,
 ): Promise<DomainSearchResult> {
   if (isMockModeEnabled()) {
-    logger.info("[Mock Mode] Returning mock property listings");
+    console.info("[Mock Mode] Returning mock property listings");
     return filterMockListings(params);
   }
 
@@ -197,7 +208,7 @@ async function performDomainSearch(
    */
   const processPage = async (pageNumber: number): Promise<void> => {
     const url = buildSearchUrl(params, pageNumber);
-    logger.info({ page: pageNumber, url }, "Fetching Domain search page");
+    console.info({ page: pageNumber, url }, "Fetching Domain search page");
 
     let html: string;
     try {
@@ -301,7 +312,7 @@ export async function getDomainPropertyDetailsUsingOxylabs(
 ): Promise<PropertyListing | null> {
   // Check for mock mode
   if (isMockModeEnabled()) {
-    logger.info({ listingId }, "[Mock Mode] Returning mock property details");
+    console.info({ listingId }, "[Mock Mode] Returning mock property details");
     return getMockPropertyDetails(listingId);
   }
 
@@ -326,7 +337,7 @@ export async function getDomainPropertyDetailsWithScrapeDo(
   listingType: ListingType = "sale",
 ): Promise<PropertyListing | null> {
   if (isMockModeEnabled()) {
-    logger.info({ listingId }, "[Mock Mode] Returning mock property details");
+    console.info({ listingId }, "[Mock Mode] Returning mock property details");
     return getMockPropertyDetails(listingId);
   }
 
