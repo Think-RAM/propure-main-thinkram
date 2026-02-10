@@ -73,6 +73,15 @@ export const listingStatus = v.union(
   v.literal("OFF_MARKET"),
 );
 
+export const soldAt = v.union(
+  v.literal("AUCTION"),
+  v.literal("PRIVATE_TREATY"),
+  // v.literal("OFF_MARKET"),
+  v.literal("OTHER"),
+);
+
+export type SoldAt = Infer<typeof soldAt>;
+
 export type PropertyType = Infer<typeof propertyType>;
 export type ListingType = Infer<typeof listingType>;
 export type DataSource = Infer<typeof dataSource>;
@@ -222,6 +231,22 @@ export default defineSchema({
     .index("by_month", ["month"])
     .index("by_source", ["source"]),
 
+  // ABS Population Projections
+  absPopulationProjections: defineTable({
+    state: australianState,
+    year: v.float64(), // 2024..2040
+    projectedPopulation: v.float64(),
+    growthRate: v.float64(), // percent, e.g. 1.5
+    source: v.optional(dataSource), // 'ABS' or 'MANUAL'
+    recordedAt: v.float64(), // epoch ms
+    createdAt: v.float64(),
+    extra: v.optional(v.any()), // raw parsed row / metadata
+  })
+    .index("by_state_year", ["state", "year"])
+    .index("by_state", ["state"])
+    .index("by_year", ["year"])
+    .index("by_source", ["source"]),
+
   // ── Properties ──
   properties: defineTable({
     externalId: v.string(),
@@ -262,6 +287,12 @@ export default defineSchema({
 
     listingType: listingType,
     listingStatus: v.optional(listingStatus),
+
+    //sold related fields
+    soldDate: v.optional(v.float64()),
+    soldPrice: v.optional(v.float64()),
+    soldAt: v.optional(soldAt),
+    daysOnMarket: v.optional(v.int64()),
 
     headline: v.optional(v.string()),
     description: v.optional(v.string()),

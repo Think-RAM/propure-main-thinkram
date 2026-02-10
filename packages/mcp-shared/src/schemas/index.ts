@@ -97,6 +97,7 @@ export const PropertyListingSchema = z.object({
   agentName: z.string().optional(),
   agentPhone: z.string().optional(),
   agencyName: z.string().optional(),
+  
   listedDate: z.string().optional(),
   auctionDate: z.string().optional(),
   inspectionTimes: z.array(z.string()).optional(),
@@ -291,7 +292,7 @@ export type MortgageMonthlyRepayments = Array<BreakdownEntry>;
 
 // Population projection schema (ABS)
 export const AbsPopulationProjectionSchema = z.object({
-  suburb: z.string(),
+  // suburb: z.string(),
   state: AustralianState,
   year: z.number(), // 2024-2040
   projectedPopulation: z.number(),
