@@ -2,6 +2,7 @@ import { client } from "@propure/convex/client";
 import { api } from "@propure/convex/api";
 import type { Doc } from "@propure/convex/dataModel";
 import { searchDomainPropertiesWithScrapeDo } from "@propure/mcp-domain";
+import { start } from "workflow/api";
 
 // Step wrapper: scrape a single location. Marked with "use step" so the
 // workflow compiler treats it as an atomic, retryable operation.
@@ -104,6 +105,7 @@ export async function datasyncWorkflow(): Promise<DataSyncWorkflowResult> {
 
   // Process only pending locations
   await processPendingLocations(locations);
+  // start(processPendingLocations, [locations]);
 
   return {
     locations,
@@ -155,9 +157,11 @@ async function processPendingLocations(
       // Each listing-type workflow uses step-level scrape/upsert so retries
       // remain atomic. We use strict completion: only mark completed when
       // all three listing-type workflows succeed.
-      const types: ListingType[] = ["rent", "sold", "sale"];
-      const promises = types.map((t) =>
-        processLocationListingTypeWorkflow(loc, t),
+      // const types: ListingType[] = ["rent", "sold", "sale"];
+      const types: ListingType[] = ["sold"];
+      const promises = types.map(
+        (t) => processLocationListingTypeWorkflow(loc, t),
+        // start(processLocationListingTypeWorkflow, [loc, t]),
       );
 
       const settled = await Promise.allSettled(promises);

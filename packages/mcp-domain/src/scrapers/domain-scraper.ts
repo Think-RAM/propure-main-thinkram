@@ -1,24 +1,17 @@
 import {
-  scrapeDomain,
   parseDomainPropertyListing,
   parseDomainSearchResults,
   scrapeDomainWithWebScraper,
   scrapeDomainWithScrapeDo,
   type PropertyListing,
-  type PropertySearchParams,
-  type AustralianState,
-  type ListingType,
+  type PropertySearchParams, type ListingType
 } from "@propure/mcp-shared";
 // import { logger } from "../logger";
 
 import {
   isMockModeEnabled,
   filterMockListings,
-  getMockPropertyDetails,
-  getMockSuburbStats,
-  getMockSalesHistory,
-  getMockAgentInfo,
-  getMockAuctionResults,
+  getMockPropertyDetails
 } from "./mock-data";
 import { writeFileSync } from "fs";
 
@@ -39,7 +32,7 @@ function buildSearchUrl(params: PropertySearchParams, page?: number): string {
     params.listingType === "rent"
       ? "/rent"
       : params.listingType === "sold"
-        ? "sold-listings"
+        ? "/sold-listings"
         : "/sale";
 
   // Build location part
@@ -89,7 +82,7 @@ function buildSearchUrl(params: PropertySearchParams, page?: number): string {
   return url;
 }
 
-const MAX_DOMAIN_SEARCH_PAGES = 7; //50
+const MAX_DOMAIN_SEARCH_PAGES = 50; //50
 const PARALLEL_DOMAIN_PAGE_FETCHES = 3;
 
 /**
@@ -336,10 +329,10 @@ export async function getDomainPropertyDetailsWithScrapeDo(
   listingId: string,
   listingType: ListingType = "sale",
 ): Promise<PropertyListing | null> {
-  if (isMockModeEnabled()) {
-    console.info({ listingId }, "[Mock Mode] Returning mock property details");
-    return getMockPropertyDetails(listingId);
-  }
+  // if (isMockModeEnabled()) {
+  //   console.info({ listingId }, "[Mock Mode] Returning mock property details");
+  //   return getMockPropertyDetails(listingId);
+  // }
 
   let url = listingId;
   if (!url.startsWith("http")) {
@@ -352,7 +345,7 @@ export async function getDomainPropertyDetailsWithScrapeDo(
 
   const html = await scrapeDomainWithScrapeDo(url);
 
-  writeFileSync("reference/domain-property-details.html", html);
+  // writeFileSync("reference/domain-property-details.html", html);
   return parseDomainPropertyListing(html, listingType, url);
 }
 

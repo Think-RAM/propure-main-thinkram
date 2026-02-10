@@ -26,11 +26,12 @@ export type DataSource = z.infer<typeof DataSource>;
 
 // Listing status
 export const ListingStatus = z.enum([
-  "ACTIVE",
-  "UNDER_CONTRACT", // Aligned with Prisma schema
+  // "ACTIVE",
+  // "UNDER_CONTRACT", // Aligned with Prisma schema
   "SOLD",
-  "WITHDRAWN",
+  // "WITHDRAWN",
   "OFF_MARKET",
+  "ON_MARKET",
 ]);
 export type ListingStatus = z.infer<typeof ListingStatus>;
 
@@ -51,6 +52,14 @@ export type PropertyType = z.infer<typeof PropertyType>;
 // Listing type
 export const ListingType = z.enum(["sale", "rent", "sold"]);
 export type ListingType = z.infer<typeof ListingType>;
+
+export const SoldAt = z.enum([
+  "AUCTION",
+  "PRIVATE_TREATY",
+  "OTHER",
+  "PRIOR_TO_AUCTION",
+]);
+export type SoldAt = z.infer<typeof SoldAt>;
 
 // Property address schema
 export const PropertyAddressSchema = z.object({
@@ -97,7 +106,13 @@ export const PropertyListingSchema = z.object({
   agentName: z.string().optional(),
   agentPhone: z.string().optional(),
   agencyName: z.string().optional(),
-  
+
+  //sold details
+  soldDate: z.string().optional(),
+  soldPrice: z.number().optional(),
+  soldAt: SoldAt.optional(),
+  daysOnMarket: z.number().optional(),
+
   listedDate: z.string().optional(),
   auctionDate: z.string().optional(),
   inspectionTimes: z.array(z.string()).optional(),
@@ -301,8 +316,6 @@ export const AbsPopulationProjectionSchema = z.object({
 export type AbsPopulationProjection = z.infer<
   typeof AbsPopulationProjectionSchema
 >;
-
-
 
 // Infrastructure project schema
 export const InfrastructureProjectSchema = z.object({

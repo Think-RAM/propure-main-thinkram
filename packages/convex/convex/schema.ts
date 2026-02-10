@@ -66,10 +66,11 @@ export const dataSource = v.union(
 );
 
 export const listingStatus = v.union(
-  v.literal("ACTIVE"),
-  v.literal("UNDER_CONTRACT"),
+  // v.literal("ACTIVE"),
+  // v.literal("UNDER_CONTRACT"),
   v.literal("SOLD"),
-  v.literal("WITHDRAWN"),
+  v.literal("ON_MARKET"),
+  // v.literal("WITHDRAWN"),
   v.literal("OFF_MARKET"),
 );
 
@@ -78,6 +79,7 @@ export const soldAt = v.union(
   v.literal("PRIVATE_TREATY"),
   // v.literal("OFF_MARKET"),
   v.literal("OTHER"),
+  v.literal("PRIOR_TO_AUCTION"),
 );
 
 export type SoldAt = Infer<typeof soldAt>;
@@ -288,7 +290,7 @@ export default defineSchema({
     listingStatus: v.optional(listingStatus),
 
     //sold related fields
-    soldDate: v.optional(v.float64()),
+    soldDate: v.optional(v.string()), // ISO date string to match shared schema
     soldPrice: v.optional(v.float64()),
     soldAt: v.optional(soldAt),
     daysOnMarket: v.optional(v.int64()),
