@@ -326,16 +326,21 @@ export default defineSchema({
   // ── Suburb Metrics ──
   suburbMetrics: defineTable({
     suburbId: v.id("suburbs"),
-    metricType: v.string(),
-    value: v.float64(),
-    source: v.optional(v.string()),
+    metrics: v.object({
+      typicalValue: v.number(),
+      medianValue: v.number(),
+      averageDaysOnMarket: v.number(),
+      auctionClearanceRate: v.number(),
+      renterProportion: v.number(),
+      vacancyRate: v.number(),
+      netYield: v.number(),
+      stockOnMarket: v.number(),
+      dataCompletenessScore: v.number(),
+    }),
     recordedAt: v.float64(),
     createdAt: v.float64(),
   })
-    .index("by_suburb", ["suburbId"])
-    .index("by_suburb_type", ["suburbId", "metricType"])
-    .index("by_suburb_type_time", ["suburbId", "metricType", "recordedAt"])
-    .index("by_metric_type", ["metricType"]),
+    .index("by_suburb", ["suburbId"]),
 
   // ── Real Estate Agents (renamed from Agent to avoid AI Agent confusion) ──
   realEstateAgents: defineTable({
