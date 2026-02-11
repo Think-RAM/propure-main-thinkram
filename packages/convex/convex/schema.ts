@@ -461,14 +461,14 @@ export default defineSchema({
     state: v.optional(australianState),
 
     // Canonical top-level metrics (if available)
-    population: v.optional(v.float64()),
-    medianAge: v.optional(v.float64()),
-    medianWeeklyIncome: v.optional(v.float64()),
-    medianMonthlyMortgage: v.optional(v.float64()),
-    medianWeeklyRent: v.optional(v.float64()),
-    ownerOccupied: v.optional(v.float64()),
-    rented: v.optional(v.float64()),
-    unemploymentRate: v.optional(v.float64()),
+    // population: v.optional(v.float64()),
+    // medianAge: v.optional(v.float64()),
+    // medianWeeklyIncome: v.optional(v.float64()),
+    // medianMonthlyMortgage: v.optional(v.float64()),
+    // // medianWeeklyRent: v.optional(v.float64()),
+    // ownerOccupied: v.optional(v.float64()),
+    // rented: v.optional(v.float64()),
+    // unemploymentRate: v.optional(v.float64()),
 
     // Breakdown columns (arrays of small objects)
     people: v.optional(
@@ -615,6 +615,18 @@ export default defineSchema({
     scrapedAt: v.float64(),
     createdAt: v.float64(),
     extra: v.optional(v.any()),
+
+    totalPopulation: v.optional(v.float64()),
+    medianAge: v.optional(v.float64()),
+    populationGrowth: v.optional(v.float64()), // YoY %
+    malePercentage: v.optional(v.float64()),
+    femalePercentage: v.optional(v.float64()),
+
+    medianWeeklyPersonalIncome: v.optional(v.float64()),
+    medianWeeklyHouseholdIncome: v.optional(v.float64()),
+    medianWeeklyFamilyIncome: v.optional(v.float64()),
+    medianMonthlyMortgageRepayment: v.optional(v.float64()),
+    medianWeeklyRent: v.optional(v.float64()),
   })
     .index("by_postcode", ["postcode"])
     .index("by_state", ["state"])

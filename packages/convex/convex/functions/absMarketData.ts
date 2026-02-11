@@ -14,8 +14,11 @@ const upsertArgs = v.object({
   lga: v.optional(v.string()),
   state: v.optional(australianState),
 
-  population: v.optional(v.float64()),
+  totalPopulation: v.optional(v.float64()),
   medianAge: v.optional(v.float64()),
+  populationGrowth: v.optional(v.float64()), // YoY %
+  malePercentage: v.optional(v.float64()),
+  femalePercentage: v.optional(v.float64()),
 
   people: v.optional(v.array(breakdownEntry)),
   maritalStatus: v.optional(v.array(breakdownEntry)),
@@ -39,6 +42,12 @@ const upsertArgs = v.object({
   source: v.optional(dataSource),
   scrapedAt: v.optional(v.float64()),
   extra: v.optional(v.any()),
+
+  medianWeeklyPersonalIncome: v.optional(v.float64()),
+  medianWeeklyHouseholdIncome: v.optional(v.float64()),
+  medianWeeklyFamilyIncome: v.optional(v.float64()),
+  medianMonthlyMortgageRepayment: v.optional(v.float64()),
+  medianWeeklyRent: v.optional(v.float64()),
 });
 
 export const upsertAbsMarketData = mutation({
@@ -66,8 +75,8 @@ export const upsertAbsMarketData = mutation({
           lga: input.lga ?? existing.lga,
           state: input.state ?? existing.state,
 
-          population: input.population ?? existing.population,
-          medianAge: input.medianAge ?? existing.medianAge,
+          // population: input.population ?? existing.population,
+          // medianAge: input.medianAge ?? existing.medianAge,
 
           people: input.people ?? existing.people,
           maritalStatus: input.maritalStatus ?? existing.maritalStatus,
@@ -94,6 +103,12 @@ export const upsertAbsMarketData = mutation({
             input.mortgageMonthlyRepayments ??
             existing.mortgageMonthlyRepayments,
 
+          totalPopulation: input.totalPopulation ?? existing.totalPopulation,
+          medianAge: input.medianAge ?? existing.medianAge,
+          populationGrowth: input.populationGrowth ?? existing.populationGrowth, // YoY %
+          malePercentage: input.malePercentage ?? existing.malePercentage,
+          femalePercentage: input.femalePercentage ?? existing.femalePercentage,
+
           marketData: input.marketData ?? existing.marketData,
           url: input.url ?? existing.url,
           referencePath: input.referencePath ?? existing.referencePath,
@@ -114,9 +129,6 @@ export const upsertAbsMarketData = mutation({
       suburb: input.suburb ?? undefined,
       lga: input.lga ?? undefined,
       state: input.state ?? undefined,
-
-      population: input.population ?? undefined,
-      medianAge: input.medianAge ?? undefined,
 
       people: input.people ?? undefined,
       maritalStatus: input.maritalStatus ?? undefined,
@@ -141,6 +153,12 @@ export const upsertAbsMarketData = mutation({
       scrapedAt,
       createdAt: now,
       extra: input.extra ?? undefined,
+
+      totalPopulation: input.totalPopulation ?? undefined,
+      medianAge: input.medianAge ?? undefined,
+      populationGrowth: input.populationGrowth ?? undefined, // YoY %
+      malePercentage: input.malePercentage ?? undefined,
+      femalePercentage: input.femalePercentage ?? undefined,
     });
 
     return rec;

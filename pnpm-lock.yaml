@@ -523,6 +523,9 @@ importers:
       '@propure/mcp-domain':
         specifier: workspace:*
         version: link:../mcp-domain
+      '@propure/mcp-market-data':
+        specifier: workspace:*
+        version: link:../mcp-market-data
       '@propure/mcp-shared':
         specifier: workspace:*
         version: link:../mcp-shared

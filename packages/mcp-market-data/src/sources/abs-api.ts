@@ -66,6 +66,7 @@ export async function getAbsDemographics(
     const html = await requestAbsWithScrapeDo(url);
 
     const marketData = parseAbsMarketData(html);
+    console.log({ marketData }, "Parsed ABS market data from HTML");
     if (!marketData) {
       throw new Error("Failed to parse ABS market data from fetched HTML");
     }

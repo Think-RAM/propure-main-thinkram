@@ -16,9 +16,9 @@
 // } from "./rba-api";
 
 export {
-  getAbsDemographics as getAbsDemographicsDirect,
-  getAbsBuildingApprovals as getAbsBuildingApprovalsDirect,
-  getAbsPopulationProjections as getAbsPopulationProjectionsDirect,
+  getAbsDemographics,
+  getAbsBuildingApprovals,
+  getAbsPopulationProjections,
 } from "./abs-api";
 
 // Mock data exports for testing

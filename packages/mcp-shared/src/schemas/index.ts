@@ -254,7 +254,7 @@ export type MarketIndicator = z.infer<typeof MarketIndicatorSchema>;
 export const BreakdownEntrySchema = z.object({
   label: z.string(),
   count: z.number(),
-  percentage: z.number().nullable(),
+  percentage: z.number().optional(),
 });
 export type BreakdownEntry = z.infer<typeof BreakdownEntrySchema>;
 
@@ -275,17 +275,17 @@ export const MarketDataSchema = z.object({
   rentWeeklyPayments: z.array(BreakdownEntrySchema),
   mortgageMonthlyRepayments: z.array(BreakdownEntrySchema),
   // Additional ABS summary fields
-  totalPopulation: z.number().nullable().optional(),
-  medianAge: z.number().nullable().optional(),
-  populationGrowth: z.number().nullable().optional(), // YoY %
-  malePercentage: z.number().nullable().optional(),
-  femalePercentage: z.number().nullable().optional(),
+  totalPopulation: z.number().optional(),
+  medianAge: z.number().optional(),
+  populationGrowth: z.number().optional(), // YoY %
+  malePercentage: z.number().optional(),
+  femalePercentage: z.number().optional(),
 
-  medianWeeklyPersonalIncome: z.number().nullable().optional(),
-  medianWeeklyHouseholdIncome: z.number().nullable().optional(),
-  medianWeeklyFamilyIncome: z.number().nullable().optional(),
-  medianMonthlyMortgageRepayment: z.number().nullable().optional(),
-  medianWeeklyRent: z.number().nullable().optional(),
+  medianWeeklyPersonalIncome: z.number().optional(),
+  medianWeeklyHouseholdIncome: z.number().optional(),
+  medianWeeklyFamilyIncome: z.number().optional(),
+  medianMonthlyMortgageRepayment: z.number().optional(),
+  medianWeeklyRent: z.number().optional(),
 });
 export type MarketData = z.infer<typeof MarketDataSchema>;
 
