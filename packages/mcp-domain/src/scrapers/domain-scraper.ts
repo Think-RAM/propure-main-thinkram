@@ -4,14 +4,15 @@ import {
   scrapeDomainWithWebScraper,
   scrapeDomainWithScrapeDo,
   type PropertyListing,
-  type PropertySearchParams, type ListingType
+  type PropertySearchParams,
+  type ListingType,
 } from "@propure/mcp-shared";
 // import { logger } from "../logger";
 
 import {
   isMockModeEnabled,
   filterMockListings,
-  getMockPropertyDetails
+  getMockPropertyDetails,
 } from "./mock-data";
 import { writeFileSync } from "fs";
 
@@ -77,13 +78,13 @@ function buildSearchUrl(params: PropertySearchParams, page?: number): string {
   }
 
   const queryString = searchParams.toString();
-  const url = `${baseUrl}${path}/${location}${params.state ? `-${params.state.toLowerCase()}` : ""}${params.postcode ? `-${params.postcode}` : ""}${queryString ? `?${queryString}` : ""}`;
-
+  // const url = `${baseUrl}${path}/${location}${params.state ? `-${params.state.toLowerCase()}` : ""}${params.postcode ? `-${params.postcode}` : ""}${queryString ? `?${queryString}` : ""}`;
+  const url = `${baseUrl}${path}?${queryString}`;
   return url;
 }
 
-const MAX_DOMAIN_SEARCH_PAGES = 50; //50
-const PARALLEL_DOMAIN_PAGE_FETCHES = 3;
+let MAX_DOMAIN_SEARCH_PAGES = 50; //50
+const PARALLEL_DOMAIN_PAGE_FETCHES = 1;
 
 /**
  * Determine whether a parsed listing already contains any pricing information.
@@ -163,6 +164,10 @@ async function performDomainSearch(
     return filterMockListings(params);
   }
 
+  if (params.listingType === "sold") {
+    MAX_DOMAIN_SEARCH_PAGES = 10;
+  }
+
   const startPage = params.page && params.page > 0 ? params.page : 1;
   if (startPage > MAX_DOMAIN_SEARCH_PAGES) {
     return { listings: [], totalCount: 0, hasMore: false };
@@ -201,6 +206,8 @@ async function performDomainSearch(
    */
   const processPage = async (pageNumber: number): Promise<void> => {
     const url = buildSearchUrl(params, pageNumber);
+    // console.log(url);
+    // return;
     console.info({ page: pageNumber, url }, "Fetching Domain search page");
 
     let html: string;

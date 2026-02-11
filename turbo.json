@@ -47,13 +47,17 @@
     "clean": {
       "cache": false
     },
-    "convex:dev" : {
+    "dev:web": {
+      "cache": false,
+      "persistent": true
+    },
+    "convex:dev": {
       "cache": false
     },
-    "convex:setup" : {
+    "convex:setup": {
       "cache": false
     },
-    "convex:typecheck" : {
+    "convex:typecheck": {
       "cache": false
     }
   }

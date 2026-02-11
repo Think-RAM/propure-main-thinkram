@@ -15,7 +15,7 @@ async function scrapeLocation(loc: ScrappingLocationWithStatus) {
     postcode: loc.postcode,
     page: 1,
     listingType: "sale",
-    pageSize: 20,
+    // pageSize: 20,/
   });
 }
 
@@ -157,8 +157,8 @@ async function processPendingLocations(
       // Each listing-type workflow uses step-level scrape/upsert so retries
       // remain atomic. We use strict completion: only mark completed when
       // all three listing-type workflows succeed.
-      // const types: ListingType[] = ["rent", "sold", "sale"];
-      const types: ListingType[] = ["sold"];
+      const types: ListingType[] = ["rent", "sold", "sale"];
+      // const types: ListingType[] = ["sold"];
       const promises = types.map(
         (t) => processLocationListingTypeWorkflow(loc, t),
         // start(processLocationListingTypeWorkflow, [loc, t]),
