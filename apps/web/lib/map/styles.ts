@@ -1,5 +1,4 @@
 import { Styles } from "./layers";
-import L from "leaflet";
 
 /** Root legend response */
 export interface ArcGISLegendResponse {

@@ -10,9 +10,8 @@ import React, {
   useState,
 } from "react";
 import { type Map as LeafletMap } from "leaflet";
-import { featureLayer, FeatureLayer } from "esri-leaflet";
+import type { FeatureLayer } from "esri-leaflet";
 import { toast } from "sonner";
-
 import { HazardPolygon } from "@/lib/hazardZones";
 import {
   handleLegendExtraction,
@@ -27,8 +26,7 @@ import {
   Styles,
 } from "@/lib/map/layers";
 import { coordToAUStates } from "@/lib/utils";
-import L from "leaflet";
-import { MetricType } from "@/lib/map/heatmap-config";
+import { HEATMAP_LEGENDS, MetricType } from "@/lib/map/heatmap-config";
 
 type LatLng = { lat: number; lng: number };
 export type MapViewType = "default" | "satellite" | "terrain";
@@ -210,6 +208,8 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
       if (featureLayersRef.current[layerInfo.id]) return;
 
       const layerLegends = await getLegendsFor(layerInfo);
+      const { featureLayer } = await import("esri-leaflet");
+      const L = await import("leaflet");
 
       const lyr: FeatureLayer = featureLayer({
         url: layerInfo.url,
@@ -286,7 +286,11 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
         toast.error("Map is not Loaded yet.");
         return;
       }
+      // Remove all other layers
+      removeAllLayers();
+      // Only one heatmap layer at a time, so no need to check for existing layers - just add if layerId provided
       setCurrentHeatmapLayer(layerId);
+      setLegends(layerId ? HEATMAP_LEGENDS[layerId] : []);
     }
   , []);
 

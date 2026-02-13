@@ -188,7 +188,7 @@ async function fetchAllAbsSuburbData(suburb: string, postcode: string) {
     }
 }
 
-function calculateSuburbMetrics(
+async function calculateSuburbMetrics(
     saleProperties: Doc<"properties">[],
     renterProperties: Doc<"properties">[],
     absData: Doc<"absMarketData">
@@ -354,7 +354,7 @@ function calculateSuburbMetrics(
     };
 }
 
-async function updateSuburbMetricsInDb(metrics: ReturnType<typeof calculateSuburbMetrics>, suburb: string, postcode: string) {
+async function updateSuburbMetricsInDb(metrics: Awaited<ReturnType<typeof calculateSuburbMetrics>>, suburb: string, postcode: string) {
     "use step";
     try {
         const suburbId = await client.query(api.functions.suburb.getSuburbIdByName, { postcode });
@@ -450,7 +450,7 @@ export async function suburbAsyncWorkflow(
                 throw new Error("No ABS data available for this suburb");
             }
 
-            const metrics = calculateSuburbMetrics(
+            const metrics = await calculateSuburbMetrics(
                 saleProperties,
                 renterProperties,
                 absData

@@ -1,7 +1,6 @@
 "use client";
 import { useState, memo, useRef, useEffect } from "react";
 import { MAP_VIEW_URLS, useMap as useMapContext } from "@/context/MapContext";
-import L from "leaflet";
 import dynamic from "next/dynamic";
 import { MapLayersPopover } from "./MapLayersPopover";
 import { LegendGroupCollapsible } from "./CollapsableLegendList";
@@ -14,27 +13,27 @@ import { HeatmapLayer } from "./HeatmapLayer";
  */
 export const MapContainer = dynamic(
   () => import("react-leaflet").then((m) => m.MapContainer),
-  { ssr: false }
+  { ssr: false },
 );
 
 export const TileLayer = dynamic(
   () => import("react-leaflet").then((m) => m.TileLayer),
-  { ssr: false }
+  { ssr: false },
 );
 
 export const Marker = dynamic(
   () => import("react-leaflet").then((m) => m.Marker),
-  { ssr: false }
+  { ssr: false },
 );
 
 export const Popup = dynamic(
   () => import("react-leaflet").then((m) => m.Popup),
-  { ssr: false }
+  { ssr: false },
 );
 
 export const Polygon = dynamic(
   () => import("react-leaflet").then((m) => m.Polygon),
-  { ssr: false }
+  { ssr: false },
 );
 
 /* -------------------------------------------------- */
@@ -51,6 +50,7 @@ interface LeafletMapProps {
 }
 
 function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
+  const [L, setLeaflet] = useState<typeof import("leaflet") | null>(null);
   const { results, registerMap, polygons, legends, currentView, setResults } =
     useMapContext();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -62,6 +62,18 @@ function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
       setRegistered(true);
     }
   };
+
+  useEffect(() => {
+    let mounted = true;
+
+    import("leaflet").then((L) => {
+      if (mounted) setLeaflet(L);
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (registered && mapRef.current) {
@@ -93,6 +105,8 @@ function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
       ]);
     }
   }, [registered]);
+
+  if (!L) return null;
 
   return (
     <div
@@ -156,7 +170,7 @@ function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
                   }
                   return acc;
                 },
-                [] as Array<{ group: string; items: typeof legends }>
+                [] as Array<{ group: string; items: typeof legends }>,
               )
               .map((g) => (
                 <LegendGroupCollapsible group={g} key={g.group} />
