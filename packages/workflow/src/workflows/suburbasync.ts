@@ -1,6 +1,7 @@
 import { client } from "@propure/convex/client";
 import { api } from "@propure/convex/genereated";
 import type { Doc } from "@propure/convex/genereated";
+import { addressToCoordinatesGoogle } from "../utils/map";
 
 const parsePrice = (value?: string | number | null): number | null => {
     if (value == null) return null;
@@ -357,8 +358,28 @@ async function updateSuburbMetricsInDb(metrics: ReturnType<typeof calculateSubur
     "use step";
     try {
         const suburbId = await client.query(api.functions.suburb.getSuburbIdByName, { postcode });
+        const geometry = await addressToCoordinatesGoogle(`${suburb} VIC ${postcode}`);
+        if(!geometry) {
+            throw new Error("Failed to geocode suburb location");
+        }
         await client.mutation(api.functions.suburbMetrics.upsertSuburbMetricsData, {
             suburbId,
+            suburbGeometry: {
+                center: {
+                    lat: geometry.lat,
+                    lng: geometry.lng,
+                },
+                boundary: geometry.bbounds ? geometry.bbounds : {
+                    northeast: {
+                        lat: geometry.lat + 0.01,
+                        lng: geometry.lng + 0.01,
+                    },
+                    southwest: {
+                        lat: geometry.lat - 0.01,
+                        lng: geometry.lng - 0.01,
+                    },
+                },
+            },
             metrics: {
                 typicalValue: metrics.typicalValue ?? 0,
                 medianValue: metrics.medianValue ?? 0,
@@ -368,6 +389,11 @@ async function updateSuburbMetricsInDb(metrics: ReturnType<typeof calculateSubur
                 vacancyRate: metrics.vacancyRate ?? 0,
                 netYield: metrics.netYield ?? 0,
                 stockOnMarket: metrics.stockOnMarket ?? 0,
+                // TODO: Calculate these properly in future iterations - placeholders for now
+                // Placeholders for new metrics - to be calculated and updated in future iterations
+                capitalGrowthScore: 0,
+                riskScore: 0,
+                cashFlowScore: 0,
                 dataCompletenessScore: metrics.dataCompletenessScore,
             },
         });

@@ -13,6 +13,7 @@ export const getSuburbStats = tool({
         postcode: z.string().describe("Postcode (improves demographic data accuracy)"),
         includeMarketTrends: z.boolean().default(true),
         includeDemographics: z.boolean().default(true),
+        includeBuildingApprovals: z.boolean().default(false),
     }),
     execute: async ({
         suburb,
@@ -20,13 +21,14 @@ export const getSuburbStats = tool({
         postcode,
         includeMarketTrends,
         includeDemographics,
+        includeBuildingApprovals,
     }) => {
         try {
             // Parallel fetch: market data + demographics
             const promises: Promise<any>[] = [];
 
-            // Get Suburb Market Data
-            if (includeMarketTrends) {
+            // Get Suburb Building Approvals Data
+            if (includeBuildingApprovals) {
                 promises.push(
                     client.query(api.functions.absBuildingApproval.getAbsBuildingDataBySuburb, { suburb, state: state as AustralianState })
                 );
@@ -39,11 +41,21 @@ export const getSuburbStats = tool({
                 );
             }
 
+            // Get Suburb Market Trends (e.g. median price, days on market)
+            if (includeMarketTrends && postcode) {
+                const suburbId = await client.query(api.functions.suburb.getSuburbIdByName, { postcode });
+                promises.push(
+                    client.query(api.functions.suburbMetrics.getSuburbMetrics, { suburbId })
+                );
+            }
+
             const results = await Promise.allSettled(promises);
             const marketData =
                 results[0]?.status === "fulfilled" ? (results[0].value.data as Doc<"absBuildingApprovals">[]) : null;
             const demographics =
                 results[1]?.status === "fulfilled" ? (results[1].value.data as Doc<"absMarketData">) : null;
+            const suburbMetrics =
+                results[2]?.status === "fulfilled" ? (results[2].value.data as Doc<"suburbMetrics">) : null;
 
             return {
                 success: true,
@@ -51,6 +63,7 @@ export const getSuburbStats = tool({
                 state,
                 marketData: marketData || { error: "Market data unavailable" },
                 demographics: demographics || { error: "Demographics unavailable" },
+                suburbMetrics: suburbMetrics || { error: "Suburb metrics unavailable" },
             };
 
         } catch (error) {

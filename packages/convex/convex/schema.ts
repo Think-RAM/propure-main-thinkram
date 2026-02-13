@@ -326,6 +326,8 @@ export default defineSchema({
   // ── Suburb Metrics ──
   suburbMetrics: defineTable({
     suburbId: v.id("suburbs"),
+    centerLat: v.float64(),
+    centerLng: v.float64(),
     metrics: v.object({
       typicalValue: v.number(),
       medianValue: v.number(),
@@ -335,12 +337,32 @@ export default defineSchema({
       vacancyRate: v.number(),
       netYield: v.number(),
       stockOnMarket: v.number(),
+      capitalGrowthScore: v.number(),
+      riskScore: v.number(),
+      cashFlowScore: v.number(),
       dataCompletenessScore: v.number(),
+    }),
+    geometry: v.object({
+      center: v.object({
+        lat: v.float64(),
+        lng: v.float64(),
+      }),
+      boundary: v.object({
+        northeast: v.object({
+          lat: v.float64(),
+          lng: v.float64(),
+        }),
+        southwest: v.object({
+          lat: v.float64(),
+          lng: v.float64(),
+        }),
+      })
     }),
     recordedAt: v.float64(),
     createdAt: v.float64(),
   })
-    .index("by_suburb", ["suburbId"]),
+    .index("by_suburb", ["suburbId"])
+    .index("by_lat_lng", ["centerLat", "centerLng"]),
 
   // ── Real Estate Agents (renamed from Agent to avoid AI Agent confusion) ──
   realEstateAgents: defineTable({

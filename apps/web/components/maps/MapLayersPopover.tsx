@@ -9,6 +9,9 @@ import {
   CloudRain,
   Landmark,
   School,
+  TrendingUp,
+  AlertTriangle,
+  DollarSign,
 } from "lucide-react";
 
 import {
@@ -23,9 +26,16 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Layers as MapLayers } from "@/lib/map/layers";
 import { MapViewType, useMap } from "@/context/MapContext";
+import { MetricType } from "@/lib/map/heatmap-config";
 
 type LayerOption = {
   id: MapLayers | "default";
+  label: string;
+  icon: React.ReactNode;
+};
+
+type HeatMapLayerOption = {
+  id: MetricType | "default";
   label: string;
   icon: React.ReactNode;
 };
@@ -73,6 +83,24 @@ const layers: LayerOption[] = [
   },
 ];
 
+const heatMapLayers: HeatMapLayerOption[] = [
+  {
+    id: "capital_growth_score",
+    label: "Capital Growth",
+    icon: <TrendingUp className="h-4 w-4" />,
+  },
+  {
+    id: "risk_score",
+    label: "Investment Risk",
+    icon: <AlertTriangle  className="h-4 w-4" />,
+  },
+  {
+    id: "cash_flow_score",
+    label: "Cash Flow",
+    icon: <DollarSign  className="h-4 w-4" />,
+  },
+];
+
 export const MAP_VIEWS: {
   id: MapViewType;
   label: string;
@@ -100,7 +128,7 @@ export const MAP_VIEWS: {
 ];
 
 export function MapLayersPopover() {
-  const { currentLayer, setMapLayer, setMapView, currentView } = useMap();
+  const { currentLayer, currentHeatmapLayer, setMapLayer, setHeatmapLayer, setMapView, currentView } = useMap();
 
   return (
     <Popover>
@@ -164,6 +192,53 @@ export function MapLayersPopover() {
                       );
                     } else {
                       setMapLayer(undefined);
+                    }
+                  }}
+                  // prevent item click from double-triggering when toggling switch
+                  onClick={(e) => e.stopPropagation()}
+                  className={cn(
+                    "data-[state=checked]:bg-[#0d7377]",
+                    "data-[state=unchecked]:bg-white/10",
+                  )}
+                />
+              </CommandItem>
+            ))}
+          </CommandGroup>
+
+          <CommandGroup heading="Heatmap Layers">
+            {heatMapLayers.map((layer) => (
+              <CommandItem
+                key={layer.id}
+                value={layer.id}
+                onSelect={() => {
+                  setHeatmapLayer(layer.id === "default" ? undefined : layer.id);
+                }}
+                className={cn(
+                  "flex items-center gap-3 rounded px-3 py-2 cursor-pointer transition-colors",
+                  "hover:bg-white/5 active:bg-white/10",
+                  "data-[selected=true]:bg-transparent data-[selected=true]:text-[#f7f9fc]",
+                  "aria-selected:bg-transparent aria-selected:text-[#f7f9fc]",
+                )}
+              >
+                <span className="text-white/60">{layer.icon}</span>
+
+                <span className="flex-1 text-white">{layer.label}</span>
+
+                <Switch
+                  checked={
+                    currentHeatmapLayer === layer.id ||
+                    (currentHeatmapLayer === undefined && layer.id === "default")
+                  }
+                  onCheckedChange={(checked) => {
+                    // Single active layer behavior:
+                    // - turning ON selects that layer
+                    // - turning OFF returns to default (undefined)
+                    if (checked) {
+                      setHeatmapLayer(
+                        layer.id === "default" ? undefined : layer.id,
+                      );
+                    } else {
+                      setHeatmapLayer(undefined);
                     }
                   }}
                   // prevent item click from double-triggering when toggling switch

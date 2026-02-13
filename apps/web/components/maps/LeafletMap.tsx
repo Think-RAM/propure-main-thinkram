@@ -7,6 +7,7 @@ import { MapLayersPopover } from "./MapLayersPopover";
 import { LegendGroupCollapsible } from "./CollapsableLegendList";
 import { PropertyPreviewCard } from "./propertyPopover";
 import { MAP_MARKER_ICON } from "@/types/types";
+import { HeatmapLayer } from "./HeatmapLayer";
 
 /**
  * React-Leaflet components MUST be client-only
@@ -139,6 +140,7 @@ function LeafletMapComponent({ className, isBlurred }: LeafletMapProps) {
         {polygons.map((p) => (
           <Polygon key={p.id} positions={p.coordinates} pathOptions={p.style} />
         ))}
+        <HeatmapLayer />
       </MapContainer>
       {legends.length > 0 && (
         <div className="absolute z-[1000] bottom-6 right-1 p-3 bg-white/90 rounded text-sm shadow-lg">
