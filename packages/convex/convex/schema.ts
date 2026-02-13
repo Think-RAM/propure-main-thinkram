@@ -340,6 +340,12 @@ export default defineSchema({
       capitalGrowthScore: v.number(),
       riskScore: v.number(),
       cashFlowScore: v.number(),
+      risk: v.object({
+        marketRisk: v.number(),
+        financialRisk: v.number(),
+        liquidityRisk: v.number(),
+        concentrationRisk: v.number(),
+      }),
       dataCompletenessScore: v.number(),
     }),
     geometry: v.object({

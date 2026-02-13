@@ -153,9 +153,9 @@ export const getAbsMarketDataByPostcode = query({
     const rec = await ctx.db
       .query("absMarketData")
       .withIndex("by_postcode", (q: any) => q.eq("postcode", postcode))
-      .first();
+      .collect();
 
-    return rec ?? null;
+    return rec;
   },
 });
 
