@@ -52,6 +52,8 @@ export type DemographicCallResult = {
   error?: string;
 };
 
+const START_YEAR = 2021;
+
 // Step: call ABS demographics sequentially for all locations
 export async function fetchDemographicsForLocations(
   locations: ScrappingLocationWithStatus[],
@@ -78,14 +80,26 @@ export async function fetchDemographicsForLocations(
       console.info(
         `Fetching ABS demographics for postcode=${postcode} (${i + 1}/${locations.length})`,
       );
-      const { url, referencePath, marketData } =
-        await getAbsDemographics(postcode);
-      results.push({
-        location: loc,
-        success: true,
-        marketData,
-      });
-      console.info(`Fetched ABS demographics for postcode=${postcode}`);
+
+      const yearList = [
+        START_YEAR,
+        START_YEAR - 5,
+        START_YEAR - 10,
+        START_YEAR - 15,
+      ]; // Can be extended to fetch multiple years if needed
+
+      for (const year of yearList) {
+        const { url, referencePath, marketData } = await getAbsDemographics(
+          postcode,
+          year,
+        );
+        results.push({
+          location: loc,
+          success: true,
+          marketData,
+        });
+        console.info(`Fetched ABS demographics for postcode=${postcode}`);
+      }
     } catch (err: any) {
       console.error(`ABS fetch failed for postcode=${postcode}:`, err);
       results.push({ location: loc, success: false, error: String(err) });
@@ -117,6 +131,7 @@ export async function persistDemographics(
         api.functions.absMarketData.upsertAbsMarketData,
         {
           ...marketData,
+          census_year: BigInt(marketData.census_year),
           postcode: location.postcode,
           suburb: location.suburb,
           state: location.state,

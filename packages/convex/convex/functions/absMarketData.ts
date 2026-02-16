@@ -9,6 +9,7 @@ const breakdownEntry = v.object({
 });
 
 const upsertArgs = v.object({
+  census_year: v.int64(), // e.g. 2021
   postcode: v.optional(v.string()),
   suburb: v.optional(v.string()),
   lga: v.optional(v.string()),
@@ -159,6 +160,7 @@ export const upsertAbsMarketData = mutation({
       populationGrowth: input.populationGrowth ?? undefined, // YoY %
       malePercentage: input.malePercentage ?? undefined,
       femalePercentage: input.femalePercentage ?? undefined,
+      census_year: input.census_year ?? undefined,
     });
 
     return rec;

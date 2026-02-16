@@ -114,11 +114,13 @@ export const PropertyListingSchema = z.object({
 
   //from property profile
   daysOnMarket: z.number().optional(),
-  propertyValueEstimate: z.object({
-    low: z.number().optional(),
-    mid: z.number().optional(),
-    high: z.number().optional(),
-  }).optional(),
+  propertyValueEstimate: z
+    .object({
+      low: z.number().optional(),
+      mid: z.number().optional(),
+      high: z.number().optional(),
+    })
+    .optional(),
   propertyRentEstimate: z.number().optional(),
 
   listedDate: z.string().optional(),
@@ -268,6 +270,7 @@ export const BreakdownEntrySchema = z.object({
 export type BreakdownEntry = z.infer<typeof BreakdownEntrySchema>;
 
 export const MarketDataSchema = z.object({
+  census_year: z.number(), // Year of the ABS census data (e.g. 2021)
   people: z.array(BreakdownEntrySchema),
   maritalStatus: z.array(BreakdownEntrySchema),
   education: z.array(BreakdownEntrySchema),

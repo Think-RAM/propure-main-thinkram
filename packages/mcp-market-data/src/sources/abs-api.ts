@@ -43,8 +43,8 @@ interface BuildingApprovalData {
  */
 const ABS_API_BASE = "https://api.data.abs.gov.au";
 
-function buildURL(postcode: string) {
-  return `https://www.abs.gov.au/census/find-census-data/quickstats/2021/POA${postcode}`;
+function buildURL(postcode: string, year: number = 2021): string {
+  return `https://www.abs.gov.au/census/find-census-data/quickstats/${year}/POA${postcode}`;
 }
 
 interface ScrapeAbsResult extends Record<string, unknown> {
@@ -59,8 +59,9 @@ interface ScrapeAbsResult extends Record<string, unknown> {
  */
 export async function getAbsDemographics(
   postcode: string,
+  year: number = 2021,
 ): Promise<ScrapeAbsResult> {
-  const url = buildURL(postcode);
+  const url = buildURL(postcode, year);
   try {
     console.info({ url, postcode }, "Scraping ABS quick stats page");
     const html = await requestAbsWithScrapeDo(url);
@@ -70,6 +71,7 @@ export async function getAbsDemographics(
     if (!marketData) {
       throw new Error("Failed to parse ABS market data from fetched HTML");
     }
+    marketData.census_year = year;
 
     // No local persistence of HTML reference anymore — return parsed data directly
     return { url, referencePath: undefined, marketData };

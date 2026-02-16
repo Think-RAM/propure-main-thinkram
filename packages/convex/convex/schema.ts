@@ -465,6 +465,7 @@ export default defineSchema({
   // ABS Market Data (broken-out MarketDataSchema columns)
   absMarketData: defineTable({
     // sa2Id and sa2Code removed per request (no SA2 relation)
+    census_year: v.int64(), // e.g. 2021
     postcode: v.optional(v.string()),
     suburb: v.optional(v.string()),
     lga: v.optional(v.string()),
