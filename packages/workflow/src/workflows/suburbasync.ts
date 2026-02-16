@@ -524,6 +524,65 @@ const THRESHOLDS = {
 };
 
 
+async function fetchAllSalePropertiesForSuburb(
+    suburb: string,
+    state: string,
+    postcode: string
+) {
+    "use step";
+
+    const PAGE_SIZE = 100;
+
+    try {
+        // 1️⃣ Fetch first page to know totalPages
+        const firstPage = await client.query(
+            api.functions.properties.fetchProperties,
+            {
+                locations: [{ suburb, state, postcode }],
+                listingType: "sold",
+                page: 1,
+                pageSize: PAGE_SIZE,
+            }
+        );
+
+        const totalPages = firstPage.totalPages;
+
+        // If only one page, return early
+        if (totalPages <= 1) {
+            return firstPage.data;
+        }
+
+        // 2️⃣ Create parallel requests for remaining pages
+        const pagePromises = Array.from(
+            { length: totalPages - 1 },
+            (_, i) =>
+                client.query(api.functions.properties.fetchProperties, {
+                    locations: [{ suburb, state, postcode }],
+                    listingType: "sale",
+                    page: i + 2, // pages start from 2
+                    pageSize: PAGE_SIZE,
+                })
+        );
+
+        // 3️⃣ Fetch all pages in parallel
+        const remainingPages = await Promise.all(pagePromises);
+
+        // 4️⃣ Merge results
+        const allProperties = [
+            ...firstPage.data,
+            ...remainingPages.flatMap((res) => res.data),
+        ];
+
+        return allProperties;
+    } catch (error) {
+        console.error(
+            `Failed to fetch properties for suburb ${suburb}:`,
+            error
+        );
+        throw error;
+    }
+}
+
 async function fetchAllSoldPropertiesForSuburb(
     suburb: string,
     state: string,
@@ -657,6 +716,7 @@ async function fetchAllAbsSuburbData(suburb: string, postcode: string) {
 async function calculateSuburbMetrics(
     suburb: string, // format "Suburb, VIC, 1234"
     saleProperties: Doc<"properties">[],
+    soldProperties: Doc<"properties">[],
     renterProperties: Doc<"properties">[],
     absData: Doc<"absMarketData">[]
 ) {
@@ -674,11 +734,11 @@ async function calculateSuburbMetrics(
 
 
     // ---------- SALES ----------
-    const soldProperties = saleProperties
+    const soldPropertiesSafe = soldProperties
         .filter((p) => typeof p.soldPrice === "number")
         .sort((a, b) => b.soldPrice! - a.soldPrice!);
 
-    const soldPrices = soldProperties.map((p) => p.soldPrice!);
+    const soldPrices = soldPropertiesSafe.map((p) => p.soldPrice!);
 
     const typicalValue = safeAverage(soldPrices);
 
@@ -691,15 +751,15 @@ async function calculateSuburbMetrics(
                 2
                 : soldPrices[Math.floor(soldPrices.length / 2)];
 
-    const daysOnMarketValues = soldProperties
+    const daysOnMarketValues = soldPropertiesSafe
         .map((p) => Number(p.daysOnMarket))
         .filter(Number.isFinite);
 
     const averageDaysOnMarket = safeAverage(daysOnMarketValues);
 
     const auctionClearanceRate = safePercent(
-        soldProperties.filter((p) => p.soldAt === "AUCTION").length,
-        soldProperties.length
+        soldPropertiesSafe.filter((p) => p.soldAt === "AUCTION").length,
+        soldPropertiesSafe.length
     );
 
     // ---------- ABS / TENURE ----------
@@ -751,8 +811,7 @@ async function calculateSuburbMetrics(
             : null;
 
     // ---------- STOCK ON MARKET ----------
-    const numberOfPropertiesOnMarket =
-        saleProperties.length - soldProperties.length;
+    const numberOfPropertiesOnMarket = saleProperties.length ;
 
     const stockOnMarket =
         totalTenure !== null
@@ -760,7 +819,7 @@ async function calculateSuburbMetrics(
             : null;
 
     // ---------- DATA COMPLETENESS ----------
-    const salesCount = soldProperties.length;
+    const salesCount = soldPropertiesSafe.length;
     const rentalCount = renterProperties.length;
 
     const salesVolumeScore = ratioScore(
@@ -769,7 +828,7 @@ async function calculateSuburbMetrics(
     );
 
     const salesFieldCompleteness =
-        soldProperties.reduce((sum, p) => {
+        soldPropertiesSafe.reduce((sum, p) => {
             let score = 0;
             if (p.soldPrice != null) score++;
             if (p.daysOnMarket != null) score++;
@@ -996,7 +1055,7 @@ async function calculateSuburbMetrics(
     risk.financialRisk += interestRateSensitivity !== null ? (interestRateSensitivity * 30) / 100 : 0;
 
     risk.liquidityRisk = calculateLiquidityRisk({
-        annualSales: soldProperties.length,
+        annualSales: soldPropertiesSafe.length,
         totalDwellings: totalTenure ?? 0,
         averageDaysOnMarket: averageDaysOnMarket ?? 0,
         stockOnMarketPct: stockOnMarket ?? 0,
@@ -1054,13 +1113,12 @@ async function calculateSuburbMetrics(
 async function updateSuburbMetricsInDb(metrics: Awaited<ReturnType<typeof calculateSuburbMetrics>>, suburb: string, postcode: string) {
     "use step";
     try {
-        const suburbId = await client.query(api.functions.suburb.getSuburbIdByName, { postcode });
         const geometry = await addressToCoordinatesGoogle(`${suburb} VIC ${postcode}`);
         if (!geometry) {
             throw new Error("Failed to geocode suburb location");
         }
         await client.mutation(api.functions.suburbMetrics.upsertSuburbMetricsData, {
-            suburbId,
+            postcode,
             suburbGeometry: {
                 center: {
                     lat: geometry.lat,
@@ -1129,7 +1187,7 @@ export async function suburbAsyncWorkflow(
         postcode: string;
     }) => {
         try {
-            const [saleProperties, renterProperties, absData] =
+            const [soldProperties, renterProperties, saleProperties, absData] =
                 await Promise.all([
                     fetchAllSoldPropertiesForSuburb(
                         loc.suburb,
@@ -1137,6 +1195,11 @@ export async function suburbAsyncWorkflow(
                         loc.postcode
                     ),
                     fetchAllRentPropertiesForSuburb(
+                        loc.suburb,
+                        loc.state,
+                        loc.postcode
+                    ),
+                    fetchAllSalePropertiesForSuburb(
                         loc.suburb,
                         loc.state,
                         loc.postcode
@@ -1151,6 +1214,7 @@ export async function suburbAsyncWorkflow(
             const metrics = await calculateSuburbMetrics(
                 `${loc.suburb}, ${loc.state}, ${loc.postcode}`,
                 saleProperties,
+                soldProperties,
                 renterProperties,
                 absData
             );

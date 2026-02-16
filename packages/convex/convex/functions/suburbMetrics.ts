@@ -15,17 +15,17 @@ function getCentroid(bounds: {
 
 export const getSuburbMetrics = query({
     args: {
-        suburbId: v.id("suburbs"),
+        postcode: v.string(),
     },
-    handler: async (ctx, { suburbId }) => {
+    handler: async (ctx, { postcode }) => {
         const metrics = await ctx.db
             .query("suburbMetrics")
-            .withIndex("by_suburb", (q) =>
-                q.eq("suburbId", suburbId),
+            .withIndex("by_postcode", (q) =>
+                q.eq("postcode", postcode),
             )
             .first();
         if (!metrics) {
-            throw new Error(`Metrics for suburb ${suburbId} not found`);
+            throw new Error(`Metrics for postcode ${postcode} not found`);
         }
         return metrics;
     }
@@ -33,7 +33,7 @@ export const getSuburbMetrics = query({
 
 export const upsertSuburbMetricsData = mutation({
     args: {
-        suburbId: v.id("suburbs"),
+        postcode: v.string(),
         suburbGeometry: v.object({
             center: v.object({
                 lat: v.float64(),
@@ -71,11 +71,11 @@ export const upsertSuburbMetricsData = mutation({
             dataCompletenessScore: v.number(),
         }),
     },
-    handler: async (ctx, { suburbId, metrics, suburbGeometry }) => {
+    handler: async (ctx, { postcode, metrics, suburbGeometry }) => {
         const existingRecord = await ctx.db
             .query("suburbMetrics")
-            .withIndex("by_suburb", (q) =>
-                q.eq("suburbId", suburbId),
+            .withIndex("by_postcode", (q) =>
+                q.eq("postcode", postcode),
             )
             .first();
 
@@ -87,7 +87,7 @@ export const upsertSuburbMetricsData = mutation({
             return { success: true, message: "Metrics updated successfully" };
         } else {
             await ctx.db.insert("suburbMetrics", {
-                suburbId,
+                postcode,
                 metrics,
                 centerLat: suburbGeometry.center.lat,
                 centerLng: suburbGeometry.center.lng,
@@ -126,15 +126,16 @@ export const getSuburbMetricsByType = query({
 
         const metricField = metricFieldMap[metricType];
         const centre = getCentroid(bounds);
+        console.log(`Center: Lat ${centre.lat}, Lng ${centre.lng}`)
 
         // 2️⃣ Narrow down latitude window first (index usage)
-        const LAT_WINDOW = 2; // degrees (~200km). Adjust dynamically later.
+        // const LAT_WINDOW = 2; // degrees (~200km). Adjust dynamically later.
 
         const candidates = await ctx.db
             .query("suburbMetrics")
             .withIndex("by_lat_lng", (q) =>
-                q.gte("centerLat", centre.lat - LAT_WINDOW)
-                    .lte("centerLat", centre.lat + LAT_WINDOW)
+                q.gte("centerLat", centre.lat - 0.1)
+                    .lte("centerLat", centre.lat + 0.1)
             )
             .collect();
 
@@ -146,7 +147,7 @@ export const getSuburbMetricsByType = query({
             const distanceScore = dLat * dLat + dLng * dLng;
 
             return {
-                suburbId: doc.suburbId,
+                postcode: doc.postcode,
                 latitude: doc.centerLat,
                 longitude: doc.centerLng,
                 value: doc.metrics[metricField] ?? 0,
@@ -160,8 +161,8 @@ export const getSuburbMetricsByType = query({
         // 5️⃣ Take nearest N
         const nearest = scored.slice(0, limit);
 
-        return nearest.map(({ suburbId, latitude, longitude, value }) => ({
-            suburbId,
+        return nearest.map(({ postcode, latitude, longitude, value }) => ({
+            postcode,
             latitude,
             longitude,
             value,

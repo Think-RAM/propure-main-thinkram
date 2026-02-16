@@ -325,7 +325,8 @@ export default defineSchema({
 
   // ── Suburb Metrics ──
   suburbMetrics: defineTable({
-    suburbId: v.id("suburbs"),
+    // suburbId: v.id("suburbs"),
+    postcode: v.string(),
     centerLat: v.float64(),
     centerLng: v.float64(),
     metrics: v.object({
@@ -367,7 +368,7 @@ export default defineSchema({
     recordedAt: v.float64(),
     createdAt: v.float64(),
   })
-    .index("by_suburb", ["suburbId"])
+    .index("by_postcode", ["postcode"])
     .index("by_lat_lng", ["centerLat", "centerLng"]),
 
   // ── Real Estate Agents (renamed from Agent to avoid AI Agent confusion) ──

@@ -135,14 +135,14 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
   const [currentLayer, setCurrentLayer] = useState<Layers | undefined>();
   const [currentHeatmapLayer, setCurrentHeatmapLayer] = useState<MetricType | undefined>();
   const [mapView, setMapView] = useState<MapViewType>("default");
-  const currentViewPort = useRef<BBBox | null>(null);
+  const [currentViewPort, setCurrentViewPort] = useState<BBBox | null>(null);
 
   const registerMap = useCallback((map: LeafletMap) => {
     mapRef.current = map;
   }, []);
 
   const setCenter = useCallback((coords: LatLng, zoom = 14) => {
-    mapRef.current?.setView([coords.lat, coords.lng], zoom, { animate: true });
+    mapRef.current?.flyTo([coords.lat, coords.lng], zoom, { animate: true });
   }, []);
 
   const removeAllLayers = useCallback(() => {
@@ -348,10 +348,10 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
   const onMoveEnd = useEvent(() => {
     const map = mapRef.current;
     const active = currentLayer;
-    if (!map || !active) return;
-
+    if (!map) return;
     const bbBox = bboxFromMap(map);
-    currentViewPort.current = bbBox; // update latest viewport
+    setCurrentViewPort(bbBox); // Update viewport state on moveend
+    if(!active) return; // Heatmap doesn't use this flow, so skip if heatmap active
     const nextMeta = getLayersForView(bbBox, active);
 
     const nextIds = new Set(nextMeta.map((m) => m.id));
@@ -408,7 +408,7 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<MapContextType>(
     () => ({
       map: mapRef.current,
-      viewport: currentViewPort.current,
+      viewport: currentViewPort,
       currentView: mapView,
       currentLayer,
       currentHeatmapLayer,
@@ -427,6 +427,8 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
     [
       mapView,
       currentLayer,
+      currentHeatmapLayer,
+      currentViewPort,
       // setCenter,
       // registerMap,
       // setMapLayer,
