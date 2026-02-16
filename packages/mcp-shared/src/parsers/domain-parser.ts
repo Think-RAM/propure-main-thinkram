@@ -676,3 +676,73 @@ function inferListingType(priceText: string): PropertyListing["listingType"] {
   if (lower.includes("sold")) return "sold";
   return "sale";
 }
+
+function parseCurrencyToNumber(value: string | null): number | undefined {
+  if (!value) return undefined;
+
+  // Remove $ and commas
+  const cleaned = value.replace(/\$/g, "").replace(/,/g, "").trim();
+
+  const lastChar = cleaned.slice(-1).toLowerCase();
+
+  let multiplier = 1;
+  let numericPart = cleaned;
+
+  if (lastChar === "m") {
+    multiplier = 1_000_000;
+    numericPart = cleaned.slice(0, -1);
+  } else if (lastChar === "k") {
+    multiplier = 1_000;
+    numericPart = cleaned.slice(0, -1);
+  }
+
+  const number = parseFloat(numericPart);
+
+  if (isNaN(number)) return undefined;
+
+  return Math.round(number * multiplier);
+}
+
+export function propertyProfileValueParser(html: string) {
+  const $ = cheerio.load(html);
+
+  const result = {
+    propertyValueEstimate: {
+      low: undefined as number | undefined,
+      mid: undefined as number | undefined,
+      high: undefined as number | undefined,
+    },
+    rentalEstimatePerWeek: undefined as number | undefined,
+  };
+
+  /* PROPERTY VALUE */
+  $('[data-testid="estimate-card"]')
+    .find('[aria-label="Estimate Range"] > div')
+    .each((_, el) => {
+      const label = $(el).find("h4").text().trim().toLowerCase();
+      const rawValue = $(el)
+        .find('[data-testid="currency"]')
+        .text()
+        .replace(/\s+/g, "");
+
+      const numericValue = parseCurrencyToNumber(rawValue);
+
+      if (label === "low") result.propertyValueEstimate.low = numericValue;
+      if (label === "mid") result.propertyValueEstimate.mid = numericValue;
+      if (label === "high") result.propertyValueEstimate.high = numericValue;
+    });
+
+  /* RENTAL */
+  $("h4")
+    .filter((_, el) => $(el).text().trim() === "Rental estimate")
+    .closest("section")
+    .find("span")
+    .each((_, el) => {
+      const text = $(el).text().trim();
+      if (text.startsWith("$")) {
+        result.rentalEstimatePerWeek = parseCurrencyToNumber(text);
+      }
+    });
+
+  return result;
+}

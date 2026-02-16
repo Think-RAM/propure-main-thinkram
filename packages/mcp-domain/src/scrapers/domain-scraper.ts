@@ -6,6 +6,7 @@ import {
   type PropertyListing,
   type PropertySearchParams,
   type ListingType,
+  propertyProfileValueParser,
 } from "@propure/mcp-shared";
 // import { logger } from "../logger";
 
@@ -165,7 +166,7 @@ async function performDomainSearch(
   }
 
   if (params.listingType === "sold") {
-    MAX_DOMAIN_SEARCH_PAGES = 10;
+    MAX_DOMAIN_SEARCH_PAGES = 1;
   }
 
   const startPage = params.page && params.page > 0 ? params.page : 1;
@@ -264,9 +265,11 @@ async function performDomainSearch(
 
   const hitMaxPages = reachedMaxPageLimit && !endedBy404 && !endedByEmpty;
 
+  const enrichedListings = await getSoldPropertyProfileValue(allListings);
+
   return {
-    listings: allListings,
-    totalCount: allListings.length,
+    listings: enrichedListings,
+    totalCount: enrichedListings.length,
     hasMore: hitMaxPages,
   };
 }
@@ -356,255 +359,29 @@ export async function getDomainPropertyDetailsWithScrapeDo(
   return parseDomainPropertyListing(html, listingType, url);
 }
 
-// /**
-//  * Get suburb statistics from Domain.com.au
-//  */
-// export async function getDomainSuburbStats(
-//   suburb: string,
-//   state: AustralianState,
-//   postcode: string,
-// ): Promise<{
-//   suburb: string;
-//   state: AustralianState;
-//   postcode: string;
-//   medianPrice?: number;
-//   medianRent?: number;
-//   grossYield?: number;
-//   daysOnMarket?: number;
-//   annualGrowth?: number;
-//   fiveYearGrowth?: number;
-// } | null> {
-//   // Check for mock mode
-//   if (isMockModeEnabled()) {
-//     console.log(
-//       `[Mock Mode] Returning mock suburb stats for ${suburb}, ${state}`,
-//     );
-//     return getMockSuburbStats(suburb, state, postcode);
-//   }
+export async function getSoldPropertyProfileValue(listings: PropertyListing[]) {
+  try {
+    for (const listing of listings) {
+      const slug = listing.sourceUrl?.split("/").pop()!;
+      const result = slug.substring(0, slug.lastIndexOf("-"));
+      const url = `https://www.domain.com.au/property-profile/${result}`;
+      console.log(url);
 
-//   // Domain suburb profile URL
-//   const suburbSlug = suburb.toLowerCase().replace(/\s+/g, "-");
-//   const url = `https://www.domain.com.au/suburb-profile/${suburbSlug}-${state.toLowerCase()}-${postcode}`;
+      const html = await scrapeDomainWithScrapeDo(url);
+      const propertyValue = propertyProfileValueParser(html);
 
-//   try {
-//     const html = await scrapeDomain(url);
-
-//     // Extract stats from the page
-//     // Domain embeds suburb data in __NEXT_DATA__ as well
-//     const match = html.match(
-//       /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/,
-//     );
-
-//     if (!match?.[1]) {
-//       return null;
-//     }
-
-//     const nextData = JSON.parse(match[1]);
-//     const pageProps = nextData?.props?.pageProps;
-
-//     if (!pageProps) {
-//       return null;
-//     }
-
-//     // Extract stats from various possible locations in the data
-//     const stats =
-//       pageProps.suburbStats ||
-//       pageProps.marketInsights ||
-//       pageProps.componentProps?.suburbStats ||
-//       {};
-
-//     return {
-//       suburb,
-//       state,
-//       postcode,
-//       medianPrice: stats.medianSoldPrice || stats.medianPrice,
-//       medianRent: stats.medianRentPrice || stats.medianRent,
-//       grossYield: stats.grossRentalYield || stats.yield,
-//       daysOnMarket: stats.daysOnMarket || stats.averageDaysOnMarket,
-//       annualGrowth: stats.annualGrowth || stats.oneYearGrowth,
-//       fiveYearGrowth: stats.fiveYearGrowth || stats.compoundGrowth,
-//     };
-//   } catch (error) {
-//     console.error(`Failed to get suburb stats for ${suburb}:`, error);
-//     return null;
-//   }
-// }
-
-// /**
-//  * Get sales history for an address
-//  */
-// export async function getDomainSalesHistory(
-//   address: string,
-//   suburb: string,
-//   state: AustralianState,
-// ): Promise<
-//   Array<{
-//     saleDate: string;
-//     salePrice: number;
-//     saleType?: string;
-//   }>
-// > {
-//   // Check for mock mode
-//   if (isMockModeEnabled()) {
-//     console.log(`[Mock Mode] Returning mock sales history for ${address}`);
-//     return getMockSalesHistory(address, suburb, state);
-//   }
-
-//   // Domain has sold listings that show price history
-//   // Search for sold properties at this address
-//   const addressSlug = address.toLowerCase().replace(/\s+/g, "-");
-//   const suburbSlug = suburb.toLowerCase().replace(/\s+/g, "-");
-//   const url = `https://www.domain.com.au/property-profile/${addressSlug}-${suburbSlug}-${state.toLowerCase()}`;
-
-//   try {
-//     const html = await scrapeDomain(url);
-
-//     // Extract sales history from property profile page
-//     const match = html.match(
-//       /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/,
-//     );
-
-//     if (!match?.[1]) {
-//       return [];
-//     }
-
-//     const nextData = JSON.parse(match[1]);
-//     const salesHistory =
-//       nextData?.props?.pageProps?.salesHistory ||
-//       nextData?.props?.pageProps?.componentProps?.salesHistory ||
-//       [];
-
-//     return salesHistory.map(
-//       (sale: { date?: string; price?: number; type?: string }) => ({
-//         saleDate: sale.date || "",
-//         salePrice: sale.price || 0,
-//         saleType: sale.type,
-//       }),
-//     );
-//   } catch (error) {
-//     console.error(`Failed to get sales history for ${address}:`, error);
-//     return [];
-//   }
-// }
-
-// /**
-//  * Get agent information from Domain.com.au
-//  */
-// export async function getDomainAgentInfo(agentId: string): Promise<{
-//   id: string;
-//   name: string;
-//   email?: string;
-//   phone?: string;
-//   photoUrl?: string;
-//   agencyName?: string;
-//   salesCount?: number;
-//   rating?: number;
-// } | null> {
-//   // Check for mock mode
-//   if (isMockModeEnabled()) {
-//     console.log(`[Mock Mode] Returning mock agent info for ${agentId}`);
-//     return getMockAgentInfo(agentId);
-//   }
-
-//   const url = `https://www.domain.com.au/real-estate-agent/${agentId}`;
-
-//   try {
-//     const html = await scrapeDomain(url);
-
-//     const match = html.match(
-//       /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/,
-//     );
-
-//     if (!match?.[1]) {
-//       return null;
-//     }
-
-//     const nextData = JSON.parse(match[1]);
-//     const agentData =
-//       nextData?.props?.pageProps?.agent ||
-//       nextData?.props?.pageProps?.componentProps?.agent;
-
-//     if (!agentData) {
-//       return null;
-//     }
-
-//     return {
-//       id: agentId,
-//       name: agentData.name || "",
-//       email: agentData.email,
-//       phone: agentData.phone,
-//       photoUrl: agentData.photo || agentData.photoUrl,
-//       agencyName: agentData.agency?.name || agentData.agencyName,
-//       salesCount: agentData.salesCount || agentData.soldProperties,
-//       rating: agentData.rating || agentData.averageRating,
-//     };
-//   } catch (error) {
-//     console.error(`Failed to get agent info for ${agentId}:`, error);
-//     return null;
-//   }
-// }
-
-// /**
-//  * Get auction results from Domain.com.au
-//  */
-// export async function getDomainAuctionResults(
-//   suburb: string,
-//   state: AustralianState,
-// ): Promise<
-//   Array<{
-//     address: string;
-//     auctionDate: string;
-//     result: string;
-//     guidePrice?: number;
-//     soldPrice?: number;
-//   }>
-// > {
-//   // Check for mock mode
-//   if (isMockModeEnabled()) {
-//     console.log(
-//       `[Mock Mode] Returning mock auction results for ${suburb}, ${state}`,
-//     );
-//     return getMockAuctionResults(suburb, state);
-//   }
-
-//   const suburbSlug = suburb.toLowerCase().replace(/\s+/g, "-");
-//   const url = `https://www.domain.com.au/auction-results/${suburbSlug}-${state.toLowerCase()}`;
-
-//   try {
-//     const html = await scrapeDomain(url);
-
-//     const match = html.match(
-//       /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/,
-//     );
-
-//     if (!match?.[1]) {
-//       return [];
-//     }
-
-//     const nextData = JSON.parse(match[1]);
-//     const auctionResults =
-//       nextData?.props?.pageProps?.auctionResults ||
-//       nextData?.props?.pageProps?.componentProps?.results ||
-//       [];
-
-//     return auctionResults.map(
-//       (auction: {
-//         address?: string;
-//         date?: string;
-//         result?: string;
-//         guidePrice?: number;
-//         soldPrice?: number;
-//         price?: number;
-//       }) => ({
-//         address: auction.address || "",
-//         auctionDate: auction.date || "",
-//         result: auction.result || "unknown",
-//         guidePrice: auction.guidePrice,
-//         soldPrice: auction.soldPrice || auction.price,
-//       }),
-//     );
-//   } catch (error) {
-//     console.error(`Failed to get auction results for ${suburb}:`, error);
-//     return [];
-//   }
-// }
+      listing.propertyValueEstimate = propertyValue.propertyValueEstimate;
+      listing.propertyRentEstimate = propertyValue.rentalEstimatePerWeek;
+      console.log(listing.propertyValueEstimate, listing.propertyRentEstimate);
+    }
+    return listings;
+  } catch (error) {
+    console.error(
+      {
+        err: error instanceof Error ? error.message : String(error),
+      },
+      "Failed to fetch property profile values",
+    );
+    return listings;
+  }
+}

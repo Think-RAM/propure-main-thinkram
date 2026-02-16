@@ -111,7 +111,15 @@ export const PropertyListingSchema = z.object({
   soldDate: z.string().optional(),
   soldPrice: z.number().optional(),
   soldAt: SoldAt.optional(),
+
+  //from property profile
   daysOnMarket: z.number().optional(),
+  propertyValueEstimate: z.object({
+    low: z.number().optional(),
+    mid: z.number().optional(),
+    high: z.number().optional(),
+  }).optional(),
+  propertyRentEstimate: z.number().optional(),
 
   listedDate: z.string().optional(),
   auctionDate: z.string().optional(),

@@ -50,11 +50,22 @@ const listingShape = v.object({
   inspectionTimes: v.optional(v.array(v.string())),
   listedDate: v.optional(v.string()),
   auctionDate: v.optional(v.string()),
+
   // sold-related fields (match schema.ts)
   soldDate: v.optional(v.string()),
   soldPrice: v.optional(v.float64()),
   soldAt: v.optional(soldAt),
   daysOnMarket: v.optional(v.int64()),
+  propertyValueEstimate: v.optional(
+    v.object({
+      low: v.optional(v.float64()),
+      mid: v.optional(v.float64()),
+      high: v.optional(v.float64()),
+    }),
+  ),
+
+  propertyRentEstimate: v.optional(v.float64()),
+
   // convenience top-level suburb for indexing/searching
   addressSuburb: v.optional(v.string()),
   // Metadata timestamps (DB stores numeric ms)
@@ -84,10 +95,21 @@ const listingPatchShape = v.object({
   inspectionTimes: v.optional(v.array(v.string())),
   listedDate: v.optional(v.string()),
   auctionDate: v.optional(v.string()),
+
   soldDate: v.optional(v.string()),
   soldPrice: v.optional(v.float64()),
   soldAt: v.optional(soldAt),
   daysOnMarket: v.optional(v.int64()),
+  propertyValueEstimate: v.optional(
+    v.object({
+      low: v.optional(v.float64()),
+      mid: v.optional(v.float64()),
+      high: v.optional(v.float64()),
+    }),
+  ),
+
+  propertyRentEstimate: v.optional(v.float64()),
+
   addressSuburb: v.optional(v.string()),
   createdAt: v.optional(v.float64()),
   updatedAt: v.optional(v.float64()),

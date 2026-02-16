@@ -293,7 +293,17 @@ export default defineSchema({
     soldDate: v.optional(v.string()), // ISO date string to match shared schema
     soldPrice: v.optional(v.float64()),
     soldAt: v.optional(soldAt),
+
     daysOnMarket: v.optional(v.int64()),
+    propertyValueEstimate: v.optional(
+      v.object({
+        low: v.optional(v.float64()),
+        mid: v.optional(v.float64()),
+        high: v.optional(v.float64()),
+      }),
+    ),
+
+    propertyRentEstimate: v.optional(v.float64()),
 
     headline: v.optional(v.string()),
     description: v.optional(v.string()),

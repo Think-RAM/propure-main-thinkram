@@ -52,6 +52,7 @@ export {
   parseReaSearchResults,
   parseAbsMarketData,
   parseAbsPopulationProjections,
+  propertyProfileValueParser,
 } from "./parsers";
 
 export { logger, createChildLogger } from "./logger";
