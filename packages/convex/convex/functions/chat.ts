@@ -87,13 +87,13 @@ export const updateMessage = mutation({
     const existing = id ? await ctx.db.get(id) : null;
 
     if (id && existing) {
-      // equivalent to Prisma update
+      // equivalent to update
       await ctx.db.patch(id, {
         role,
         content: updatedParts,
       });
     } else {
-      // equivalent to Prisma create
+      // equivalent to create
       const newMessageId = await ctx.db.insert("chatMessages", {
         role,
         content: updatedParts,

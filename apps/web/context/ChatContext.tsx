@@ -11,8 +11,8 @@ import {
 import { toast } from "sonner";
 import { v4 as generateUUID } from "uuid";
 // import { useQuery } from "@propure/convex";
-import { api } from "@propure/convex/api";
-import type { Doc, Id } from "@propure/convex/dataModel";
+import { api } from "@propure/convex/genereated";
+import type { Doc, Id } from "@propure/convex/genereated";
 import { useConvex } from "@propure/convex";
 
 interface ChatContextType {

@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useState } from "react";
 import { useUserChats } from "@/context/ChatContext";
 import { cn } from "@/lib/utils";
-import type { Id } from "@propure/convex/dataModel";
+import type { Id } from "@propure/convex/genereated";
 
 export default function Page() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);

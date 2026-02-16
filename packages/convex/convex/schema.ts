@@ -144,7 +144,8 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_type", ["type"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_user_status", ["userId", "status"]),
 
   // ── Saved Searches ──
   savedSearches: defineTable({
@@ -336,17 +337,51 @@ export default defineSchema({
 
   // ── Suburb Metrics ──
   suburbMetrics: defineTable({
-    suburbId: v.id("suburbs"),
-    metricType: v.string(),
-    value: v.float64(),
-    source: v.optional(v.string()),
+    // suburbId: v.id("suburbs"),
+    postcode: v.string(),
+    centerLat: v.float64(),
+    centerLng: v.float64(),
+    metrics: v.object({
+      typicalValue: v.number(),
+      medianValue: v.number(),
+      averageDaysOnMarket: v.number(),
+      auctionClearanceRate: v.number(),
+      renterProportion: v.number(),
+      vacancyRate: v.number(),
+      netYield: v.number(),
+      stockOnMarket: v.number(),
+      capitalGrowthScore: v.number(),
+      riskScore: v.number(),
+      cashFlowScore: v.number(),
+      risk: v.object({
+        marketRisk: v.number(),
+        financialRisk: v.number(),
+        liquidityRisk: v.number(),
+        concentrationRisk: v.number(),
+      }),
+      dataCompletenessScore: v.number(),
+    }),
+    geometry: v.object({
+      center: v.object({
+        lat: v.float64(),
+        lng: v.float64(),
+      }),
+      boundary: v.object({
+        northeast: v.object({
+          lat: v.float64(),
+          lng: v.float64(),
+        }),
+        southwest: v.object({
+          lat: v.float64(),
+          lng: v.float64(),
+        }),
+      }),
+    }),
     recordedAt: v.float64(),
     createdAt: v.float64(),
   })
-    .index("by_suburb", ["suburbId"])
-    .index("by_suburb_type", ["suburbId", "metricType"])
-    .index("by_suburb_type_time", ["suburbId", "metricType", "recordedAt"])
-    .index("by_metric_type", ["metricType"]),
+    .index("by_postcode", ["postcode"])
+    .index("by_lat_lng", ["centerLat", "centerLng"]),
 
   // ── Real Estate Agents (renamed from Agent to avoid AI Agent confusion) ──
   realEstateAgents: defineTable({
@@ -477,8 +512,8 @@ export default defineSchema({
     // medianWeeklyIncome: v.optional(v.float64()),
     // medianMonthlyMortgage: v.optional(v.float64()),
     // // medianWeeklyRent: v.optional(v.float64()),
-    // ownerOccupied: v.optional(v.float64()),
-    // rented: v.optional(v.float64()),
+    ownerOccupied: v.optional(v.float64()),
+    rented: v.optional(v.float64()),
     // unemploymentRate: v.optional(v.float64()),
 
     // Breakdown columns (arrays of small objects)

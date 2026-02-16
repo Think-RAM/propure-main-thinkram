@@ -1,6 +1,6 @@
 import { client } from "@propure/convex/client";
-import { api } from "@propure/convex/api";
-import type { Doc } from "@propure/convex/dataModel";
+import { api } from "@propure/convex/genereated";
+import type { Doc } from "@propure/convex/genereated";
 import { searchDomainPropertiesWithScrapeDo } from "@propure/mcp-domain";
 import { start } from "workflow/api";
 
@@ -119,10 +119,11 @@ async function fetchScrappingLocations(): Promise<
 > {
   "use step";
 
-  const records = (await client.query(
-    api.functions.scrapingLocations.listAll,
-    {},
-  )) as ScrappingLocationRecord[];
+  // const records = (await client.query(
+  //   api.functions.scrapingLocations.listAll,
+  //   {},
+  // )) as ScrappingLocationRecord[];
+  const records: any = [];
 
   // If there are no configured scrapping locations in Convex, fall back to
   // a single default location used by the MCP-domain test script so the
@@ -141,7 +142,7 @@ async function fetchScrappingLocations(): Promise<
     return [{ ...defaultRecord, status: "pending" }];
   }
 
-  return records.map((location) => ({ ...location, status: "pending" }));
+  return records.map((location: any) => ({ ...location, status: "pending" }));
 }
 
 async function processPendingLocations(

@@ -184,8 +184,17 @@ export function parseAbsMarketData(html: string): MarketData | null {
     }
     return null;
   }
+  const rented =
+    tenureTypeRows?.find((r) => r.label.includes("Rented (b)"))?.count ?? 0;
+
+  const ownerOccupied =
+    (dwellingStructureRows?.reduce((sum, r) => sum + (r.count ?? 0), 0) ?? 0) -
+    rented;
 
   return {
+    census_year: 0,
+    rented,
+    ownerOccupied: ownerOccupied > 0 ? ownerOccupied : 0,
     people: peopleRows,
     maritalStatus: maritalRows ?? [],
     education: educationRows ?? [],

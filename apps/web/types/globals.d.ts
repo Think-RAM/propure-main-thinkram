@@ -1,4 +1,4 @@
-import { Id } from "@propure/convex/dataModel";
+import type { Id } from "@propure/convex/genereated";
 import { Plan, UserPreferences } from "./types";
 
 export {};

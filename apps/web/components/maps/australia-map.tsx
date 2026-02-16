@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import Image from "next/image";
-import L from "leaflet";
 import dynamic from "next/dynamic";
 
 /**
@@ -16,27 +15,27 @@ import dynamic from "next/dynamic";
  */
 export const MapContainer = dynamic(
   () => import("react-leaflet").then((m) => m.MapContainer),
-  { ssr: false }
+  { ssr: false },
 );
 
 export const TileLayer = dynamic(
   () => import("react-leaflet").then((m) => m.TileLayer),
-  { ssr: false }
+  { ssr: false },
 );
 
 export const Marker = dynamic(
   () => import("react-leaflet").then((m) => m.Marker),
-  { ssr: false }
+  { ssr: false },
 );
 
 export const Popup = dynamic(
   () => import("react-leaflet").then((m) => m.Popup),
-  { ssr: false }
+  { ssr: false },
 );
 
 export const Polygon = dynamic(
   () => import("react-leaflet").then((m) => m.Polygon),
-  { ssr: false }
+  { ssr: false },
 );
 
 // Define types for our map data
@@ -413,23 +412,6 @@ const australiaMarkers: MapMarker[] = [
 /* ------------------------------------------------------------------ */
 const AUSTRALIA_CENTER: [number, number] = [-25.2744, 133.7751];
 
-/* ------------------------------------------------------------------ */
-/* Custom Leaflet icon (Canvas-friendly)                               */
-/* ------------------------------------------------------------------ */
-const createIcon = (color: string) =>
-  L.divIcon({
-    className: "",
-    html: `<div style="
-      width:18px;
-      height:18px;
-      border-radius:50%;
-      background:${color};
-      border:2px solid #fff;
-    "></div>`,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
-  });
-
 // Helper function to get marker color based on growth rate
 const getMarkerColor = (growthRate: number): string => {
   if (growthRate < 3) return "#E9ECEF"; // Low growth
@@ -447,9 +429,11 @@ export default function AustraliaMap({
 }: {
   selectedCity?: string;
 }) {
+  const [L, setLeaflet] = useState<typeof import("leaflet") | null>(null);
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
-  const [selectedProperty, setSelectedProperty] =
-    useState<PropertyData | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<PropertyData | null>(
+    null,
+  );
   const mapRef = useRef<L.Map | null>(null);
 
   /* -------------------------------------------------------------- */
@@ -458,18 +442,37 @@ export default function AustraliaMap({
   const filteredMarkers = useMemo(() => {
     if (selectedCity === "All") return australiaMarkers;
     return australiaMarkers.filter((m) =>
-      m.suburb.toLowerCase().includes(selectedCity.toLowerCase())
+      m.suburb.toLowerCase().includes(selectedCity.toLowerCase()),
     );
   }, [selectedCity]);
+
+  /* ------------------------------------------------------------------ */
+  /* Custom Leaflet icon (Canvas-friendly)                               */
+  /* ------------------------------------------------------------------ */
+  const createIcon = (color: string) => {
+    if (!L) return undefined;
+    return L.divIcon({
+      className: "",
+      html: `<div style="
+      width:18px;
+      height:18px;
+      border-radius:50%;
+      background:${color};
+      border:2px solid #fff;
+    "></div>`,
+      iconSize: [18, 18],
+      iconAnchor: [9, 9],
+    });
+  };
 
   /* -------------------------------------------------------------- */
   /* Fit bounds on filter change                                     */
   /* -------------------------------------------------------------- */
   useEffect(() => {
-    if (filteredMarkers.length === 0 || !mapRef.current) return;
+    if (filteredMarkers.length === 0 || !mapRef.current || !L) return;
     if (selectedCity !== "All") {
       const bounds = L.latLngBounds(
-        filteredMarkers.map((m) => [m.position.lat, m.position.lng])
+        filteredMarkers.map((m) => [m.position.lat, m.position.lng]),
       );
       mapRef.current.fitBounds(bounds, { maxZoom: 10 });
     } else {
@@ -477,9 +480,23 @@ export default function AustraliaMap({
     }
   }, [filteredMarkers, selectedCity]);
 
+  useEffect(() => {
+    let mounted = true;
+
+    import("leaflet").then((L) => {
+      if (mounted) setLeaflet(L);
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   /* -------------------------------------------------------------- */
   /* Render                                                         */
   /* -------------------------------------------------------------- */
+  if (!L) return null;
+
   return (
     <div className="relative aspect-[16/9] rounded-lg overflow-hidden h-full">
       <MapContainer
@@ -527,7 +544,9 @@ export default function AustraliaMap({
               </h3>
 
               <div className="grid grid-cols-2 gap-2 mb-4 text-sm">
-                <div>Median: ${selectedMarker.metrics.medianPrice.toLocaleString()}</div>
+                <div>
+                  Median: ${selectedMarker.metrics.medianPrice.toLocaleString()}
+                </div>
                 <div>Yield: {selectedMarker.metrics.averageRentalYield}%</div>
                 <div>YoY: +{selectedMarker.metrics.priceChangeYoY}%</div>
                 <div>Vacancy: {selectedMarker.metrics.vacancyRate}%</div>

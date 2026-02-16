@@ -1,11 +1,14 @@
 "use server";
 
-import { generateText, Output } from "ai";
-import { Layers } from "./layers";
-import { google } from "@ai-sdk/google";
-import z from "zod";
-
-type GeocodeResult = { lat: number; lng: number; placeId?: string };
+type GeocodeResult = {
+  lat: number;
+  lng: number;
+  placeId?: string;
+  bbounds?: {
+    northeast: { lat: number; lng: number },
+    southwest: { lat: number; lng: number }
+  };
+};
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY!;
 
@@ -27,7 +30,17 @@ export const addressToCoordinatesGoogle = async (
       status: string;
       results: Array<{
         place_id: string;
-        geometry: { location: { lat: number; lng: number } };
+        geometry: {
+          location: { lat: number; lng: number },
+          bounds: {
+            northeast: { lat: number; lng: number },
+            southwest: { lat: number; lng: number }
+          },
+          viewport: {
+            northeast: { lat: number; lng: number },
+            southwest: { lat: number; lng: number }
+          }
+        };
       }>;
       error_message?: string;
     } = await res.json();
@@ -35,9 +48,44 @@ export const addressToCoordinatesGoogle = async (
     if (data.status !== "OK" || !data.results.length) return null;
 
     const loc = data.results[0].geometry.location;
-    return { lat: loc.lat, lng: loc.lng, placeId: data.results[0].place_id };
+    const bounds = data.results[0].geometry.bounds || data.results[0].geometry.viewport;
+    const place_id = data.results[0].place_id;
+    return {
+      lat: loc.lat,
+      lng: loc.lng,
+      placeId: place_id,
+      bbounds: bounds
+    };
   } catch (error) {
     console.error("addressToCoordinatesGoogle error:", error);
     return null;
   }
 };
+
+export async function calculateMapCenter(geocodes: GeocodeResult[]) {
+  if (geocodes.length === 0) return null;
+
+  let minLat = Infinity;
+  let maxLat = -Infinity;
+  let minLng = Infinity;
+  let maxLng = -Infinity;
+
+  for (const g of geocodes) {
+    if (g.bbounds) {
+      minLat = Math.min(minLat, g.bbounds.southwest.lat);
+      minLng = Math.min(minLng, g.bbounds.southwest.lng);
+      maxLat = Math.max(maxLat, g.bbounds.northeast.lat);
+      maxLng = Math.max(maxLng, g.bbounds.northeast.lng);
+    } else {
+      minLat = Math.min(minLat, g.lat);
+      maxLat = Math.max(maxLat, g.lat);
+      minLng = Math.min(minLng, g.lng);
+      maxLng = Math.max(maxLng, g.lng);
+    }
+  }
+
+  return {
+    lat: (minLat + maxLat) / 2,
+    lng: (minLng + maxLng) / 2,
+  };
+}

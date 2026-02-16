@@ -10,9 +10,8 @@ import React, {
   useState,
 } from "react";
 import { type Map as LeafletMap } from "leaflet";
-import { featureLayer, FeatureLayer } from "esri-leaflet";
+import type { FeatureLayer } from "esri-leaflet";
 import { toast } from "sonner";
-
 import { HazardPolygon } from "@/lib/hazardZones";
 import {
   handleLegendExtraction,
@@ -27,7 +26,7 @@ import {
   Styles,
 } from "@/lib/map/layers";
 import { coordToAUStates } from "@/lib/utils";
-import L from "leaflet";
+import { HEATMAP_LEGENDS, MetricType } from "@/lib/map/heatmap-config";
 
 type LatLng = { lat: number; lng: number };
 export type MapViewType = "default" | "satellite" | "terrain";
@@ -41,13 +40,23 @@ export type SearchResult = {
   yieldColor: string;
   lat: number;
   lng: number;
+
+  // optional extras if you use them in cards
+  url?: string;
+  beds?: number;
+  baths?: number;
+  cars?: number;
 };
 
 type MapContextType = {
+  map: LeafletMap | null;
+  viewport: BBBox | null;
   currentView: MapViewType;
   currentLayer?: Layers;
+  currentHeatmapLayer?: MetricType;
   setCenter: (coords: LatLng, zoom?: number) => void;
   registerMap: (map: LeafletMap) => void;
+  setHeatmapLayer: (layerId?: MetricType) => void;
   setMapLayer: (layerId?: Layers) => Promise<void>;
   results: SearchResult[];
   polygons: HazardPolygon[];
@@ -124,7 +133,9 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
   const [polygons, setPolygons] = useState<HazardPolygon[]>([]);
   const [legends, setLegends] = useState<Styles[]>([]);
   const [currentLayer, setCurrentLayer] = useState<Layers | undefined>();
+  const [currentHeatmapLayer, setCurrentHeatmapLayer] = useState<MetricType | undefined>();
   const [mapView, setMapView] = useState<MapViewType>("default");
+  const currentViewPort = useRef<BBBox | null>(null);
 
   const registerMap = useCallback((map: LeafletMap) => {
     mapRef.current = map;
@@ -197,6 +208,8 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
       if (featureLayersRef.current[layerInfo.id]) return;
 
       const layerLegends = await getLegendsFor(layerInfo);
+      const { featureLayer } = await import("esri-leaflet");
+      const L = await import("leaflet");
 
       const lyr: FeatureLayer = featureLayer({
         url: layerInfo.url,
@@ -266,6 +279,21 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
     lyr.refresh();
   }, []);
 
+  const setHeatmapLayer = useCallback(
+    (layerId?: MetricType) => {
+      const map = mapRef.current;
+      if (!map) {
+        toast.error("Map is not Loaded yet.");
+        return;
+      }
+      // Remove all other layers
+      removeAllLayers();
+      // Only one heatmap layer at a time, so no need to check for existing layers - just add if layerId provided
+      setCurrentHeatmapLayer(layerId);
+      setLegends(layerId ? HEATMAP_LEGENDS[layerId] : []);
+    }
+  , []);
+
   const setMapLayer = useCallback(
     async (layerId?: Layers) => {
       const map = mapRef.current;
@@ -323,6 +351,7 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
     if (!map || !active) return;
 
     const bbBox = bboxFromMap(map);
+    currentViewPort.current = bbBox; // update latest viewport
     const nextMeta = getLayersForView(bbBox, active);
 
     const nextIds = new Set(nextMeta.map((m) => m.id));
@@ -378,11 +407,15 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<MapContextType>(
     () => ({
+      map: mapRef.current,
+      viewport: currentViewPort.current,
       currentView: mapView,
       currentLayer,
+      currentHeatmapLayer,
       setCenter,
       registerMap,
       setMapLayer,
+      setHeatmapLayer,
       results,
       setResults,
       polygons,

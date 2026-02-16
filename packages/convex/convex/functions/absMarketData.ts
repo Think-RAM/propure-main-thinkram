@@ -15,6 +15,9 @@ const upsertArgs = v.object({
   lga: v.optional(v.string()),
   state: v.optional(australianState),
 
+  ownerOccupied: v.optional(v.float64()),
+  rented: v.optional(v.float64()),
+
   totalPopulation: v.optional(v.float64()),
   medianAge: v.optional(v.float64()),
   populationGrowth: v.optional(v.float64()), // YoY %
@@ -116,6 +119,8 @@ export const upsertAbsMarketData = mutation({
           source: input.source ?? existing.source,
           scrapedAt,
           extra: input.extra ?? existing.extra,
+          ownerOccupied: input.ownerOccupied ?? undefined,
+          rented: input.rented ?? undefined,
         });
 
         return ctx.db.get(existing._id);
@@ -161,6 +166,8 @@ export const upsertAbsMarketData = mutation({
       malePercentage: input.malePercentage ?? undefined,
       femalePercentage: input.femalePercentage ?? undefined,
       census_year: input.census_year ?? undefined,
+      ownerOccupied: input.ownerOccupied ?? undefined,
+      rented: input.rented ?? undefined,
     });
 
     return rec;
@@ -173,9 +180,9 @@ export const getAbsMarketDataByPostcode = query({
     const rec = await ctx.db
       .query("absMarketData")
       .withIndex("by_postcode", (q: any) => q.eq("postcode", postcode))
-      .first();
+      .collect();
 
-    return rec ?? null;
+    return rec;
   },
 });
 

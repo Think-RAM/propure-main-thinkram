@@ -18,10 +18,11 @@ async function fetchScrappingLocations(): Promise<
 > {
   "use step";
 
-  const records = (await client.query(
-    api.functions.scrapingLocations.listAll,
-    {},
-  )) as ScrappingLocationRecord[];
+  // const records = (await client.query(
+  //   api.functions.scrapingLocations.listAll,
+  //   {},
+  // )) as ScrappingLocationRecord[];
+  const records: any = [];
 
   // If there are no configured scrapping locations in Convex, fall back to
   // a single default location used by the MCP-domain test script so the
@@ -40,7 +41,7 @@ async function fetchScrappingLocations(): Promise<
     return [{ ...defaultRecord, status: "pending" }];
   }
 
-  return records.map((location) => ({ ...location, status: "pending" }));
+  return records.map((location: any) => ({ ...location, status: "pending" }));
 }
 
 export type DemographicCallResult = {
@@ -83,9 +84,9 @@ export async function fetchDemographicsForLocations(
 
       const yearList = [
         START_YEAR,
-        START_YEAR - 5,
-        START_YEAR - 10,
-        START_YEAR - 15,
+        // START_YEAR - 5,
+        // START_YEAR - 10,
+        // START_YEAR - 15,
       ]; // Can be extended to fetch multiple years if needed
 
       for (const year of yearList) {

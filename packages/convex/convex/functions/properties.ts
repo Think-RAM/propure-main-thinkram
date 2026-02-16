@@ -133,6 +133,25 @@ function normalizeListing(listing: ListingInput): any {
   };
 }
 
+ function haversineKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+) {
+  const R = 6371; // Earth radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
 export const getPropertyById = query({
   args: { propertyId: v.id("properties") },
   handler: async (ctx, { propertyId }) => {
@@ -248,5 +267,252 @@ export const getPropertiesByExternalIds = query({
       }
     }
     return results;
+  },
+});
+
+export const fetchProperties = query({
+  args: {
+    locations: v.array(
+      v.object({
+        suburb: v.string(),
+        state: v.string(),
+        postcode: v.optional(v.string()),
+      }),
+    ),
+
+    listingType: listingType,
+
+    propertyTypes: v.optional(
+      v.array(
+        propertyType
+      ),
+    ),
+
+    minPrice: v.optional(v.float64()),
+    maxPrice: v.optional(v.float64()),
+    minBedrooms: v.optional(v.float64()),
+    maxBedrooms: v.optional(v.float64()),
+    minBathrooms: v.optional(v.float64()),
+    minCarSpaces: v.optional(v.float64()),
+
+    page: v.float64(),
+    pageSize: v.float64(),
+  },
+
+  handler: async (ctx, args) => {
+    const {
+      locations,
+      listingType,
+      propertyTypes,
+      minPrice,
+      maxPrice,
+      minBedrooms,
+      maxBedrooms,
+      minBathrooms,
+      minCarSpaces,
+      page,
+      pageSize,
+    } = args;
+
+    const offset = (page - 1) * pageSize;
+
+    // 1️⃣ Fetch base set using indexed fields only
+    const baseResults = await ctx.db
+      .query("properties")
+      .withIndex("by_listing_type", (q) =>
+        q.eq("listingType", listingType),
+      )
+      .collect();
+
+    // 2️⃣ Location filtering (in-memory)
+    const locationFiltered = baseResults.filter((property) =>
+      locations.some((loc) => {
+        if (!property.address) return false;
+
+        const suburbMatch =
+          property.address.suburb.toLowerCase() ===
+          loc.suburb.toLowerCase();
+
+        const stateMatch =
+          property.address.state === loc.state;
+
+        const postcodeMatch = loc.postcode
+          ? property.address.postcode === loc.postcode
+          : true;
+
+        return suburbMatch && stateMatch && postcodeMatch;
+      }),
+    );
+
+    // 3️⃣ Feature + price filtering (in-memory)
+    const fullyFiltered = locationFiltered.filter((property) => {
+      const f = property.features;
+
+      if (propertyTypes && f?.propertyType) {
+        if (!propertyTypes.includes(f.propertyType)) return false;
+      }
+
+      if (minPrice !== undefined && property.priceValue !== undefined) {
+        if (property.priceValue < minPrice) return false;
+      }
+
+      if (maxPrice !== undefined && property.priceValue !== undefined) {
+        if (property.priceValue > maxPrice) return false;
+      }
+
+      if (minBedrooms !== undefined && f?.bedrooms !== undefined) {
+        if (f.bedrooms < minBedrooms) return false;
+      }
+
+      if (maxBedrooms !== undefined && f?.bedrooms !== undefined) {
+        if (f.bedrooms > maxBedrooms) return false;
+      }
+
+      if (minBathrooms !== undefined && f?.bathrooms !== undefined) {
+        if (f.bathrooms < minBathrooms) return false;
+      }
+
+      if (minCarSpaces !== undefined && f?.parkingSpaces !== undefined) {
+        if (f.parkingSpaces < minCarSpaces) return false;
+      }
+
+      return true;
+    });
+
+    // 4️⃣ Pagination
+    const paginatedResults = fullyFiltered.slice(
+      offset,
+      offset + pageSize,
+    );
+
+    return {
+      data: paginatedResults,
+      page,
+      pageSize,
+      total: fullyFiltered.length,
+      totalPages: Math.ceil(fullyFiltered.length / pageSize),
+    };
+  },
+});
+
+export const getPropertyByExternalIdOrAddress = query({
+  args: {
+    externalId: v.optional(v.string()),
+    address: v.optional(v.string()),
+    suburb: v.optional(v.string()),
+    state: v.optional(v.string()),
+  },
+  handler: async (ctx, { externalId, address, suburb, state }) => {
+    if (externalId) {
+      return await ctx.db
+        .query("properties")
+        .withIndex("by_external_id", (q) => q.eq("externalId", externalId))
+        .first();
+    }
+    else if (address && suburb && state) {
+      return await ctx.db
+        .query("properties")
+        .withIndex("by_address_suburb", (q) => q.eq("addressSuburb", suburb))
+        .filter((q) =>
+          q.and(
+            q.eq(q.field("address.displayAddress"), address),
+            q.eq(q.field("address.state"), state),
+          ),
+        )
+        .first();
+    }
+  }
+})
+
+export const getComparableProperties = query({
+  args: {
+    address: v.string(),
+    suburb: v.string(),
+    state: v.string(),
+    radiusKm: v.optional(v.float64()),
+    limit: v.optional(v.float64()),
+    monthsBack: v.optional(v.float64()),
+  },
+
+  handler: async (ctx, args) => {
+    const {
+      suburb,
+      state,
+      radiusKm = 1,
+      limit = 10,
+      monthsBack = 12,
+    } = args;
+
+    const now = Date.now();
+    const cutoffTime =
+      now - monthsBack * 30 * 24 * 60 * 60 * 1000;
+
+    // 1️⃣ Fetch candidate properties using index
+    const candidates = await ctx.db
+      .query("properties")
+      .withIndex("by_address_suburb", (q) =>
+        q.eq("addressSuburb", suburb),
+      )
+      .collect();
+
+    // 2️⃣ Filter SOLD + state + recent
+    const filtered = candidates.filter((p) => {
+      if (p.listingType !== "sold") return false;
+      if (p.address.state !== state) return false;
+      if (p.createdAt < cutoffTime) return false;
+      return true;
+    });
+
+    // 3️⃣ Extract reference coordinates (if available)
+    const reference = filtered.find(
+      (p) =>
+        p.address.displayAddress === args.address &&
+        p.address.latitude !== undefined &&
+        p.address.longitude !== undefined,
+    );
+
+    const refLat = reference?.address.latitude;
+    const refLng = reference?.address.longitude;
+
+    // 4️⃣ Distance filtering (if we have coordinates)
+    const withDistance = filtered
+      .map((p) => {
+        if (
+          refLat === undefined ||
+          refLng === undefined ||
+          p.address.latitude === undefined ||
+          p.address.longitude === undefined
+        ) {
+          return { property: p, distanceKm: null };
+        }
+
+        const distanceKm = haversineKm(
+          refLat,
+          refLng,
+          p.address.latitude,
+          p.address.longitude,
+        );
+
+        return { property: p, distanceKm };
+      })
+      .filter((item) =>
+        item.distanceKm === null
+          ? true
+          : item.distanceKm <= radiusKm,
+      );
+
+    // 5️⃣ Sort: closest first, fallback to most recent
+    withDistance.sort((a, b) => {
+      if (a.distanceKm !== null && b.distanceKm !== null) {
+        return a.distanceKm - b.distanceKm;
+      }
+      return b.property.createdAt - a.property.createdAt;
+    });
+
+    // 6️⃣ Limit results
+    return withDistance.slice(0, limit).map((i) => ({
+      ...i.property,
+      distanceKm: i.distanceKm,
+    }));
   },
 });

@@ -240,6 +240,11 @@ export function mapPropertyType(raw?: string): PropertyType | undefined {
   return "other";
 }
 
+function parseCurrency(value: string | undefined): number {
+  if (!value) return 0;
+  return Number(value.replace(/[^0-9.-]+/g, ""));
+}
+
 export function parseDomainPropertyListing(
   html: string,
   listingType: ListingType,
@@ -264,10 +269,11 @@ export function parseDomainPropertyListing(
 
     // PRICE
     const price =
-      $("div[data-testid='listing-details__summary-title'] span")
-        .first()
-        .text()
-        .trim() || undefined;
+      $("p[data-testid='listing-card-price']").first().text().trim() ||
+      undefined;
+    const soldPrice =
+      $("p[data-testid='listing-card-price']").first().text().trim() ||
+      undefined;
 
     const { priceValue, priceFrom, priceTo } = parsePrice(price);
 
@@ -349,6 +355,7 @@ export function parseDomainPropertyListing(
       agentName,
       agentPhone,
       agencyName,
+      soldPrice: parseCurrency(soldPrice),
       scrapedAt: new Date().toISOString(),
     };
 
@@ -429,7 +436,7 @@ function extractSaleDetails($: CheerioAPI, el: unknown) {
 /**
  * Parse Domain.com.au search results page
  */
-export function parseDomainSearchResults(html: string): PropertyListing[] {
+export function parseDomainSearchResults({html, listingType}: {html: string, listingType:Pick<PropertyListing,"listingType">["listingType"]}): PropertyListing[] {
   const $ = load(html);
   const listings: PropertyListing[] = [];
 
@@ -443,7 +450,7 @@ export function parseDomainSearchResults(html: string): PropertyListing[] {
 
   $('[data-testid^="listing-card-wrapper"]').each((_, el) => {
     // console.log(chalk.yellowBright("Parsed listing card: "));
-    const parsed = parseListingCard($, el);
+    const parsed = parseListingCard({$, el, listingType});
 
     // console.dir(parsed, { depth: Infinity });
 
@@ -461,7 +468,7 @@ export function parseDomainSearchResults(html: string): PropertyListing[] {
   return listings;
 }
 
-function parseListingCard($: CheerioAPI, el: unknown): PropertyListing | null {
+function parseListingCard({$, el, listingType}:{$: CheerioAPI, el: unknown, listingType:Pick<PropertyListing,"listingType">["listingType"]}): PropertyListing | null {
   const card = $(el as any);
 
   const href =
@@ -495,7 +502,7 @@ function parseListingCard($: CheerioAPI, el: unknown): PropertyListing | null {
   const featureValues = extractFeatureValues($, card);
   const propertyTypeText = extractPropertyTypeText($, card);
 
-  const listingType = inferListingType(priceText);
+  // const listingType = listingType;
   // const listingStatus = priceText.toLowerCase().includes("sold")
   //   ? "SOLD"
   //   : undefined;
@@ -521,7 +528,8 @@ function parseListingCard($: CheerioAPI, el: unknown): PropertyListing | null {
         ? normalizePropertyType(propertyTypeText)
         : featureValues.propertyType,
     },
-    price: priceText || undefined,
+    price: priceText.includes("$") ? priceText : undefined,
+    soldPrice: parseCurrency(priceText.includes("$") ? priceText : undefined),
     listingType,
     listingStatus,
     headline: addressLineText || undefined,

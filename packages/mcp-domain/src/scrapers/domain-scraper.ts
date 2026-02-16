@@ -166,7 +166,7 @@ async function performDomainSearch(
   }
 
   if (params.listingType === "sold") {
-    MAX_DOMAIN_SEARCH_PAGES = 1;
+    MAX_DOMAIN_SEARCH_PAGES = 10;
   }
 
   const startPage = params.page && params.page > 0 ? params.page : 1;
@@ -225,7 +225,7 @@ async function performDomainSearch(
       throw error;
     }
 
-    const pageListings = parseDomainSearchResults(html);
+    const pageListings = parseDomainSearchResults({html,listingType: params.listingType});
     if (!pageListings.length) {
       endedByEmpty = true;
       state.shouldStop = true;
@@ -264,6 +264,8 @@ async function performDomainSearch(
     .flatMap((pageNumber) => pageResults.get(pageNumber) ?? []);
 
   const hitMaxPages = reachedMaxPageLimit && !endedBy404 && !endedByEmpty;
+
+  console.dir(allListings, { depth: Infinity });
 
   const enrichedListings = await getSoldPropertyProfileValue(allListings);
 
@@ -376,12 +378,12 @@ export async function getSoldPropertyProfileValue(listings: PropertyListing[]) {
     }
     return listings;
   } catch (error) {
-    console.error(
-      {
-        err: error instanceof Error ? error.message : String(error),
-      },
-      "Failed to fetch property profile values",
-    );
+    // console.error(
+    //   {
+    //     err: error instanceof Error ? error.message : String(error),
+    //   },
+    //   "Failed to fetch property profile values",
+    // );
     return listings;
   }
 }

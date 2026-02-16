@@ -308,3 +308,43 @@ export const listAbsBuildingApprovalsBySa2 = query({
     return rows;
   },
 });
+
+/**
+ * Fetch absBuildingApprovals records for a suburb and state by resolving to sa2Id.
+ *
+ * Args: { suburb: string, state: australianState }
+ * 
+ * Behavior:
+ * - Resolves the suburb+state to an sa2Id using the `sa2Geocodes` table.
+ * - If sa2Id is found, queries `absBuildingApprovals` by that sa2Id and returns the records.
+ * - If no sa2Id is found, returns null.
+ * 
+ * Returns: array of absBuildingApprovals records for the suburb or null if suburb not found.
+ * 
+ * @author Nabeel Wasif
+ */
+export const getAbsBuildingDataBySuburb = query({
+  args: {
+    suburb: v.string(),
+    state: australianState
+  },
+  handler: async (ctx, { suburb, state }) => {
+    const sa2Id = await ctx.db
+      .query("sa2Geocodes")
+      .withIndex("by_suburb_state", (q: any) =>
+        q.eq("suburb", suburb).eq("state", state),
+      )
+      .first();
+
+    if (!sa2Id) {
+      return null;
+    };
+
+    const rec = await ctx.db
+      .query("absBuildingApprovals")
+      .withIndex("by_sa2_month", (q: any) => q.eq("sa2Id", sa2Id._id))
+      .collect();
+
+    return rec;
+  }
+});

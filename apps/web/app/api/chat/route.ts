@@ -9,35 +9,19 @@ import {
   UIMessage,
 } from "ai";
 import { google } from "@ai-sdk/google";
-
 import { auth } from "@clerk/nextjs/server";
-// import { ChatMessage, prisma } from "@propure/db";
-import {
-  searchDomainProperties,
-  searchRealestateProperties,
-} from "@/lib/tools/propertySearchTools";
-// import {
-//   getDemographics,
-//   getEconomicIndicators,
-//   getPopulationProjections,
-//   getRbaRates,
-//   getSuburbProfile,
-//   getSuburbStats,
-// } from "@/lib/tools/marketTools";
-import { saveStrategy } from "@/lib/tools/strategyTools";
 import { v4 as generateUUID } from "uuid";
 import { ChatMessageAI } from "@/types/ai";
 import { ChatSDKError } from "@/lib/ai-error";
-// import {
-//   saveMessages,
-//   updateChatTitleById,
-//   updateMessage
-// } from "@/lib/chat/data";
-import { convertCurrency, convertToUIMessages } from "@/lib/utils";
-import { UserPreferences } from "@/types/types";
+import { StrategyAgentTool } from "@/lib/tools/agents/strategistAgent";
+import { ResearcherAgentTool } from "@/lib/tools/agents/researcherAgent";
+import { AnalystAgentTool } from "@/lib/tools/agents/analystAgent";
+import { convertToUIMessages } from "@/lib/utils";
 import { client } from "@propure/convex/client";
-import { api } from "@propure/convex/api";
-import { Doc } from "@propure/convex/dataModel";
+import { 
+ api,
+ Doc
+} from "@propure/convex/genereated";
 
 /* ======================================================================
    SYSTEM PROMPT
@@ -71,6 +55,9 @@ When multiple agents are needed, invoke them efficiently:
 
 function getTextFromMessage(message: ChatMessageAI[] | UIMessage[]): string {
   return message
+    .filter(
+      (msg): msg is NonNullable<typeof msg> => msg != null && msg.parts != null,
+    )
     .flatMap((msg) => msg.parts)
     .filter((part) => part.type === "text")
     .map((part) => (part as { type: "text"; text: string }).text)
@@ -103,6 +90,41 @@ export async function POST(req: Request) {
   let chatSessionId = isNewChat ? null : id;
 
   try {
+    /* ---------------- Message Validation ---------------- */
+
+    // Determine if this is a single message request or a messages array request
+    // (tool approval continuations send `messages` array, normal requests send `message`)
+    const isContinuationRequest = !message && Array.isArray(messages);
+
+    if (isContinuationRequest) {
+      // Validate messages array for continuation requests
+      if (messages.length === 0) {
+        console.error("Invalid continuation: messages array is empty");
+        return new ChatSDKError("bad_request:chat").toResponse();
+      }
+    } else {
+      // Validate single message for normal requests
+      if (!message || typeof message !== "object") {
+        console.error("Invalid message: message is missing or not an object");
+        return new ChatSDKError("bad_request:chat").toResponse();
+      }
+
+      // Validate message has required parts structure
+      if (!message.parts || !Array.isArray(message.parts) || !message.role) {
+        console.error("Invalid message structure:", {
+          hasParts: !!message.parts,
+          partsIsArray: Array.isArray(message.parts),
+          hasRole: !!message.role,
+        });
+        return new ChatSDKError("bad_request:chat").toResponse();
+      }
+
+      // Ensure message has an id (generate one if missing)
+      if (!message.id) {
+        message.id = generateUUID();
+      }
+    }
+
     /* ---------------- Auth ---------------- */
 
     const { userId } = await auth();
@@ -112,65 +134,13 @@ export async function POST(req: Request) {
     }
 
     /* ---------------- User Context ---------------- */
-
-    // const user = await prisma.user.findUnique({
-    //   where: { clerkUserId: userId },
-    //   include: {
-    //     strategies: {
-    //       where: strategyId
-    //         ? { id: strategyId }
-    //         : { status: "ACTIVE" },
-    //       take: 1,
-    //       orderBy: { updatedAt: "desc" },
-    //     },
-    //   },
-    // });
-
-    //changed the prisma query to convex query
-    const user = await client.query(
-      api.functions.strategy.GetStrategyByClerkId,
-      { clerkUserId: userId },
-    );
+    const user = await client.query(api.functions.user.GetUserByClerkId, { clerkUserId: userId });
 
     if (!user) {
       console.log("User not found in chat API:", userId);
       return new ChatSDKError("unauthorized:chat").toResponse();
     }
 
-    const activeStrategy = user.strategies[0];
-    const activeStrategyParams = activeStrategy
-      ? (activeStrategy.params as UserPreferences)
-      : null;
-
-    const strategyContext = activeStrategy
-      ? `
-        Current Strategy:
-        - Type: ${activeStrategy.type}
-        - Status: ${activeStrategy.status}
-        - Budget: $${activeStrategy.budget ? convertCurrency(activeStrategy.budget) : "Not set"}
-        - Deposit: $${activeStrategy.deposit ? convertCurrency(activeStrategy.deposit) : "Not set"}
-        - Annual Income: $${activeStrategy.income ? convertCurrency(activeStrategy.income) : "Not set"}
-        - Risk Tolerance: ${activeStrategy.riskTolerance ?? "Unknown"}
-        - Investment Timeline: ${activeStrategy.timeline ?? "Not set"}
-        - Management Style: ${activeStrategy.managementStyle ?? "Not set"}
-
-        Investment Preferences:
-        - Target Regions: ${activeStrategyParams?.regions?.join(", ") ?? "Not specified"}
-        - Remote Investing: ${activeStrategyParams?.remoteInvesting ? "Yes" : "No"}
-        - Area Preference: ${activeStrategyParams?.areaPreference ?? "Not specified"}
-        - Property Type: ${activeStrategyParams?.propertyType ?? "Not specified"}
-        - Bedrooms: ${activeStrategyParams?.bedrooms ?? "Not specified"}
-        - Property Age: ${activeStrategyParams?.propertyAge ?? "Not specified"}
-        - Previous Experience: ${activeStrategyParams?.previousExperience ?? "Not specified"}
-        - Co-Investment: ${activeStrategyParams?.coInvestment ? "Open" : "Solo only"}
-        - Cashflow Expectations: ${activeStrategyParams?.cashflowExpectations ? convertCurrency(activeStrategyParams.cashflowExpectations) : "Not set"}
-        - Target Cashflow: $${activeStrategyParams?.cashflowAmount ? convertCurrency(activeStrategyParams.cashflowAmount) : "Not set"}
-      `
-      : "";
-
-    /* ---------------- Chat Persistance ---------------- */
-    // const chat = await getChatById({ id });
-    // If chat id is in format `chat-xxxx`, skip search
     let chat = null;
     if (chatSessionId) {
       chat = await client.query(api.functions.chat.getChatById, { id: chatSessionId });
@@ -186,26 +156,45 @@ export async function POST(req: Request) {
       messagesFromDb = chat.messages;
     } else if (message?.role === "user") {
       // Save chat immediately with placeholder title
-      // await saveChatSession({
-      //   id,
-      //   userId: user.id,
-      //   title: "New chat",
-      //   strategyId: activeStrategy?.id,
-      // });
-
       chatSessionId = await client.mutation(api.functions.chat.saveChatSession, {
-        strategyId: activeStrategy?._id,
         title: "New chat",
         userId: user._id,
       });
     }
 
-    const UIMessages = chat
+    let UIMessages = chat
       ? [...convertToUIMessages(messagesFromDb), message as ChatMessageAI]
       : [message as ChatMessageAI];
 
-    // Start title generation in parallel (don't await)
-    titlePromise = generateTitleFromUserMessage({ message: UIMessages });
+    if (isContinuationRequest) {
+      // For continuation requests (tool approval, auto-continue after tool calls),
+      // use the messages array directly from the client
+      UIMessages = (messages as ChatMessageAI[]).filter(
+        (msg): msg is ChatMessageAI =>
+          msg != null && msg.parts != null && msg.role != null,
+      );
+    } else {
+      // For normal requests, append the new message to existing DB messages
+      UIMessages = (
+        chat
+          ? [...convertToUIMessages(messagesFromDb), message as ChatMessageAI]
+          : [message as ChatMessageAI]
+      ).filter(
+        (msg): msg is ChatMessageAI =>
+          msg != null && msg.parts != null && msg.role != null,
+      );
+    }
+
+    // Safety check - ensure we have valid messages to process
+    if (UIMessages.length === 0) {
+      console.error("No valid messages to process after filtering");
+      return new ChatSDKError("bad_request:chat").toResponse();
+    }
+
+    // Start title generation in parallel (only for new chats with user messages)
+    if (!chat && !isContinuationRequest && message?.role === "user") {
+      titlePromise = generateTitleFromUserMessage({ message: UIMessages });
+    }
 
     const stream = createUIMessageStream({
       originalMessages: UIMessages,
@@ -227,86 +216,56 @@ export async function POST(req: Request) {
                 generatedId: chatSessionId!,
               },
             });
+          }
+          )
+          /* ---------------- AI Stream ---------------- */
+
+          const result = streamText({
+            model: google("gemini-2.5-flash"),
+            system: SYSTEM_PROMPT,
+            messages: await convertToModelMessages(UIMessages),
+            stopWhen: stepCountIs(10),
+            experimental_transform: smoothStream({ chunking: "word" }),
+            toolChoice: "auto",
+            tools: {
+              // Strategy Agent
+              strategist: StrategyAgentTool({ user, strategyId, dataStream }),
+              // Researcher Agent
+              researcher: ResearcherAgentTool({ dataStream }),
+              // Analyst Agent
+              analyst: AnalystAgentTool({ dataStream }),
+            },
           });
+
+          result.consumeStream();
+
+          dataStream.merge(
+            result.toUIMessageStream({
+              sendReasoning: true,
+            }),
+          );
         }
-        /* ---------------- AI Stream ---------------- */
-
-        const result = streamText({
-          model: google("gemini-2.5-flash"),
-          system: SYSTEM_PROMPT + strategyContext,
-          messages: await convertToModelMessages(UIMessages),
-          stopWhen: stepCountIs(12),
-          experimental_transform: smoothStream({ chunking: "word" }),
-
-          tools: {
-            /* ============================================================
-               PROPERTY SEARCH
-               ============================================================ */
-
-            searchDomainProperties: searchDomainProperties,
-
-            searchRealestateProperties: searchRealestateProperties,
-
-            /* ============================================================
-               SUBURB & MARKET DATA
-               ============================================================ */
-            // [UPDATE: NO SOURCE AS OF YET]
-            // getSuburbStats: getSuburbStats,
-
-            // getSuburbProfile: getSuburbProfile,
-
-            // getDemographics: getDemographics,
-
-            // getPopulationProjections: getPopulationProjections,
-
-            // getRbaRates: getRbaRates,
-
-            // getEconomicIndicators: getEconomicIndicators,
-
-            /* ============================================================
-               SALES & AUCTIONS
-               ============================================================ */
-
-            // [UPDATE: NO SOURCE AS OF YET]
-            // getSalesHistory: getSalesHistory,
-
-            // getSoldProperties: getSoldProperties,
-
-            // getAuctionResults: getAuctionResults,
-
-            /* ============================================================
-               FINANCIAL ANALYSIS
-               ============================================================ */
-
-            // [UPDATE: NO SOURCE AS OF YET]
-            // calculateCashFlow: calculateCashFlow,
-
-            // calculateROI: calculateROI,
-
-            /* ============================================================
-               STRATEGY PERSISTENCE
-               ============================================================ */
-
-            saveStrategy: saveStrategy({ user, strategyId }),
-          },
-        });
-
-        result.consumeStream();
-
-        dataStream.merge(
-          result.toUIMessageStream({
-            sendReasoning: true,
-          }),
-        );
       },
       generateId: generateUUID,
       onFinish: async ({ messages: finishedMessages }) => {
+        // Guard against undefined or empty messages
+        if (!finishedMessages || finishedMessages.length === 0) {
+          console.warn("onFinish called with no messages");
+          return;
+        }
+
         // Separate messages into new and updated
         const newMessages = [];
         const updatedMessageIds = [];
 
         for (const finishedMsg of finishedMessages) {
-          const existingMsg = UIMessages.find((m) => m.id === finishedMsg.id);
+          // Skip invalid messages
+          if (!finishedMsg?.id || !finishedMsg?.role || !finishedMsg?.parts) {
+            console.warn("Skipping invalid message in onFinish:", finishedMsg);
+            continue;
+          }
+
+          const existingMsg = UIMessages.find((m) => m?.id === finishedMsg.id);
           if (existingMsg) {
             updatedMessageIds.push(finishedMsg.id);
             await client.mutation(api.functions.chat.updateMessage, {
@@ -343,8 +302,22 @@ export async function POST(req: Request) {
           });
         }
       },
-      onError: () => {
-        return "Oops, an error occurred!";
+      onError: (error) => {
+        console.error("Stream error:", {
+          error,
+          chatId: id,
+          userId: user._id,
+          vercelId: req.headers.get("x-vercel-id"),
+        });
+
+        // Return user-friendly message based on error type
+        if (error instanceof ChatSDKError) {
+          return error.message;
+        }
+        if (error instanceof Error && error.message.includes("rate limit")) {
+          return "Too many requests. Please wait a moment.";
+        }
+        return "An error occurred while processing your request.";
       },
     });
 
