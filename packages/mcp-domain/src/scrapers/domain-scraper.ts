@@ -166,7 +166,7 @@ async function performDomainSearch(
   }
 
   if (params.listingType === "sold") {
-    MAX_DOMAIN_SEARCH_PAGES = 10;
+    MAX_DOMAIN_SEARCH_PAGES = 1;
   }
 
   const startPage = params.page && params.page > 0 ? params.page : 1;

@@ -18,11 +18,11 @@ async function fetchScrappingLocations(): Promise<
 > {
   "use step";
 
-  // const records = (await client.query(
-  //   api.functions.scrapingLocations.listAll,
-  //   {},
-  // )) as ScrappingLocationRecord[];
-  const records: any = [];
+  const records = (await client.query(
+    api.functions.scrapingLocations.listAll,
+    {},
+  )) as ScrappingLocationRecord[];
+  // const records: any = [];
 
   // If there are no configured scrapping locations in Convex, fall back to
   // a single default location used by the MCP-domain test script so the
@@ -41,7 +41,8 @@ async function fetchScrappingLocations(): Promise<
     return [{ ...defaultRecord, status: "pending" }];
   }
 
-  return records.map((location: any) => ({ ...location, status: "pending" }));
+  return records.map((location) => ({ ...location, status: "pending" }));
+  // return records.map((location: any) => ({ ...location, status: "pending" }));
 }
 
 export type DemographicCallResult = {
@@ -168,8 +169,11 @@ export async function marketDataWorkflow(): Promise<void> {
     //   `marketDataWorkflow: fetched demographics for ${demographicResults.length} locations`,
     // );
 
+    
+
     // Persist each demographic result into Convex
     await persistDemographics(demographicResults);
+    
   } catch (err) {
     console.error("marketDataWorkflow failed:", err);
   }

@@ -49,7 +49,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 1950000,
     priceTo: 2100000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Stunning Beachfront Living with Panoramic Ocean Views",
     description:
       "This exceptional apartment on iconic Campbell Parade offers front-row seats to one of Australia's most famous beaches. Wake up to breathtaking ocean views and enjoy the ultimate Bondi lifestyle. Features include a sun-drenched balcony, modern kitchen, and resort-style facilities.",
@@ -100,7 +100,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 750000,
     priceTo: 820000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Elegant Art Deco in Prime St Kilda Location",
     description:
       "Beautifully maintained Art Deco apartment in the heart of St Kilda. Original features include ornate ceiling roses, picture rails, and polished floorboards. Steps to Acland Street, Luna Park, and St Kilda Beach.",
@@ -153,7 +153,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 4200000,
     priceTo: 4600000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Grand Victorian Terrace with Contemporary Extension",
     description:
       "This stunning double-fronted Victorian terrace seamlessly blends heritage charm with contemporary luxury. Original features include lacework balcony, marble fireplaces, and ornate ceilings. The rear features a stunning glass-walled extension with landscaped courtyard.",
@@ -209,7 +209,7 @@ export const mockPropertyListings: PropertyListing[] = [
     price: "$3,800,000",
     priceValue: 3800000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Magnificent Queenslander with City and River Views",
     description:
       "This beautifully restored Queenslander showcases exceptional craftsmanship with soaring ceilings, VJ walls, and wraparound verandahs. Set on 607sqm with city and river glimpses. Walking distance to James Street and Howard Smith Wharves.",
@@ -259,7 +259,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 1850000,
     priceTo: 2000000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Sophisticated Townhouse in Prestigious Location",
     description:
       "This immaculate townhouse offers a rare opportunity in one of Melbourne's most sought-after addresses. Split over two levels with north-facing courtyard, moments to Toorak Road shopping, Fawkner Park, and South Yarra station.",
@@ -312,7 +312,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 6000000,
     priceTo: 6500000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Exceptional Beachside Residence with Panoramic Views",
     description:
       "A rare offering in one of Manly's most coveted streets. This architecturally designed home captures stunning ocean views from multiple levels. Features include heated pool, state-of-the-art kitchen, and private rooftop terrace.",
@@ -364,7 +364,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 1350000,
     priceTo: 1450000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Historic Fremantle Charm with Modern Comforts",
     description:
       "This beautifully restored heritage limestone cottage captures the essence of Fremantle living. Original features include pressed metal ceilings, timber floorboards, and working fireplaces. Moments to the famous Cappuccino Strip and Fremantle Markets.",
@@ -414,7 +414,7 @@ export const mockPropertyListings: PropertyListing[] = [
     price: "$1,650,000",
     priceValue: 1650000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Luxurious Beachfront Penthouse with Spectacular Views",
     description:
       "Experience beachfront living at its finest in this stunning penthouse-level apartment. Floor-to-ceiling windows frame panoramic views of the ocean and coastline. Features include two spacious balconies, gourmet kitchen, and access to resort-style amenities.",
@@ -465,7 +465,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 1400000,
     priceTo: 1500000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Character-Filled Worker's Cottage in Vibrant Newtown",
     description:
       "This lovingly renovated worker's cottage offers the perfect blend of heritage charm and contemporary living. Features include exposed brick walls, polished timber floors, and a sun-drenched courtyard. Steps to King Street's cafes, bars, and boutiques.",
@@ -517,7 +517,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 1800000,
     priceTo: 1950000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Grand Edwardian with Separate Studio on Large Block",
     description:
       "This impressive Edwardian home on a generous 512sqm block offers exceptional family living plus income potential with a self-contained studio. Original features include lead lighting, picture rails, and ornate fireplaces. Walk to High Street shops and Northcote station.",
@@ -570,7 +570,7 @@ export const mockPropertyListings: PropertyListing[] = [
     price: "$2,450,000",
     priceValue: 2450000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Stunning Hamptons Residence with City Skyline Views",
     description:
       "This exquisite Hamptons-inspired home captures stunning city skyline views from its elevated position. Designed for entertaining with open-plan living, resort-style pool, and gourmet kitchen with butler's pantry. Walk to Oxford Street village.",
@@ -620,7 +620,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 1150000,
     priceTo: 1250000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Charming Art Deco Apartment Steps from Coogee Beach",
     description:
       "This delightful Art Deco apartment offers the quintessential Coogee lifestyle. Ocean glimpses from your sunny balcony, original period features, and just 200m to the sand. A rare opportunity to secure your piece of beachside paradise.",
@@ -672,7 +672,7 @@ export const mockPropertyListings: PropertyListing[] = [
     price: "Offers Above $8,500,000",
     priceFrom: 8500000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Absolute Beachfront Masterpiece on Marine Parade",
     description:
       "This architectural masterpiece on prestigious Marine Parade offers unparalleled beachfront living. Featuring infinity pool overlooking the Indian Ocean, lift access to all three levels, and exceptional finishes throughout. One of Cottesloe's finest residences.",
@@ -725,7 +725,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 6500000,
     priceTo: 7000000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Magnificent Victorian Mansion on Landscaped Grounds",
     description:
       "This grand Victorian mansion on a substantial 1,100sqm parcel offers a lifestyle of uncompromising quality. Features include tennis court, pool, original carriage house, and stunning period gardens. A distinguished family estate in prestigious Hawthorn.",
@@ -776,7 +776,7 @@ export const mockPropertyListings: PropertyListing[] = [
     price: "$2,850,000",
     priceValue: 2850000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Premium Beachfront Living in Iconic Burleigh",
     description:
       "This beautifully renovated beachfront apartment offers the ultimate Burleigh lifestyle. Wake to stunning ocean views, with the famous Burleigh Heads point break at your doorstep. Walk to James Street village for world-class dining.",

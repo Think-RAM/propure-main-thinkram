@@ -25,7 +25,7 @@ export const getSuburbMetrics = query({
             )
             .first();
         if (!metrics) {
-            throw new Error(`Metrics for suburb ${postcode} not found`);
+            throw new Error(`Metrics for postcode ${postcode} not found`);
         }
         return metrics;
     }
@@ -127,15 +127,16 @@ export const getSuburbMetricsByType = query({
 
         const metricField = metricFieldMap[metricType];
         const centre = getCentroid(bounds);
+        console.log(`Center: Lat ${centre.lat}, Lng ${centre.lng}`)
 
         // 2️⃣ Narrow down latitude window first (index usage)
-        const LAT_WINDOW = 2; // degrees (~200km). Adjust dynamically later.
+        // const LAT_WINDOW = 2; // degrees (~200km). Adjust dynamically later.
 
         const candidates = await ctx.db
             .query("suburbMetrics")
             .withIndex("by_lat_lng", (q) =>
-                q.gte("centerLat", centre.lat - LAT_WINDOW)
-                    .lte("centerLat", centre.lat + LAT_WINDOW)
+                q.gte("centerLat", centre.lat - 0.1)
+                    .lte("centerLat", centre.lat + 0.1)
             )
             .collect();
 

@@ -145,7 +145,7 @@ export const PropertySearchParamsSchema = z.object({
   includesSurrounding: z.boolean().optional(),
   // pageSize: z.number().default(20),
   page: z.number().default(1),
-  maxPages: z.number().optional().default(50),
+  // maxPages: z.number().optional().default(50),
 });
 export type PropertySearchParams = z.infer<typeof PropertySearchParamsSchema>;
 

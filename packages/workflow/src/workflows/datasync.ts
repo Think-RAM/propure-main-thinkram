@@ -45,7 +45,7 @@ async function scrapeTypeStep(
     postcode: loc.postcode,
     page: 1,
     listingType,
-    pageSize: 20,
+    // pageSize: 20,
   });
 }
 
@@ -119,11 +119,11 @@ async function fetchScrappingLocations(): Promise<
 > {
   "use step";
 
-  // const records = (await client.query(
-  //   api.functions.scrapingLocations.listAll,
-  //   {},
-  // )) as ScrappingLocationRecord[];
-  const records: any = [];
+  const records = (await client.query(
+    api.functions.scrapingLocations.listAll,
+    {},
+  )) as ScrappingLocationRecord[];
+  // const records: any = [];
 
   // If there are no configured scrapping locations in Convex, fall back to
   // a single default location used by the MCP-domain test script so the
@@ -142,7 +142,8 @@ async function fetchScrappingLocations(): Promise<
     return [{ ...defaultRecord, status: "pending" }];
   }
 
-  return records.map((location: any) => ({ ...location, status: "pending" }));
+  // return records.map((location: any) => ({ ...location, status: "pending" }));
+  return records.map((location) => ({ ...location, status: "pending" }));
 }
 
 async function processPendingLocations(
@@ -158,8 +159,8 @@ async function processPendingLocations(
       // Each listing-type workflow uses step-level scrape/upsert so retries
       // remain atomic. We use strict completion: only mark completed when
       // all three listing-type workflows succeed.
-      // const types: ListingType[] = ["rent", "sold", "sale"];
-      const types: ListingType[] = ["sold"];
+      const types: ListingType[] = ["rent", "sold", "sale"];
+      // const types: ListingType[] = ["sold"];
       const promises = types.map(
         (t) => processLocationListingTypeWorkflow(loc, t),
         // start(processLocationListingTypeWorkflow, [loc, t]),

@@ -124,7 +124,7 @@ export async function searchReaProperties(
 
   // const listings = parseReaSearchResults(html);
   const listings: PropertyListing[] = [];
-  
+
   // REA typically shows 20-25 results per page
   const hasMore = listings.length >= 20;
 
@@ -302,6 +302,7 @@ export async function getReaSoldProperties(
     postcode,
     listingType: "sold",
     page: 1,
+    // maxPages: 10,
   };
 
   const result = await searchReaProperties(params);
