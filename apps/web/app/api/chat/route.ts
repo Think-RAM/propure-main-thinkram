@@ -18,9 +18,9 @@ import { ResearcherAgentTool } from "@/lib/tools/agents/researcherAgent";
 import { AnalystAgentTool } from "@/lib/tools/agents/analystAgent";
 import { convertToUIMessages } from "@/lib/utils";
 import { client } from "@propure/convex/client";
-import { 
- api,
- Doc
+import {
+  api,
+  Doc
 } from "@propure/convex/genereated";
 
 /* ======================================================================
@@ -86,8 +86,8 @@ async function generateTitleFromUserMessage({
 
 export async function POST(req: Request) {
   const { id, message, messages, strategyId } = await req.json();
-  const isNewChat = id.startsWith("chat-") === true;
-  let chatSessionId = isNewChat ? null : id;
+
+  console.log(`Processing Chat Id ${id}`)
 
   try {
     /* ---------------- Message Validation ---------------- */
@@ -129,6 +129,7 @@ export async function POST(req: Request) {
 
     const { userId } = await auth();
     if (!userId) {
+      console.log(userId)
       console.log("Unauthorized request to chat API");
       return new ChatSDKError("unauthorized:chat").toResponse();
     }
@@ -142,9 +143,7 @@ export async function POST(req: Request) {
     }
 
     let chat = null;
-    if (chatSessionId) {
-      chat = await client.query(api.functions.chat.getChatById, { id: chatSessionId });
-    }
+    chat = await client.query(api.functions.chat.getChatById, { id });
 
     let messagesFromDb: Doc<"chatMessages">[] = [];
     let titlePromise: Promise<string> | null = null;
@@ -156,7 +155,8 @@ export async function POST(req: Request) {
       messagesFromDb = chat.messages;
     } else if (message?.role === "user") {
       // Save chat immediately with placeholder title
-      chatSessionId = await client.mutation(api.functions.chat.saveChatSession, {
+      await client.mutation(api.functions.chat.saveChatSession, {
+        id,
         title: "New chat",
         userId: user._id,
       });
@@ -203,7 +203,7 @@ export async function POST(req: Request) {
         if (titlePromise) {
           titlePromise.then((title) => {
             client.mutation(api.functions.chat.updateChatTitleById, {
-              chatId: chatSessionId!,
+              chatId: id,
               title,
             });
 
@@ -212,39 +212,37 @@ export async function POST(req: Request) {
               type: "data-chat-title",
               data: {
                 title,
-                id,
-                generatedId: chatSessionId!,
+                id
               },
             });
-          }
-          )
-          /* ---------------- AI Stream ---------------- */
-
-          const result = streamText({
-            model: google("gemini-2.5-flash"),
-            system: SYSTEM_PROMPT,
-            messages: await convertToModelMessages(UIMessages),
-            stopWhen: stepCountIs(10),
-            experimental_transform: smoothStream({ chunking: "word" }),
-            toolChoice: "auto",
-            tools: {
-              // Strategy Agent
-              strategist: StrategyAgentTool({ user, strategyId, dataStream }),
-              // Researcher Agent
-              researcher: ResearcherAgentTool({ dataStream }),
-              // Analyst Agent
-              analyst: AnalystAgentTool({ dataStream }),
-            },
-          });
-
-          result.consumeStream();
-
-          dataStream.merge(
-            result.toUIMessageStream({
-              sendReasoning: true,
-            }),
-          );
+          })
         }
+        /* ---------------- AI Stream ---------------- */
+
+        const result = streamText({
+          model: google("gemini-2.5-flash"),
+          system: SYSTEM_PROMPT,
+          messages: await convertToModelMessages(UIMessages),
+          stopWhen: stepCountIs(20),
+          experimental_transform: smoothStream({ chunking: "word" }),
+          // toolChoice: "auto",
+          tools: {
+            // Strategy Agent
+            strategist: StrategyAgentTool({ user, strategyId, dataStream }),
+            // Researcher Agent
+            researcher: ResearcherAgentTool({ dataStream }),
+            // Analyst Agent
+            analyst: AnalystAgentTool({ dataStream }),
+          },
+        });
+
+        result.consumeStream();
+
+        dataStream.merge(
+          result.toUIMessageStream({
+            sendReasoning: true,
+          }),
+        );
       },
       generateId: generateUUID,
       onFinish: async ({ messages: finishedMessages }) => {
@@ -253,6 +251,8 @@ export async function POST(req: Request) {
           console.warn("onFinish called with no messages");
           return;
         }
+        console.log("Finished Messages: ");
+        console.dir(finishedMessages, { depth: null });
 
         // Separate messages into new and updated
         const newMessages = [];
@@ -269,33 +269,26 @@ export async function POST(req: Request) {
           if (existingMsg) {
             updatedMessageIds.push(finishedMsg.id);
             await client.mutation(api.functions.chat.updateMessage, {
-              // id: finishedMsg.id, // this id is not equivalent to convex _id
+              id: finishedMsg.id, // this id is not equivalent to convex _id
               updatedParts: finishedMsg.parts,
               role: finishedMsg.role,
-              chatSessionId: chatSessionId!,
+              chatSessionId: id,
             });
-            // await updateMessage(
-            //   finishedMsg.id,
-            //   finishedMsg.parts,
-            //   finishedMsg.role,
-            //   id,
-            // );
           } else {
             newMessages.push({
               id: finishedMsg.id,
               role: finishedMsg.role,
               parts: finishedMsg.parts,
               createdAt: new Date(),
-              chatId: chatSessionId!,
+              chatId: id,
             });
           }
         }
 
         // Bulk save all new messages at once
         if (newMessages.length > 0) {
-          // await saveMessages(newMessages);
           await client.mutation(api.functions.chat.saveMessages, {
-            messages: newMessages.map(({ id, ...rest }) => ({
+            messages: newMessages.map(({ ...rest }) => ({
               ...rest,
               createdAt: rest.createdAt.getTime(),
             })),

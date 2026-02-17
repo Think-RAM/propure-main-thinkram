@@ -16,13 +16,12 @@ import type { Doc, Id } from "@propure/convex/genereated";
 import { useConvex } from "@propure/convex";
 
 interface ChatContextType {
-  userChatSessions: Doc<"chatSessions">[];
-  activeSessionId: Id<"chatSessions"> | null;
-  setActiveSession: (id: Id<"chatSessions"> | null) => void;
+  userChatSessions: Omit<Doc<"chatSessions">, "_id">[];
+  activeSessionId: string | null;
+  setActiveSession: (id: string | null) => void;
   updateChatSessionTitle: (
-    id: string | Id<"chatSessions">,
+    id: string,
     title: string,
-    generatedId: Id<"chatSessions">,
   ) => void;
   createNewChatSession: (send: string) => void;
   activeChatMessages: ChatMessageAI[];
@@ -35,17 +34,16 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const client = useConvex();
   const [userChatSessions, setUserChatSessions] = useState<
-    Doc<"chatSessions">[]
+    Omit<Doc<"chatSessions">, "_id">[]
   >([]);
-  const [activeSessionId, setActiveSessionId] =
-    useState<Id<"chatSessions"> | null>(null);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [activeChatMessages, setActiveChatMessages] = useState<ChatMessageAI[]>(
     [],
   );
   const [isLoading, setIsLoading] = useState(false);
   const [isChatsLoading, setIsChatsLoading] = useState(false);
 
-  const setActiveSession = useCallback(async (id: Id<"chatSessions"> | null) => {
+  const setActiveSession = useCallback(async (id: string | null) => {
     try {
       setActiveSessionId(id);
       setActiveChatMessages([]);
@@ -72,29 +70,22 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  const updateChatSessionTitle = useCallback(
-    (
-      id: string | Id<"chatSessions">,
-      title: string,
-      generatedId: Id<"chatSessions">,
-    ) => {
-      setUserChatSessions((prevSessions) =>
-        prevSessions.map((session) =>
-          session._id === id || session._id === generatedId
-            ? { ...session, title, updatedAt: Date.now(), _id: generatedId }
-            : session,
-        ),
-      );
-      if (id !== generatedId) {
-        setActiveSessionId(generatedId);
-      }
-    },
-    [],
-  );
+  const updateChatSessionTitle = useCallback((id: string, title: string) => {
+    setUserChatSessions((prevSessions) =>
+      prevSessions.map((session) =>
+        session.sessionId === id
+          ? { ...session, title, updatedAt: Date.now() }
+          : session,
+      ),
+    );
+    // if (id !== generatedId) {
+    //   setActiveSessionId(generatedId);
+    // }
+  }, []);
 
   const createNewChatSession = useCallback((send: string) => {
-    const newSession: Doc<"chatSessions"> = {
-      _id: `chat-${generateUUID()}` as Id<"chatSessions">,
+    const newSession: Omit<Doc<"chatSessions">, "_id"> = {
+      sessionId: generateUUID(),
       title: "New Chat",
       userId: "" as Id<"users">,
       strategyId: undefined,
@@ -109,7 +100,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
       ),
     );
-    setActiveSessionId(newSession._id);
+    setActiveSessionId(newSession.sessionId);
     setActiveChatMessages([
       {
         id: generateUUID(),

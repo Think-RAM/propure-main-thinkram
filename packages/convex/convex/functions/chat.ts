@@ -3,9 +3,9 @@ import { mutation, query } from "../_generated/server";
 import { Id } from "../_generated/dataModel";
 
 export const getChatById = query({
-  args: { id: v.id("chatSessions") },
+  args: { id: v.string() },
   handler: async (ctx, { id }) => {
-    const chat = await ctx.db.get("chatSessions", id);
+    const chat = await ctx.db.query("chatSessions").withIndex("by_session_id", (q) => q.eq("sessionId", id)).first();
     // return chat;
 
     if (!chat) {
@@ -14,7 +14,7 @@ export const getChatById = query({
 
     const chatMessages = await ctx.db
       .query("chatMessages")
-      .withIndex("by_session", (q) => q.eq("sessionId", chat._id))
+      .withIndex("by_session", (q) => q.eq("sessionId", chat.sessionId))
       .collect();
     return {
       ...chat,
@@ -44,13 +44,15 @@ export const getUserChatSessions = query({
 
 export const saveChatSession = mutation({
   args: {
+    id: v.string(),
     strategyId: v.optional(v.id("strategies")),
     title: v.optional(v.string()),
     userId: v.id("users"),
     // id: v.optional(v.string()),
   },
-  handler: async (ctx, { strategyId, title = "New Chat", userId }) => {
+  handler: async (ctx, { id, strategyId, title = "New Chat", userId }) => {
     const chatSessionId = await ctx.db.insert("chatSessions", {
+      sessionId: id,
       userId,
       strategyId,
       title,
@@ -64,37 +66,45 @@ export const saveChatSession = mutation({
 
 export const updateChatTitleById = mutation({
   args: {
-    chatId: v.id("chatSessions"),
+    chatId: v.string(),
     title: v.string(),
   },
   handler: async (ctx, { chatId, title }) => {
-    await ctx.db.patch("chatSessions", chatId, { title });
+    const record = await ctx.db.query("chatSessions").withIndex("by_session_id", (q) => q.eq("sessionId", chatId)).first();
+    if (!record) {
+      throw new Error("Chat session not found");
+    }
+    await ctx.db.patch("chatSessions", record._id, {
+      title,
+      updatedAt: Date.now(),
+    });
   },
 });
 
 export const updateMessage = mutation({
   args: {
-    id: v.optional(v.id("chatMessages")),
+    id: v.string(), // if no id, we create a new message
     updatedParts: v.array(v.any()), // tighten later
     role: v.union(
       v.literal("user"),
       v.literal("assistant"),
       v.literal("system"),
     ),
-    chatSessionId: v.id("chatSessions"),
+    chatSessionId: v.string(),
   },
   handler: async (ctx, { id, updatedParts, role, chatSessionId }) => {
-    const existing = id ? await ctx.db.get(id) : null;
+    const existing = id ? await ctx.db.query("chatMessages").withIndex("by_message_id", (q) => q.eq("messageId", id)).first() : null;
 
     if (id && existing) {
       // equivalent to update
-      await ctx.db.patch(id, {
+      await ctx.db.patch(existing._id, {
         role,
         content: updatedParts,
       });
     } else {
       // equivalent to create
       const newMessageId = await ctx.db.insert("chatMessages", {
+        messageId: id,
         role,
         content: updatedParts,
         sessionId: chatSessionId,
@@ -102,8 +112,11 @@ export const updateMessage = mutation({
         createdAt: Date.now(),
       });
 
-      const chatSession = await ctx.db.get("chatSessions", chatSessionId);
-      await ctx.db.patch("chatSessions", chatSessionId, {
+      const chatSession = await ctx.db.query("chatSessions").withIndex("by_session_id", (q) => q.eq("sessionId", chatSessionId)).first();
+      if(!chatSession){
+        throw new Error("Chat session not found");
+      }
+      await ctx.db.patch("chatSessions", chatSession._id, {
         updatedAt: Date.now(),
         chatMessages: [...(chatSession?.chatMessages ?? []), newMessageId],
       });
@@ -115,7 +128,7 @@ export const saveMessages = mutation({
   args: {
     messages: v.array(
       v.object({
-        id: v.optional(v.id("chatMessages")),
+        id: v.string(),
         role: v.union(
           v.literal("user"),
           v.literal("assistant"),
@@ -123,13 +136,14 @@ export const saveMessages = mutation({
         ),
         parts: v.array(v.any()), // tighten later
         createdAt: v.float64(),
-        chatId: v.id("chatSessions"),
+        chatId: v.string(),
       }),
     ),
   },
   handler: async (ctx, { messages }) => {
     for (const { id, role, parts, createdAt, chatId } of messages) {
       await ctx.db.insert("chatMessages", {
+        messageId: id,
         role,
         content: parts,
         timestamp: createdAt,

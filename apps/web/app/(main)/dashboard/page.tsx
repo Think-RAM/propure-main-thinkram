@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useState } from "react";
 import { useUserChats } from "@/context/ChatContext";
 import { cn } from "@/lib/utils";
-import type { Id } from "@propure/convex/genereated";
 
 export default function Page() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -40,7 +39,7 @@ export default function Page() {
             activeSessionId={activeSessionId ?? undefined}
             onSelect={(id) => {
               if (id === activeSessionId) return;
-              setActiveSession(id as Id<"chatSessions">);
+              setActiveSession(id);
               toggleSidebar(true);
             }}
             onNewChat={() => {

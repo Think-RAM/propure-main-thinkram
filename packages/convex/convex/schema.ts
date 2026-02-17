@@ -101,6 +101,7 @@ export default defineSchema({
 
   // Chat Sessions
   chatSessions: defineTable({
+    sessionId: v.string(),
     userId: v.id("users"),
     createdAt: v.float64(),
     updatedAt: v.float64(),
@@ -109,11 +110,13 @@ export default defineSchema({
     chatMessages: v.array(v.id("chatMessages")),
   })
     .index("by_user", ["userId"])
+    .index("by_session_id", ["sessionId"])
     .index("by_updated_at", ["updatedAt"]),
 
   // Chat Messages
   chatMessages: defineTable({
-    sessionId: v.id("chatSessions"),
+    messageId: v.string(),
+    sessionId: v.string(),
     role: v.string(),
     content: v.any(),
     toolCalls: v.optional(v.any()),
@@ -122,7 +125,8 @@ export default defineSchema({
     createdAt: v.float64(),
   })
     .index("by_session", ["sessionId"])
-    .index("by_created_at", ["createdAt"]),
+    .index("by_created_at", ["createdAt"])
+    .index("by_message_id", ["messageId"]),
 
   // ── Strategies ──
   strategies: defineTable({

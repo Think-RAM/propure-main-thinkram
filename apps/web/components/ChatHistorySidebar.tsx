@@ -14,7 +14,7 @@ import type { Doc } from "@propure/convex/genereated";
 
 interface ChatSidebarProps {
   open: boolean;
-  sessions: Doc<"chatSessions">[];
+  sessions: Omit<Doc<"chatSessions">, "_id">[];
   activeSessionId?: string;
   onSelect: (id: string) => void;
   onNewChat: () => void;
@@ -133,12 +133,12 @@ export function ChatSidebar({
         <ScrollArea className="h-full px-2 py-3">
           <div className="space-y-1">
             {sessions.map((session) => {
-              const active = session._id === activeSessionId;
+              const active = session.sessionId === activeSessionId;
 
               return (
                 <button
-                  key={session._id}
-                  onClick={() => onSelect(session._id)}
+                  key={session.sessionId}
+                  onClick={() => onSelect(session.sessionId)}
                   className={cn(
                     "group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left",
                     "transition-colors",

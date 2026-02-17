@@ -46,7 +46,7 @@ export function convertToUIMessages(
   messages: Doc<"chatMessages">[],
 ): ChatMessageAI[] {
   return messages.map((message) => ({
-    id: message._id,
+    id: message.messageId, // use messageId as the stable identifier for messages
     role: message.role as "user" | "assistant" | "system",
     parts: message.content as UIMessagePart<UIDataTypes, ChatTools>[],
     metadata: {

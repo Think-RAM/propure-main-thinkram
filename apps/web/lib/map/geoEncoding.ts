@@ -1,6 +1,6 @@
 "use server";
 
-type GeocodeResult = {
+export type GeocodeResult = {
   lat: number;
   lng: number;
   placeId?: string;
@@ -61,31 +61,3 @@ export const addressToCoordinatesGoogle = async (
     return null;
   }
 };
-
-export function calculateMapCenter(geocodes: GeocodeResult[]) {
-  if (geocodes.length === 0) return null;
-
-  let minLat = Infinity;
-  let maxLat = -Infinity;
-  let minLng = Infinity;
-  let maxLng = -Infinity;
-
-  for (const g of geocodes) {
-    if (g.bbounds) {
-      minLat = Math.min(minLat, g.bbounds.southwest.lat);
-      minLng = Math.min(minLng, g.bbounds.southwest.lng);
-      maxLat = Math.max(maxLat, g.bbounds.northeast.lat);
-      maxLng = Math.max(maxLng, g.bbounds.northeast.lng);
-    } else {
-      minLat = Math.min(minLat, g.lat);
-      maxLat = Math.max(maxLat, g.lat);
-      minLng = Math.min(minLng, g.lng);
-      maxLng = Math.max(maxLng, g.lng);
-    }
-  }
-
-  return {
-    lat: (minLat + maxLat) / 2,
-    lng: (minLng + maxLng) / 2,
-  };
-}

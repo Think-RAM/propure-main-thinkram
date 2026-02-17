@@ -4,8 +4,7 @@ import { client } from "@propure/convex/client";
 import { api, Doc } from "@propure/convex/genereated";
 import { tool, UIMessageStreamWriter } from "ai";
 import { z } from "zod";
-import { addressToCoordinatesGoogle, calculateMapCenter } from "../map/geoEncoding";
-import { latLng } from "leaflet";
+import { addressToCoordinatesGoogle, GeocodeResult } from "../map/geoEncoding";
 import { ListingData } from "../utils";
 
 
@@ -238,3 +237,31 @@ export const getSalesHistory = tool({
     }
   },
 });
+
+function calculateMapCenter(geocodes: GeocodeResult[]) {
+  if (geocodes.length === 0) return null;
+
+  let minLat = Infinity;
+  let maxLat = -Infinity;
+  let minLng = Infinity;
+  let maxLng = -Infinity;
+
+  for (const g of geocodes) {
+    if (g.bbounds) {
+      minLat = Math.min(minLat, g.bbounds.southwest.lat);
+      minLng = Math.min(minLng, g.bbounds.southwest.lng);
+      maxLat = Math.max(maxLat, g.bbounds.northeast.lat);
+      maxLng = Math.max(maxLng, g.bbounds.northeast.lng);
+    } else {
+      minLat = Math.min(minLat, g.lat);
+      maxLat = Math.max(maxLat, g.lat);
+      minLng = Math.min(minLng, g.lng);
+      maxLng = Math.max(maxLng, g.lng);
+    }
+  }
+
+  return {
+    lat: (minLat + maxLat) / 2,
+    lng: (minLng + maxLng) / 2,
+  };
+}
