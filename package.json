@@ -7,7 +7,7 @@
     "preinstall": "node scripts/preinstall.js",
     "postinstall": "node scripts/setup-env.js",
     "dev": "turbo convex:setup && turbo dev:web",
-    "build": "turbo build",
+    "build": "turbo convex:setup && turbo build",
     "lint": "turbo lint",
     "type-check": "turbo type-check",
     "clean": "turbo clean && rm -rf node_modules",
