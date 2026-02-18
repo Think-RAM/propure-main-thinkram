@@ -16,6 +16,7 @@ import type { Doc, Id } from "@propure/convex/genereated";
 import { useConvex } from "@propure/convex";
 
 interface ChatContextType {
+  historySidebarOpen: boolean;
   userChatSessions: Omit<Doc<"chatSessions">, "_id">[];
   activeSessionId: string | null;
   setActiveSession: (id: string | null) => void;
@@ -24,6 +25,7 @@ interface ChatContextType {
     title: string,
   ) => void;
   createNewChatSession: (send: string) => void;
+  toggleHistorySidebar: (close?: boolean) => void;
   activeChatMessages: ChatMessageAI[];
   historyLoading: boolean;
   chatsLoading: boolean;
@@ -33,6 +35,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const client = useConvex();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [userChatSessions, setUserChatSessions] = useState<
     Omit<Doc<"chatSessions">, "_id">[]
   >([]);
@@ -110,6 +113,10 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     ]);
   }, []);
 
+  const toggleHistorySidebar = useCallback((close?: boolean) => {
+    setIsSidebarOpen(close === undefined ? (prev) => !prev : !close);
+  }, []);
+
   useEffect(() => {
     const fetchUserChatSessions = async () => {
       try {
@@ -137,6 +144,8 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         activeSessionId,
         setActiveSession,
         updateChatSessionTitle,
+        toggleHistorySidebar,
+        historySidebarOpen: isSidebarOpen,
         createNewChatSession,
         activeChatMessages,
         historyLoading: isLoading,

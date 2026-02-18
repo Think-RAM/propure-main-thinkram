@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,9 +9,11 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
-import { MessageSquare, Plus, PanelLeft } from "lucide-react";
+import { MessageSquare, Plus, PanelLeft, User } from "lucide-react";
 import type { Doc } from "@propure/convex/genereated";
-import { UserButton } from "@clerk/nextjs";
+import UserProfileDialog from "./user-profile-dialog";
+import { useClerk } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 interface ChatSidebarProps {
   open: boolean;
@@ -21,7 +23,6 @@ interface ChatSidebarProps {
   onNewChat: () => void;
   toggle: () => void;
   loading: boolean;
-  onBackToHistory?: () => void; // <-- Add this line
 }
 
 export function ChatSidebar({
@@ -33,6 +34,10 @@ export function ChatSidebar({
   toggle,
   loading,
 }: ChatSidebarProps) {
+  const { user, loaded } = useClerk();
+  const router = useRouter();
+  const [showUserProfile, setShowUserProfile] = useState(false);
+
   if (loading) {
     return (
       <aside
@@ -66,7 +71,7 @@ export function ChatSidebar({
   return (
     <>
       {/* Floating toggle */}
-      {/* {!open && (
+      {!open && !activeSessionId && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -86,7 +91,7 @@ export function ChatSidebar({
           </TooltipTrigger>
           <TooltipContent side="right">Open chats</TooltipContent>
         </Tooltip>
-      )} */}
+      )}
 
       {/* Sidebar */}
       {open && (
@@ -118,15 +123,31 @@ export function ChatSidebar({
                 </TooltipTrigger>
                 <TooltipContent>New chat</TooltipContent>
               </Tooltip>
-              {/* <Button
-                size="icon"
-                variant="ghost"
-                onClick={toggle}
-                className="hover:bg-[#0d7377]/20"
-              >
-                <PanelLeft className="h-5 w-5 rotate-180 text-[#0d7377]" />
-              </Button> */}
-              <UserButton />
+
+              {loaded && user ? (
+                  <UserProfileDialog
+                    user={{
+                      name: user?.fullName || "Guest User",
+                      email:
+                        user?.emailAddresses[0]?.emailAddress ||
+                        "guest@example.com",
+                      avatar: user?.imageUrl || "/placeholder.svg",
+                    }}
+                    open={showUserProfile}
+                    setOpen={setShowUserProfile}
+                  />
+                ) : (
+                  <Button
+                    className={cn(
+                      "flex items-center gap-2 h-8 rounded-full px-3 text-white",
+                      "bg-gradient-to-br from-[#0d7377] to-[#095456]",
+                    )}
+                    onClick={() => router.push("/sign-in")}
+                  >
+                    <User className="h-4 w-4" />
+                    <span>Sign In</span>
+                  </Button>
+                )}
             </div>
           </div>
 

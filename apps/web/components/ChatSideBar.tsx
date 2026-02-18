@@ -188,7 +188,7 @@ export function ChatSidebar({
     return (
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-20 w-[40vw] min-w-[320px] max-w-[420px]",
+          "fixed inset-y-0 left-0 z-20 w-[40vw] min-w-[320px] max-w-[600px]",
           "bg-[#1a1f26]/95 backdrop-blur-xl border-r border-white/10",
           "transition-transform duration-300 ease-in-out flex flex-col",
           open ? "translate-x-0" : "-translate-x-[-100%]",
@@ -258,7 +258,7 @@ export function ChatSidebar({
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-20 w-[40vw] min-w-[320px] max-w-[420px]",
+        "fixed inset-y-0 left-0 z-20 w-[40vw] min-w-[320px] max-w-[600px]",
         "bg-[#1a1f26]/95 backdrop-blur-xl border-r border-white/10",
         "transition-transform duration-300 ease-in-out flex flex-col",
         open ? "translate-x-0" : "-translate-x-[-100%]",
@@ -333,7 +333,7 @@ export function ChatSidebar({
                         part.type === "text" ? (
                           <div
                             key={i}
-                            className="prose prose-sm prose-invert m-0 p-0"
+                            className="m-0 p-0 w-full"
                           >
                             <Response
                               controls={{ table: true }}

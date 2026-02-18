@@ -129,7 +129,6 @@ export async function POST(req: Request) {
 
     const { userId } = await auth();
     if (!userId) {
-      console.log(userId)
       console.log("Unauthorized request to chat API");
       return new ChatSDKError("unauthorized:chat").toResponse();
     }
@@ -251,8 +250,6 @@ export async function POST(req: Request) {
           console.warn("onFinish called with no messages");
           return;
         }
-        console.log("Finished Messages: ");
-        console.dir(finishedMessages, { depth: null });
 
         // Separate messages into new and updated
         const newMessages = [];

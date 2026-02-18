@@ -7,22 +7,23 @@ import { useUserChats } from "@/context/ChatContext";
 import { cn } from "@/lib/utils";
 
 export default function Page() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const {
+    historySidebarOpen,
     userChatSessions,
     historyLoading,
     activeSessionId,
     setActiveSession,
+    toggleHistorySidebar,
   } = useUserChats();
 
-  const toggleSidebar = (close = false) => {
-    setIsSidebarOpen(close ? false : !isSidebarOpen);
-    if( !close ) {
-      setActiveSession(null);
-      console.log("Sidebar opened, active session cleared",userChatSessions, activeSessionId, isSidebarOpen,close);
-    }
-    console.log("Sidebar toggled:", userChatSessions,isSidebarOpen, close, activeSessionId);
-  };
+  // const toggleSidebar = (close = false) => {
+  //   setIsSidebarOpen(close ? false : !isSidebarOpen);
+  //   if( !close ) {
+  //     setActiveSession(null);
+  //     console.log("Sidebar opened, active session cleared",userChatSessions, activeSessionId, isSidebarOpen,close);
+  //   }
+  //   console.log("Sidebar toggled:", userChatSessions,isSidebarOpen, close, activeSessionId);
+  // };
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -33,23 +34,23 @@ export default function Page() {
         )}>
           {/* Main canvas (map / hero) */}
           <main className="absolute inset-0 z-0">
-            <DashboardPage closeSidebar={() => setIsSidebarOpen(false)} />
+            <DashboardPage closeSidebar={() => toggleHistorySidebar()} />
           </main>
 
           {/* ChatGPT-style sidebar */}
           <ChatSidebar
-            open={isSidebarOpen}
-            toggle={() => toggleSidebar()}
+            open={historySidebarOpen}
+            toggle={() => toggleHistorySidebar()}
             sessions={userChatSessions}
             activeSessionId={activeSessionId ?? undefined}
             onSelect={(id) => {
               if (id === activeSessionId) return;
               setActiveSession(id);
-              toggleSidebar(true);
+              toggleHistorySidebar(true);
             }}
             onNewChat={() => {
               setActiveSession(null);
-              toggleSidebar(true);
+              toggleHistorySidebar(true);
             }}
             loading={historyLoading}
           />

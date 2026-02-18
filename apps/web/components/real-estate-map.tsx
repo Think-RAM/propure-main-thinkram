@@ -35,6 +35,7 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
     activeChatMessages,
     chatsLoading,
     createNewChatSession,
+    toggleHistorySidebar,
   } = useUserChats();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -75,6 +76,7 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
               activeSessionId={activeSessionId ?? undefined}
               isLoading={chatsLoading}
               className="h-full"
+              onBackToHistory={() => toggleHistorySidebar()}
             />
           </div>
         )}
@@ -92,21 +94,6 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
           />
         </div>
       </div>
-
-      {!isChatActive && (
-        <div className=" absolute z-50 top-4 right-4">
-          <UserProfileDialog
-            user={{
-              name: user?.fullName || "Guest User",
-              email:
-                user?.emailAddresses[0]?.emailAddress || "guest@example.com",
-              avatar: user?.imageUrl || "/placeholder.svg",
-            }}
-            open={showUserProfile && !isChatActive}
-            setOpen={setShowUserProfile}
-          />
-        </div>
-      )}
 
       <FloatingNotificationInbox align="bottom-right" />
 
@@ -187,7 +174,9 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
       {/* Hero Section - centered initially */}
       <div
         className={`absolute inset-0 z-10 flex items-center justify-center transition-all duration-700 ${
-          isChatActive ? "opacity-0 pointer-events-none" : "opacity-100 backdrop-blur-[10px] backdrop-saturate-10 bg-black/10"
+          isChatActive
+            ? "opacity-0 pointer-events-none"
+            : "opacity-100 backdrop-blur-[10px] backdrop-saturate-10 bg-black/10"
         }`}
       >
         <div className="text-center max-w-2xl mx-auto px-6">

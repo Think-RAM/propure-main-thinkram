@@ -1,2 +1,0 @@
--- AlterEnum
-ALTER TYPE "StrategyType" ADD VALUE 'DIVERSIFICATION';
