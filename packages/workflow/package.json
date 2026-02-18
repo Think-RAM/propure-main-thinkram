@@ -16,6 +16,7 @@
     "@propure/convex": "workspace:*",
     "@propure/mcp-shared": "workspace:*",
     "@propure/mcp-domain": "workspace:*",
+    "@propure/mcp-market-data": "workspace:*",
     "workflow": "^4.0.1-beta.50"
   },
   "devDependencies": {

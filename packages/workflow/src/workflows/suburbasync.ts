@@ -121,7 +121,7 @@ function calculatePriceGrowth(sales: Doc<"properties">[]) {
 
 function calculateIncomeGrowth(absData: Doc<"absMarketData">[]) {
     const sorted = absData
-        .filter(d => d.medianWeeklyIncome != null)
+        .filter(d => d.medianWeeklyHouseholdIncome != null)
         .sort((a, b) => {
             const aYear = a.scrapedAt ? new Date(a.scrapedAt).getFullYear() : 0;
             const bYear = b.scrapedAt ? new Date(b.scrapedAt).getFullYear() : 0;
@@ -130,8 +130,8 @@ function calculateIncomeGrowth(absData: Doc<"absMarketData">[]) {
 
     if (sorted.length < 2) return null;
 
-    const start = sorted[0].medianWeeklyIncome!;
-    const end = sorted[sorted.length - 1].medianWeeklyIncome!;
+    const start = sorted[0].medianWeeklyHouseholdIncome!;
+    const end = sorted[sorted.length - 1].medianWeeklyHouseholdIncome!;
 
     const years = new Date(sorted[sorted.length - 1].scrapedAt!).getFullYear() - new Date(sorted[0].scrapedAt!).getFullYear();
     if (years <= 0) return null;
@@ -348,8 +348,8 @@ function calculateInterestRateSensitivity(
 
     const latest = absData[absData.length - 1];
 
-    const weeklyIncome = latest.medianWeeklyIncome;
-    const monthlyMortgage = latest.medianMonthlyMortgage;
+    const weeklyIncome = latest.medianWeeklyHouseholdIncome;
+    const monthlyMortgage = latest.medianMonthlyMortgageRepayment;
 
     if (!weeklyIncome || !monthlyMortgage || !typicalValue)
         return null;
@@ -870,7 +870,7 @@ async function calculateSuburbMetrics(
 
     // Guard ABS data
     const avgPopulation = safeAverage(
-        absData.map(d => d.population ?? 0).filter(v => v > 0)
+        absData.map(d => d.totalPopulation ?? 0).filter(v => v > 0)
     );
 
     const priceGrowth = calculatePriceGrowth(saleProperties);
@@ -914,7 +914,7 @@ async function calculateSuburbMetrics(
 
     const avgWeeklyIncome = safeAverage(
         absData
-            .map(d => d.medianWeeklyIncome ?? 0)
+            .map(d => d.medianWeeklyHouseholdIncome ?? 0)
             .filter(v => v > 0)
     );
 
@@ -1031,7 +1031,7 @@ async function calculateSuburbMetrics(
     const volatilityScore = priceVolatility !== null ? normalizeToScale(priceVolatility, 0, 0.15) : null;
     risk.marketRisk += volatilityScore !== null ? (volatilityScore / 100) * 30 : 0;
 
-    const avgMonthlyMortgage = absData.reduce((sum, d) => sum + (d.medianMonthlyMortgage ?? 0), 0) / absData.filter(d => d.medianMonthlyMortgage != null).length;
+    const avgMonthlyMortgage = absData.reduce((sum, d) => sum + (d.medianMonthlyMortgageRepayment ?? 0), 0) / absData.filter(d => d.medianMonthlyMortgageRepayment != null).length;
     const loanToValueRatio = typicalValue && avgMonthlyMortgage ? (avgMonthlyMortgage * 12) / typicalValue : null;
     if (loanToValueRatio && loanToValueRatio > 0.9) risk.financialRisk += 40;
     else if (loanToValueRatio && loanToValueRatio > 0.8) risk.financialRisk += 25;

@@ -55,6 +55,10 @@ export function createDomainServer(): McpServer {
         ),
         pageSize: z.number().default(20).describe("Number of results per page"),
         page: z.number().default(1).describe("Page number"),
+        maxPages: z
+          .number()
+          .default(50)
+          .describe("Maximum number of pages to scrape (for pagination)"),
       },
     },
     async (params) => {

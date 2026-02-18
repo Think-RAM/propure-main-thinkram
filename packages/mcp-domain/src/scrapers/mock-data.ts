@@ -49,7 +49,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 8500000,
     priceTo: 9200000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Magnificent Federation Masterpiece with Harbour Views",
     description:
       "Set on one of Bellevue Hill's most prestigious streets, this stunning Federation residence offers exceptional luxury living with breathtaking harbour views. Featuring five generous bedrooms, four luxurious bathrooms, and exquisite period details throughout.",
@@ -103,7 +103,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 1650000,
     priceTo: 1750000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Charming Victorian Terrace in Lifestyle Location",
     description:
       "Beautifully renovated Victorian terrace in the heart of Petersham. Walk to cafes, restaurants, and Petersham train station. Features original period details with modern updates throughout.",
@@ -151,7 +151,7 @@ export const mockPropertyListings: PropertyListing[] = [
     price: "$895,000",
     priceValue: 895000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Investment Opportunity with Dual Income Potential",
     description:
       "Solid brick home on a generous 556sqm block with approved plans for granny flat. Perfect for investors seeking strong rental returns in the booming Liverpool area. Close to Liverpool Hospital and Western Sydney University.",
@@ -196,7 +196,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 1450000,
     priceTo: 1550000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Contemporary Fitzroy Townhouse with City Views",
     description:
       "Striking architect-designed townhouse in the heart of Fitzroy. Features open-plan living, rooftop terrace with city views, and a secure garage. Steps to Brunswick Street's best cafes and bars.",
@@ -247,7 +247,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 4500000,
     priceTo: 5000000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Prestigious Beachside Living",
     description:
       "Luxurious residence on the coveted beach side of Beach Road. This stunning property offers uninterrupted bay views, a heated pool, and exceptional indoor-outdoor entertaining spaces.",
@@ -297,7 +297,7 @@ export const mockPropertyListings: PropertyListing[] = [
     price: "$720,000",
     priceValue: 720000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Stunning River Views from Premium High-Rise",
     description:
       "Impressive 2 bedroom apartment on the 21st floor of the iconic 108 Adelaide tower. Enjoy breathtaking river and city views, resort-style facilities, and a CBD lifestyle.",
@@ -345,7 +345,7 @@ export const mockPropertyListings: PropertyListing[] = [
     price: "$685,000",
     priceValue: 685000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Modern Family Home in Growing Corridor",
     description:
       "Excellent opportunity in one of Brisbane's fastest-growing corridors. This modern 4 bedroom home is walking distance to Springfield Central station and Orion Shopping Centre. Perfect for families or investors.",
@@ -391,7 +391,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 1250000,
     priceTo: 1350000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Beachside Beauty with Ocean Views",
     description:
       "Stunning renovated home just steps from Scarborough Beach. Enjoy ocean views from the master bedroom and living areas. The revitalized Scarborough precinct offers restaurants, bars, and endless lifestyle options.",
@@ -442,7 +442,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 1100000,
     priceTo: 1200000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Character-Filled Family Home in Sought-After Location",
     description:
       "Beautiful sandstone villa in prestigious Unley. Features include high ceilings, ornate fireplaces, and a stunning rear garden. Zoned for Unley High School and moments from King William Road shops.",
@@ -489,7 +489,7 @@ export const mockPropertyListings: PropertyListing[] = [
     price: "$340,000",
     priceValue: 340000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "High-Yielding CBD Investment",
     description:
       "Excellent investment opportunity in the heart of Adelaide CBD. Currently tenanted at $380/week (5.8% yield). Walking distance to Adelaide Central Market, Rundle Mall, and universities.",
@@ -535,7 +535,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 1750000,
     priceTo: 1900000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Historic Battery Point Cottage with Water Views",
     description:
       "Exquisite heritage cottage in prestigious Battery Point. Built in 1860, this lovingly restored home retains stunning original features while offering modern comforts. Glimpses of the Derwent River from the upper level.",
@@ -585,7 +585,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 3500000,
     priceTo: 4000000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Prestigious Forrest Residence in Diplomatic Precinct",
     description:
       "One of Canberra's most prestigious addresses. This grand home in the heart of Forrest offers exceptional living with tennis court, pool, and separate guest quarters. Perfect for entertaining on a grand scale.",
@@ -635,7 +635,7 @@ export const mockPropertyListings: PropertyListing[] = [
     price: "$1,450,000",
     priceValue: 1450000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Tropical Paradise with Harbour Views",
     description:
       "Stunning contemporary home designed for tropical living. Features include a spectacular pool, outdoor entertaining areas, and views over Darwin Harbour. A rare opportunity in tightly-held Fannie Bay.",
@@ -686,7 +686,7 @@ export const mockPropertyListings: PropertyListing[] = [
     price: "$2,150,000",
     priceValue: 2150000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Absolute Beachfront Luxury on the Esplanade",
     description:
       "Breathtaking ocean views from this premium beachfront apartment. Wake up to the sound of waves and enjoy world-class resort facilities. Fully furnished and ready to move in or rent out.",
@@ -735,7 +735,7 @@ export const mockPropertyListings: PropertyListing[] = [
     priceFrom: 820000,
     priceTo: 880000,
     listingType: "sale",
-    listingStatus: "ACTIVE",
+    listingStatus: "ON_MARKET",
     headline: "Inner City Living Minutes from the Beach",
     description:
       "Charming townhouse in the heart of Newcastle. Walk to Newcastle Beach, the foreshore, and all the cafes and restaurants the city has to offer. Perfect for young professionals or investors.",

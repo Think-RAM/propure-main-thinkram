@@ -24,6 +24,7 @@ export const strategyTypeToPrisma = {
     development: "DEVELOPMENT",
     smsf: "SMSF",
     commercial: "COMMERCIAL",
+    diversification: "DIVERSIFICATION",
 };
 /**
  * Map Prisma enum value to API strategy type
@@ -35,6 +36,7 @@ export const prismaToStrategyType = {
     DEVELOPMENT: "development",
     SMSF: "smsf",
     COMMERCIAL: "commercial",
+    DIVERSIFICATION: "diversification",
 };
 /**
  * Map API property type to Prisma enum value

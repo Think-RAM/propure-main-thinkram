@@ -36,12 +36,12 @@ export declare const PlanToPrice: Record<string, Plan>;
 /**
  * Investment Strategy Types (API/Frontend format - kebab-case)
  */
-export type StrategyType = "cash-flow" | "capital-growth" | "renovation-flip" | "development" | "smsf" | "commercial";
+export type StrategyType = "cash-flow" | "capital-growth" | "renovation-flip" | "development" | "smsf" | "commercial" | "diversification";
 /**
  * Investment Strategy Types (Prisma format - SCREAMING_SNAKE_CASE)
  * These match the Prisma enum values exactly
  */
-export type PrismaStrategyType = "CASH_FLOW" | "CAPITAL_GROWTH" | "RENOVATION_FLIP" | "DEVELOPMENT" | "SMSF" | "COMMERCIAL";
+export type PrismaStrategyType = "CASH_FLOW" | "CAPITAL_GROWTH" | "RENOVATION_FLIP" | "DEVELOPMENT" | "SMSF" | "COMMERCIAL" | "DIVERSIFICATION";
 /**
  * Map API strategy type to Prisma enum value
  */

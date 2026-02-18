@@ -66,10 +66,11 @@ export const dataSource = v.union(
 );
 
 export const listingStatus = v.union(
-  v.literal("ACTIVE"),
-  v.literal("UNDER_CONTRACT"),
+  // v.literal("ACTIVE"),
+  // v.literal("UNDER_CONTRACT"),
   v.literal("SOLD"),
-  v.literal("WITHDRAWN"),
+  v.literal("ON_MARKET"),
+  // v.literal("WITHDRAWN"),
   v.literal("OFF_MARKET"),
 );
 
@@ -78,6 +79,7 @@ export const soldAt = v.union(
   v.literal("PRIVATE_TREATY"),
   // v.literal("OFF_MARKET"),
   v.literal("OTHER"),
+  v.literal("PRIOR_TO_AUCTION"),
 );
 
 export type SoldAt = Infer<typeof soldAt>;
@@ -293,10 +295,20 @@ export default defineSchema({
     listingStatus: v.optional(listingStatus),
 
     //sold related fields
-    soldDate: v.optional(v.float64()),
+    soldDate: v.optional(v.string()), // ISO date string to match shared schema
     soldPrice: v.optional(v.float64()),
     soldAt: v.optional(soldAt),
+
     daysOnMarket: v.optional(v.int64()),
+    propertyValueEstimate: v.optional(
+      v.object({
+        low: v.optional(v.float64()),
+        mid: v.optional(v.float64()),
+        high: v.optional(v.float64()),
+      }),
+    ),
+
+    propertyRentEstimate: v.optional(v.float64()),
 
     headline: v.optional(v.string()),
     description: v.optional(v.string()),
@@ -367,7 +379,7 @@ export default defineSchema({
           lat: v.float64(),
           lng: v.float64(),
         }),
-      })
+      }),
     }),
     recordedAt: v.float64(),
     createdAt: v.float64(),
@@ -492,20 +504,21 @@ export default defineSchema({
   // ABS Market Data (broken-out MarketDataSchema columns)
   absMarketData: defineTable({
     // sa2Id and sa2Code removed per request (no SA2 relation)
+    census_year: v.int64(), // e.g. 2021
     postcode: v.optional(v.string()),
     suburb: v.optional(v.string()),
     lga: v.optional(v.string()),
     state: v.optional(australianState),
 
     // Canonical top-level metrics (if available)
-    population: v.optional(v.float64()),
-    medianAge: v.optional(v.float64()),
-    medianWeeklyIncome: v.optional(v.float64()),
-    medianMonthlyMortgage: v.optional(v.float64()),
-    medianWeeklyRent: v.optional(v.float64()),
+    // population: v.optional(v.float64()),
+    // medianAge: v.optional(v.float64()),
+    // medianWeeklyIncome: v.optional(v.float64()),
+    // medianMonthlyMortgage: v.optional(v.float64()),
+    // // medianWeeklyRent: v.optional(v.float64()),
     ownerOccupied: v.optional(v.float64()),
     rented: v.optional(v.float64()),
-    unemploymentRate: v.optional(v.float64()),
+    // unemploymentRate: v.optional(v.float64()),
 
     // Breakdown columns (arrays of small objects)
     people: v.optional(
@@ -652,6 +665,18 @@ export default defineSchema({
     scrapedAt: v.float64(),
     createdAt: v.float64(),
     extra: v.optional(v.any()),
+
+    totalPopulation: v.optional(v.float64()),
+    medianAge: v.optional(v.float64()),
+    populationGrowth: v.optional(v.float64()), // YoY %
+    malePercentage: v.optional(v.float64()),
+    femalePercentage: v.optional(v.float64()),
+
+    medianWeeklyPersonalIncome: v.optional(v.float64()),
+    medianWeeklyHouseholdIncome: v.optional(v.float64()),
+    medianWeeklyFamilyIncome: v.optional(v.float64()),
+    medianMonthlyMortgageRepayment: v.optional(v.float64()),
+    medianWeeklyRent: v.optional(v.float64()),
   })
     .index("by_postcode", ["postcode"])
     .index("by_state", ["state"])

@@ -44,7 +44,7 @@
     └─────────┘   └──────────┘  └─────────┘  └────────┘
 ```
 
-### After (Convex)
+### After (Convex + Vercel AI SDK + Vercel Workflow)
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -53,40 +53,40 @@
 │  Frontend ◄──── ConvexProvider (WebSocket)               │
 │  useQuery() ──► Convex (reactive subscriptions)          │
 │  useMutation() ──► Convex (writes)                       │
-│  useAction() ──► Convex (AI, external APIs)              │
+│                                                          │
+│  API Routes ──► Vercel AI SDK Agents ──► Convex         │
+│           ╰──► Gemini 2.5 Flash                          │
+│                                                          │
+│  Workflows ──► Vercel Workflow (WDK) ──► Convex          │
+│           ╰──► "use workflow" + "use step"               │
 │                                                          │
 │  Server Components ──► Convex (preloaded queries)        │
 └─────────────────────────────────────────────────────────┘
-                        │
-                        ▼
-              ┌──────────────────┐
-              │      Convex      │
-              │                  │
-              │  ┌────────────┐  │
-              │  │  Database  │  │  ◄── Replaces Neon/Prisma
-              │  └────────────┘  │
-              │  ┌────────────┐  │
-              │  │ Subscriptions│ │  ◄── Replaces Pusher
-              │  └────────────┘  │
-              │  ┌────────────┐  │
-              │  │ Scheduler  │  │  ◄── Replaces Inngest
-              │  │ + Workflow │  │
-              │  └────────────┘  │
-              │  ┌────────────┐  │
-              │  │   Agent    │  │  ◄── Replaces chat API routes
-              │  │ Component  │  │
-              │  └────────────┘  │
-              └──────────────────┘
+            │                                   │
+            ▼                                   ▼
+  ┌──────────────────┐              ┌──────────────────┐
+  │      Convex      │              │ Vercel Workflow  │
+  │                  │              │      (WDK)       │
+  │  ┌────────────┐  │              │                  │
+  │  │  Database  │  │◄─────────────┤  Durable Steps   │
+  │  └────────────┘  │              │  + Retries       │
+  │  ┌────────────┐  │              └──────────────────┘
+  │  │ Subscriptions│ │
+  │  └────────────┘  │
+  │  ┌────────────┐  │
+  │  │  Scheduler │  │  ◄── Triggers workflows via cron
+  │  └────────────┘  │
+  └──────────────────┘
 ```
 
-### What Convex Replaces
+### What Gets Replaced
 
-| Current Service | Convex Replacement | Notes |
-|----------------|-------------------|-------|
+| Current Service | Replaced By | Notes |
+|----------------|-------------|-------|
 | Neon PostgreSQL + Prisma | Convex document DB + indexes | See schema migration (Section 3) |
 | Pusher | Convex reactive queries (WebSocket) | Automatic, no channel management |
-| Inngest | Convex Scheduler + Workflow Component | Cron + durable steps |
 | Upstash Redis | Convex query caching (built-in) | Rate limiting via Convex actions |
+| Inngest | Vercel Workflow (WDK) + Convex cron | Durable steps + retries. Convex cron triggers workflows. |
 
 ### What Stays the Same
 
@@ -96,9 +96,11 @@
 | Clerk Authentication | Stays (integrated via `ConvexProviderWithClerk`) |
 | MapLibre GL + deck.gl | Stays |
 | shadcn/ui + Tailwind CSS v4 | Stays |
-| MCP Servers (Domain, REA, Market Data) | Stays (called from Convex Actions) |
+| MCP Servers (Domain, REA, Market Data) | Stays (called from Next.js API routes or Convex Actions) |
 | Zustand (client state) | Stays (reduced scope — Convex handles server state) |
 | Gemini 2.5 Flash | Stays (via `@ai-sdk/google`) |
+| Vercel AI SDK | Stays (agents in Next.js API routes using `ToolLoopAgent`) |
+| Vercel Workflow (WDK) | New (replaces Inngest for background jobs) |
 | Vercel hosting | Stays |
 
 ---
@@ -120,7 +122,7 @@ packages/convex/
 │   │   ├── dataModel.d.ts
 │   │   └── server.d.ts
 │   │
-│   ├── convex.config.ts            # Component registration
+│   ├── convex.config.ts            # No components registered
 │   ├── auth.config.ts              # Clerk auth configuration
 │   ├── schema.ts                   # Database schema
 │   │
@@ -130,33 +132,17 @@ packages/convex/
 │   │   ├── properties.ts           # Property queries + geo search
 │   │   ├── suburbs.ts              # Suburb queries
 │   │   ├── metrics.ts              # Suburb metrics + market indicators
-│   │   ├── agents-rpc.ts           # Agent RPC (Real Estate Agent model)
+│   │   ├── realEstateAgents.ts     # Agent RPC (Real Estate Agent model)
 │   │   ├── agencies.ts             # Agency queries
 │   │   ├── priceHistory.ts         # Price history queries
 │   │   ├── sales.ts                # Sale records + auction results
 │   │   ├── infrastructure.ts       # Infrastructure project queries
-│   │   └── savedSearches.ts        # Saved search CRUD
-│   │
-│   ├── agents/                     # AI Agent definitions
-│   │   ├── orchestrator.ts
-│   │   ├── strategist.ts
-│   │   ├── researcher.ts
-│   │   ├── analyst.ts
-│   │   └── tools/                  # Agent tools
-│   │       ├── strategy-tools.ts   # createTool: DB access
-│   │       ├── search-tools.ts     # createTool: property search
-│   │       ├── analysis-tools.ts   # tool(): pure calculations
-│   │       ├── ui-tools.ts         # createTool: UI state updates
-│   │       └── mcp-tools.ts        # action: external MCP calls
+│   │   ├── savedSearches.ts        # Saved search CRUD
+│   │   ├── chatSessions.ts         # Chat thread management
+│   │   └── chatMessages.ts         # Chat message CRUD
 │   │
 │   ├── actions/                    # Convex Actions (side effects)
-│   │   ├── mcp.ts                  # MCP server HTTP calls
-│   │   └── ai.ts                   # AI model invocations
-│   │
-│   ├── workflows/                  # Durable workflows
-│   │   ├── dataSync.ts             # Property data sync workflow
-│   │   ├── suburbScoring.ts        # Suburb metric calculation
-│   │   └── aiInsights.ts           # AI-powered market insights
+│   │   └── mcp.ts                  # MCP server HTTP calls (optional)
 │   │
 │   ├── crons.ts                    # Scheduled jobs (cron definitions)
 │   │
@@ -166,18 +152,43 @@ packages/convex/
 │       └── validators.ts           # Input validation helpers
 │
 └── tsconfig.json
+
+apps/web/
+├── app/
+│   ├── api/
+│   │   └── chat/
+│   │       └── route.ts            # AI chat endpoint (ToolLoopAgent)
+│   └── ...
+│
+├── lib/
+│   ├── agents/                     # AI Agent definitions
+│   │   ├── orchestrator.ts         # ToolLoopAgent definition
+│   │   ├── strategist.ts           # ToolLoopAgent definition
+│   │   ├── researcher.ts           # ToolLoopAgent definition
+│   │   └── analyst.ts              # ToolLoopAgent definition
+│   │
+│   └── tools/                      # Agent tools
+│       ├── strategy-tools.ts       # tool() with Convex calls
+│       ├── search-tools.ts         # tool() with Convex calls
+│       ├── analysis-tools.ts       # tool() with pure calculations
+│       ├── delegation-tools.ts     # tool() for sub-agent delegation
+│       └── mcp-tools.ts            # tool() for MCP HTTP calls
+│
+├── workflows/                      # Vercel Workflow definitions
+│   ├── dataSync.ts                 # "use workflow" - property sync
+│   ├── suburbScoring.ts            # "use workflow" - suburb metrics
+│   └── aiInsights.ts               # "use workflow" - AI insights
+│
+└── next.config.ts                  # withWorkflow(nextConfig)
 ```
 
 ### `convex.config.ts`
 
 ```typescript
 import { defineApp } from "convex/server";
-import agent from "@convex-dev/agent/convex.config";
-import workflow from "@convex-dev/workflow/convex.config";
 
 const app = defineApp();
-app.use(agent);
-app.use(workflow);
+// No components registered - agents run in Next.js, workflows in Vercel Workflow
 
 export default app;
 ```
@@ -188,9 +199,21 @@ export default app;
 {
   "functions": "convex/",
   "node": {
-    "externalPackages": ["@ai-sdk/google"]
+    "externalPackages": []
   }
 }
+```
+
+### `next.config.ts` (Vercel Workflow Integration)
+
+```typescript
+import { withWorkflow } from "workflow/next";
+
+const nextConfig = {
+  // ... existing Next.js config
+};
+
+export default withWorkflow(nextConfig);
 ```
 
 ### Replaces: `packages/db/` (`@propure/db`)
@@ -209,8 +232,8 @@ The existing `packages/db/` (Prisma schema, migrations, client) is fully replace
 | 2 | `Account` | *(removed)* | Clerk manages OAuth accounts directly |
 | 3 | `Session` | *(removed)* | Clerk manages sessions directly |
 | 4 | `Strategy` | `strategies` | `userId` becomes `v.id("users")`; enums become `v.union(v.literal(...))` |
-| 5 | `ChatSession` | *(replaced)* | Replaced by Agent Component thread management |
-| 6 | `ChatMessage` | *(replaced)* | Replaced by Agent Component message storage |
+| 5 | `ChatSession` | `chatSessions` | Thread management for AI conversations |
+| 6 | `ChatMessage` | `chatMessages` | Message persistence with tool calls and results |
 | 7 | `SavedSearch` | `savedSearches` | `filters` and `results` stay as `v.any()` (JSON equivalent) |
 | 8 | `State` | `states` | Simple string fields |
 | 9 | `City` | `cities` | `stateId` becomes `v.id("states")` |
@@ -300,8 +323,6 @@ export const deleteSuburb = mutation({
 
 | Prisma Model | Reason |
 |-------------|--------|
-| `ChatSession` | Replaced by `@convex-dev/agent` thread management. The Agent Component manages its own `threads` and `messages` tables internally. |
-| `ChatMessage` | Same as above — messages are stored by the Agent Component with full tool call/result tracking. |
 | `Account` | Clerk handles OAuth accounts. No application-level Account table needed. |
 | `Session` | Clerk handles session management. No application-level Session table needed. |
 
@@ -401,6 +422,30 @@ export default defineSchema({
     results: v.optional(v.any()),
   })
     .index("by_user", ["userId"]),
+
+  // ── Chat Threads ──
+  chatSessions: defineTable({
+    userId: v.id("users"),
+    title: v.optional(v.string()),
+    lastMessageAt: v.optional(v.float64()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_last_message", ["userId", "lastMessageAt"]),
+
+  chatMessages: defineTable({
+    sessionId: v.id("chatSessions"),
+    role: v.union(v.literal("user"), v.literal("assistant"), v.literal("system")),
+    content: v.string(),
+    toolCalls: v.optional(v.any()),
+    toolResults: v.optional(v.any()),
+    usage: v.optional(v.object({
+      promptTokens: v.float64(),
+      completionTokens: v.float64(),
+    })),
+    timestamp: v.float64(),
+  })
+    .index("by_session", ["sessionId"])
+    .index("by_session_timestamp", ["sessionId", "timestamp"]),
 
   // ── Location Hierarchy ──
   states: defineTable({
@@ -591,19 +636,23 @@ export default defineSchema({
 
 ## 4. Agent Architecture
 
-### Agent Definitions
+### Agent Definitions (Next.js API Routes)
 
-Four agents, all using Gemini 2.5 Flash via `@ai-sdk/google`:
+Four agents, all using Gemini 2.5 Flash via `@ai-sdk/google`, defined in `apps/web/lib/agents/`:
 
 ```typescript
-// packages/convex/convex/agents/orchestrator.ts
-import { Agent } from "@convex-dev/agent";
+// apps/web/lib/agents/orchestrator.ts
+import { ToolLoopAgent } from "ai";
 import { google } from "@ai-sdk/google";
-import { components } from "../_generated/api";
+import {
+  delegateToStrategist,
+  delegateToAnalyst,
+  delegateToResearcher,
+} from "../tools/delegation-tools";
+import { searchProperties, updateUIFilters } from "../tools/search-tools";
 
-export const orchestrator = new Agent(components.agent, {
-  name: "Orchestrator",
-  chat: google("gemini-2.5-flash"),
+export const orchestrator = new ToolLoopAgent({
+  model: google("gemini-2.5-flash"),
   instructions: `You are the Propure AI assistant, helping users discover
 their ideal property investment strategy in Australia. You coordinate between
 specialist agents: Strategist, Analyst, and Researcher.
@@ -611,82 +660,87 @@ specialist agents: Strategist, Analyst, and Researcher.
 Route user requests to the appropriate agent(s), synthesize their outputs,
 and present cohesive responses. Always maintain context of the user's
 situation, goals, and current strategy.`,
-  tools: [delegateToStrategist, delegateToAnalyst, delegateToResearcher, updateUI],
+  tools: {
+    delegateToStrategist,
+    delegateToAnalyst,
+    delegateToResearcher,
+    searchProperties,
+    updateUIFilters,
+  },
 });
 ```
 
 ### Tool Types
 
-| Type | Import | Database Access | Use Case |
-|------|--------|----------------|----------|
-| `createTool` | `@convex-dev/agent` | Yes (`ctx.db`) | Read/write Convex data |
-| `tool()` | `ai` (Vercel AI SDK) | No | Pure calculations, formatting |
+All tools use the Vercel AI SDK `tool()` function. Tools that need database access call Convex via `ConvexHttpClient`.
 
-**`createTool` examples** (DB access):
 ```typescript
-// Search properties with geospatial bounding box
-const searchProperties = createTool({
-  description: "Search properties within map bounds",
-  args: {
-    south: v.float64(),
-    north: v.float64(),
-    west: v.float64(),
-    east: v.float64(),
-    propertyType: v.optional(propertyType),
-    maxPrice: v.optional(v.float64()),
-  },
-  handler: async (ctx, args) => {
-    const candidates = await ctx.db
-      .query("properties")
-      .withIndex("by_location_lat", (q) =>
-        q.gte("latitude", args.south).lte("latitude", args.north)
-      )
-      .collect();
-
-    return candidates.filter(
-      (p) => p.longitude >= args.west && p.longitude <= args.east
-    );
-  },
-});
-
-// Create or update a strategy
-const createStrategy = createTool({
-  description: "Create a new investment strategy for the user",
-  args: {
-    type: strategyType,
-    budget: v.optional(v.float64()),
-    riskTolerance: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    return await ctx.db.insert("strategies", {
-      userId: user._id,
-      type: args.type,
-      status: "DISCOVERY",
-      ...args,
-    });
-  },
-});
-```
-
-**`tool()` examples** (pure computation):
-```typescript
+// apps/web/lib/tools/search-tools.ts
 import { tool } from "ai";
 import { z } from "zod";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@propure/convex";
 
-const calculateCashFlow = tool({
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+
+// Tool with Convex database access
+export const searchProperties = tool({
+  description: "Search properties within map bounds with filters",
+  parameters: z.object({
+    south: z.number(),
+    north: z.number(),
+    west: z.number(),
+    east: z.number(),
+    propertyType: z.string().optional(),
+    maxPrice: z.number().optional(),
+  }),
+  execute: async (args) => {
+    // Call Convex query via HTTP client
+    const properties = await convex.query(api.properties.searchByBounds, {
+      south: args.south,
+      north: args.north,
+      west: args.west,
+      east: args.east,
+      propertyType: args.propertyType,
+      maxPrice: args.maxPrice,
+    });
+    return properties;
+  },
+});
+
+// Tool that creates Convex data
+export const createStrategy = tool({
+  description: "Create a new investment strategy for the user",
+  parameters: z.object({
+    type: z.enum(["CASH_FLOW", "CAPITAL_GROWTH", "RENOVATION_FLIP", "DEVELOPMENT", "SMSF", "COMMERCIAL"]),
+    budget: z.number().optional(),
+    riskTolerance: z.string().optional(),
+  }),
+  execute: async (args) => {
+    // Call Convex mutation via HTTP client
+    const strategyId = await convex.mutation(api.strategies.create, {
+      type: args.type,
+      status: "DISCOVERY",
+      budget: args.budget,
+      riskTolerance: args.riskTolerance,
+    });
+    return { strategyId };
+  },
+});
+
+// Pure computation tool (no database)
+export const calculateCashFlow = tool({
   description: "Calculate annual cash flow and yield for a property",
   parameters: z.object({
     purchasePrice: z.number(),
     weeklyRent: z.number(),
     annualExpenses: z.number().optional().default(0),
     interestRate: z.number().optional().default(6.0),
-    loanAmount: z.number().optional(),
   }),
-  execute: async ({ purchasePrice, weeklyRent, annualExpenses, interestRate, loanAmount }) => {
+  execute: async ({ purchasePrice, weeklyRent, annualExpenses, interestRate }) => {
     const annualRent = weeklyRent * 52;
     const grossYield = (annualRent / purchasePrice) * 100;
-    const annualInterest = (loanAmount ?? purchasePrice * 0.8) * (interestRate / 100);
+    const annualInterest = (purchasePrice * 0.8) * (interestRate / 100);
     const netCashFlow = annualRent - annualExpenses - annualInterest;
 
     return {
@@ -694,7 +748,6 @@ const calculateCashFlow = tool({
       annualRent,
       annualInterest: Math.round(annualInterest),
       netCashFlow: Math.round(netCashFlow),
-      weeklyCashFlow: Math.round(netCashFlow / 52),
     };
   },
 });
@@ -702,24 +755,25 @@ const calculateCashFlow = tool({
 
 ### MCP Integration
 
-External MCP servers are called from Convex Actions via HTTP. The MCP servers (Domain, REA, Market Data) continue to run as separate services.
+External MCP servers (Domain, REA, Market Data) are called directly from tool `execute` functions via HTTP:
 
 ```typescript
-// packages/convex/convex/actions/mcp.ts
-import { action } from "../_generated/server";
-import { v } from "convex/values";
+// apps/web/lib/tools/mcp-tools.ts
+import { tool } from "ai";
+import { z } from "zod";
 
-export const callDomainMCP = action({
-  args: {
-    tool: v.string(),
-    input: v.any(),
-  },
-  handler: async (ctx, args) => {
+export const callDomainMCP = tool({
+  description: "Search properties via Domain MCP server",
+  parameters: z.object({
+    tool: z.string(),
+    input: z.any(),
+  }),
+  execute: async ({ tool, input }) => {
     const url = process.env.MCP_DOMAIN_URL;
-    const response = await fetch(`${url}/tools/${args.tool}`, {
+    const response = await fetch(`${url}/tools/${tool}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(args.input),
+      body: JSON.stringify(input),
     });
     if (!response.ok) {
       throw new Error(`MCP Domain call failed: ${response.status}`);
@@ -727,52 +781,79 @@ export const callDomainMCP = action({
     return response.json();
   },
 });
-
-export const callRealestateMCP = action({
-  args: { tool: v.string(), input: v.any() },
-  handler: async (ctx, args) => {
-    const url = process.env.MCP_REALESTATE_URL;
-    const response = await fetch(`${url}/tools/${args.tool}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(args.input),
-    });
-    return response.json();
-  },
-});
-
-export const callMarketDataMCP = action({
-  args: { tool: v.string(), input: v.any() },
-  handler: async (ctx, args) => {
-    const url = process.env.MCP_MARKET_DATA_URL;
-    const response = await fetch(`${url}/tools/${args.tool}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(args.input),
-    });
-    return response.json();
-  },
-});
 ```
 
-### Streaming
+All MCP calls use direct HTTP from tool execute functions — no Convex Actions for MCP integration.
 
-The Agent Component handles streaming via Convex WebSocket:
+### Chat API Route and Message Persistence
+
+```typescript
+// apps/web/app/api/chat/route.ts
+import { createAgentUIStreamResponse } from "ai";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@propure/convex";
+import { orchestrator } from "@/lib/agents/orchestrator";
+
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+
+export async function POST(req: Request) {
+  const { messages, sessionId } = await req.json();
+
+  const response = await orchestrator.generateText({
+    messages,
+    maxSteps: 10,
+    onFinish: async ({ text, toolCalls, toolResults, usage }) => {
+      // Save assistant message to Convex
+      await convex.mutation(api.chatMessages.create, {
+        sessionId,
+        role: "assistant",
+        content: text,
+        toolCalls: toolCalls?.map(tc => ({ name: tc.name, args: tc.args })),
+        toolResults: toolResults?.map(tr => ({ result: tr.result })),
+        usage: {
+          promptTokens: usage.promptTokens,
+          completionTokens: usage.completionTokens,
+        },
+        timestamp: Date.now(),
+      });
+
+      // Update session's lastMessageAt
+      await convex.mutation(api.chatSessions.updateLastMessage, {
+        sessionId,
+        timestamp: Date.now(),
+      });
+    },
+  });
+
+  return createAgentUIStreamResponse({ response });
+}
+```
+
+### Streaming Architecture
 
 ```
-User Message
+User Message → POST /api/chat
     │
-    ▼
-orchestrator.generateText() or orchestrator.continueThread()
+    ├─► ToolLoopAgent.generateText({ messages, tools })
+    │       │
+    │       └─► Streams tokens via HTTP SSE
     │
-    ├── saveStreamDeltas() ──► Persists tokens to thread messages
+    ├─► onFinish: Save to Convex
+    │       │
+    │       └─► convex.mutation(api.chatMessages.create, { ... })
     │
-    └── Frontend: useUIMessages(threadId) ──► Reactive subscription
-         │
-         └── Re-renders as tokens arrive over WebSocket
+    └─► createAgentUIStreamResponse → HTTP Response (SSE)
+             │
+             └─► Frontend: useChat() receives stream
+
+Frontend also subscribes:
+    useQuery(api.chatMessages.list, { sessionId })
+        └─► Re-renders when new messages saved (for thread history)
 ```
 
-No HTTP SSE. No Pusher. The streaming is native to Convex's reactive query system.
+**Dual-channel approach**:
+1. **HTTP SSE**: Live streaming during active conversation (via `useChat()` from `@ai-sdk/react`)
+2. **Convex reactive query**: Thread history and message persistence (via `useQuery()` from `convex/react`)
 
 ---
 
@@ -803,48 +884,56 @@ export function Providers({ children }: { children: React.ReactNode }) {
 }
 ```
 
-### useConvexChat Hook
+### Chat Interface
 
-Replace `useChat` from `ai/react` with a Convex-native chat hook:
+Use `useChat` from `@ai-sdk/react` for streaming chat + Convex reactive queries for chat history:
 
 ```typescript
-// apps/web/hooks/useConvexChat.ts
-import { useQuery, useMutation, useAction } from "convex/react";
+// apps/web/components/chat-interface.tsx
+"use client";
+
+import { useChat } from "@ai-sdk/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@propure/convex";
-import { useState, useCallback } from "react";
+import { useEffect } from "react";
 
-export function useConvexChat(threadId?: string) {
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+export function ChatInterface({ sessionId }: { sessionId: string }) {
+  // Vercel AI SDK hook for streaming
+  const { messages, input, setInput, handleSubmit, isLoading } = useChat({
+    api: "/api/chat",
+    body: { sessionId },
+  });
 
-  // Reactive query — updates automatically when messages change
-  const messages = useQuery(
-    api.agents.orchestrator.getThreadMessages,
-    threadId ? { threadId } : "skip"
+  // Convex reactive query for chat history (loads on mount)
+  const historicalMessages = useQuery(api.chatMessages.list, { sessionId });
+
+  // Merge historical messages with streaming messages
+  const allMessages = [
+    ...(historicalMessages ?? []),
+    ...messages.filter(m => !historicalMessages?.some(hm => hm.timestamp === m.createdAt)),
+  ];
+
+  return (
+    <div>
+      {allMessages.map((m, i) => (
+        <div key={i}>
+          <strong>{m.role}:</strong> {m.content}
+        </div>
+      ))}
+      <form onSubmit={handleSubmit}>
+        <input value={input} onChange={e => setInput(e.target.value)} />
+        <button type="submit" disabled={isLoading}>Send</button>
+      </form>
+    </div>
   );
-
-  const sendMessage = useAction(api.agents.orchestrator.chat);
-
-  const handleSubmit = useCallback(async () => {
-    if (!input.trim()) return;
-    setIsLoading(true);
-    try {
-      await sendMessage({ message: input, threadId });
-      setInput("");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [input, threadId, sendMessage]);
-
-  return {
-    messages: messages ?? [],
-    input,
-    setInput,
-    handleSubmit,
-    isLoading,
-  };
 }
 ```
+
+**Pattern**:
+- `useChat()` handles HTTP SSE streaming for live conversation
+- `useQuery()` loads historical messages from Convex on mount
+- Messages are saved to Convex in `onFinish` callback (API route)
+- Convex reactive query updates when new messages arrive
 
 ### Reactive Queries Replace Pusher
 
@@ -917,82 +1006,134 @@ export function PropertyMap() {
 
 ## 6. Background Jobs
 
-### Inngest → Convex Mapping
+### Inngest → Vercel Workflow Mapping
 
-| Inngest Function | Convex Replacement | Type |
-|-----------------|-------------------|------|
-| `daily-property-sync` (cron 2am) | `crons.ts` + `workflows/dataSync.ts` | Cron → Workflow |
-| `weekly-suburb-scoring` (cron Sunday 3am) | `crons.ts` + `workflows/suburbScoring.ts` | Cron → Workflow |
-| `monthly-economic-update` (cron 1st) | `crons.ts` + `functions/metrics.ts` | Cron → Mutation |
-| `property-search-workflow` (event) | `functions/properties.ts` | Query (reactive) |
-| `suburb-analysis-workflow` (event) | `workflows/aiInsights.ts` | Workflow |
+| Inngest Function | Replacement | Type |
+|-----------------|-------------|------|
+| `daily-property-sync` (cron 2am) | Vercel Cron → Vercel Workflow | Cron → Workflow |
+| `weekly-suburb-scoring` (cron Sunday 3am) | Vercel Cron → Vercel Workflow | Cron → Workflow |
+| `monthly-economic-update` (cron 1st) | Vercel Cron → Vercel Workflow | Cron → Workflow |
+| `property-search-workflow` (event) | Convex Query (reactive) | Query |
+| `suburb-analysis-workflow` (event) | Vercel Workflow | Workflow |
 
-### Cron Jobs
+### Vercel Workflow (WDK) Setup
 
 ```typescript
-// packages/convex/convex/crons.ts
-import { cronJobs } from "convex/server";
-import { internal } from "./_generated/api";
+// apps/web/next.config.ts
+import { withWorkflow } from "workflow/next";
 
-const crons = cronJobs();
+const nextConfig = {
+  // ... existing Next.js config
+};
 
-// Daily property sync at 2am AEST (16:00 UTC previous day)
-crons.daily(
-  "daily-property-sync",
-  { hourUTC: 16, minuteUTC: 0 },
-  internal.workflows.dataSync.run
-);
-
-// Weekly suburb scoring on Sunday at 3am AEST (17:00 UTC Saturday)
-crons.weekly(
-  "weekly-suburb-scoring",
-  { dayOfWeek: "saturday", hourUTC: 17, minuteUTC: 0 },
-  internal.workflows.suburbScoring.run
-);
-
-// Monthly economic update on 1st at midnight AEST
-crons.monthly(
-  "monthly-economic-update",
-  { day: 1, hourUTC: 14, minuteUTC: 0 },
-  internal.functions.metrics.refreshNationalIndicators
-);
-
-export default crons;
+export default withWorkflow(nextConfig);
 ```
 
-### Durable Workflows
+### Cron Triggers (vercel.json)
+
+All scheduled jobs are defined in `vercel.json` and trigger API routes that launch Vercel Workflows:
+
+```json
+{
+  "crons": [
+    {
+      "path": "/api/cron/property-sync",
+      "schedule": "0 16 * * *"
+    },
+    {
+      "path": "/api/cron/suburb-scoring",
+      "schedule": "0 17 * * 6"
+    },
+    {
+      "path": "/api/cron/economic-update",
+      "schedule": "0 18 1 * *"
+    }
+  ]
+}
+```
+
+### Vercel Workflow Definitions
 
 ```typescript
-// packages/convex/convex/workflows/dataSync.ts
-import { WorkflowManager } from "@convex-dev/workflow";
-import { components } from "../_generated/api";
+// apps/web/workflows/dataSync.ts
+"use workflow";
 
-const workflow = new WorkflowManager(components.workflow);
+import { start } from "workflow";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@propure/convex";
 
-export const run = workflow.define({
-  args: {},
-  handler: async (step) => {
-    // Step 1: Get suburbs to sync
-    const suburbs = await step.runQuery(internal.functions.suburbs.listAll);
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
-    // Step 2: Fetch from MCP servers (durable — retries on failure)
-    const listings = await step.runAction(
-      internal.actions.mcp.callDomainMCP,
-      { tool: "searchListings", input: { suburbs } }
-    );
+export async function propertySyncWorkflow() {
+  // Step 1: Get suburbs to sync (durable step)
+  const suburbs = await step("get-suburbs", async () => {
+    return await convex.query(api.suburbs.listAll);
+  });
 
-    // Step 3: Upsert properties
-    const count = await step.runMutation(
-      internal.functions.properties.bulkUpsert,
-      { listings }
-    );
+  // Step 2: Fetch from MCP servers (automatic retry on failure)
+  const listings = await step("fetch-listings", async () => {
+    const response = await fetch(`${process.env.MCP_DOMAIN_URL}/tools/searchListings`, {
+      method: "POST",
+      body: JSON.stringify({ suburbs }),
+    });
+    return response.json();
+  });
 
-    // Step 4: Mark stale listings
-    await step.runMutation(internal.functions.properties.markStale);
+  // Step 3: Upsert properties to Convex
+  const count = await step("upsert-properties", async () => {
+    return await convex.mutation(api.properties.bulkUpsert, { listings });
+  });
 
-    return { upserted: count };
-  },
-});
+  // Step 4: Mark stale listings
+  await step("mark-stale", async () => {
+    await convex.mutation(api.properties.markStale);
+  });
+
+  return { upserted: count };
+}
+
+// Trigger endpoint
+export async function POST() {
+  const workflowId = await start(propertySyncWorkflow);
+  return Response.json({ workflowId });
+}
+```
+
+```typescript
+// apps/web/workflows/suburbScoring.ts
+"use workflow";
+
+import { start, sleep } from "workflow";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@propure/convex";
+
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+
+export async function suburbScoringWorkflow() {
+  const suburbs = await step("get-suburbs", async () => {
+    return await convex.query(api.suburbs.listAll);
+  });
+
+  for (const suburb of suburbs) {
+    // Rate limiting via durable sleep
+    await sleep(1000);
+
+    await step(`score-suburb-${suburb._id}`, async () => {
+      const metrics = await convex.query(api.suburbMetrics.getLatest, {
+        suburbId: suburb._id,
+      });
+
+      const score = calculateScore(metrics);
+
+      await convex.mutation(api.suburbs.updateScore, {
+        suburbId: suburb._id,
+        score,
+      });
+    });
+  }
+
+  return { processed: suburbs.length };
+}
 ```
 
 ---

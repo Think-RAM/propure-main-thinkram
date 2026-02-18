@@ -26,11 +26,12 @@ export type DataSource = z.infer<typeof DataSource>;
 
 // Listing status
 export const ListingStatus = z.enum([
-  "ACTIVE",
-  "UNDER_CONTRACT", // Aligned with schema
+  // "ACTIVE",
+  // "UNDER_CONTRACT", // Aligned with Prisma schema
   "SOLD",
-  "WITHDRAWN",
+  // "WITHDRAWN",
   "OFF_MARKET",
+  "ON_MARKET",
 ]);
 export type ListingStatus = z.infer<typeof ListingStatus>;
 
@@ -51,6 +52,14 @@ export type PropertyType = z.infer<typeof PropertyType>;
 // Listing type
 export const ListingType = z.enum(["sale", "rent", "sold"]);
 export type ListingType = z.infer<typeof ListingType>;
+
+export const SoldAt = z.enum([
+  "AUCTION",
+  "PRIVATE_TREATY",
+  "OTHER",
+  "PRIOR_TO_AUCTION",
+]);
+export type SoldAt = z.infer<typeof SoldAt>;
 
 // Property address schema
 export const PropertyAddressSchema = z.object({
@@ -97,7 +106,23 @@ export const PropertyListingSchema = z.object({
   agentName: z.string().optional(),
   agentPhone: z.string().optional(),
   agencyName: z.string().optional(),
-  
+
+  //sold details
+  soldDate: z.string().optional(),
+  soldPrice: z.number().optional(),
+  soldAt: SoldAt.optional(),
+
+  //from property profile
+  daysOnMarket: z.number().optional(),
+  propertyValueEstimate: z
+    .object({
+      low: z.number().optional(),
+      mid: z.number().optional(),
+      high: z.number().optional(),
+    })
+    .optional(),
+  propertyRentEstimate: z.number().optional(),
+
   listedDate: z.string().optional(),
   auctionDate: z.string().optional(),
   inspectionTimes: z.array(z.string()).optional(),
@@ -120,6 +145,7 @@ export const PropertySearchParamsSchema = z.object({
   includesSurrounding: z.boolean().optional(),
   // pageSize: z.number().default(20),
   page: z.number().default(1),
+  // maxPages: z.number().optional().default(50),
 });
 export type PropertySearchParams = z.infer<typeof PropertySearchParamsSchema>;
 
@@ -239,11 +265,14 @@ export type MarketIndicator = z.infer<typeof MarketIndicatorSchema>;
 export const BreakdownEntrySchema = z.object({
   label: z.string(),
   count: z.number(),
-  percentage: z.number().nullable(),
+  percentage: z.number().optional(),
 });
 export type BreakdownEntry = z.infer<typeof BreakdownEntrySchema>;
 
 export const MarketDataSchema = z.object({
+  rented: z.number(),
+  ownerOccupied: z.number(),
+  census_year: z.number(), // Year of the ABS census data (e.g. 2021)
   people: z.array(BreakdownEntrySchema),
   maritalStatus: z.array(BreakdownEntrySchema),
   education: z.array(BreakdownEntrySchema),
@@ -260,17 +289,17 @@ export const MarketDataSchema = z.object({
   rentWeeklyPayments: z.array(BreakdownEntrySchema),
   mortgageMonthlyRepayments: z.array(BreakdownEntrySchema),
   // Additional ABS summary fields
-  totalPopulation: z.number().nullable().optional(),
-  medianAge: z.number().nullable().optional(),
-  populationGrowth: z.number().nullable().optional(), // YoY %
-  malePercentage: z.number().nullable().optional(),
-  femalePercentage: z.number().nullable().optional(),
+  totalPopulation: z.number().optional(),
+  medianAge: z.number().optional(),
+  populationGrowth: z.number().optional(), // YoY %
+  malePercentage: z.number().optional(),
+  femalePercentage: z.number().optional(),
 
-  medianWeeklyPersonalIncome: z.number().nullable().optional(),
-  medianWeeklyHouseholdIncome: z.number().nullable().optional(),
-  medianWeeklyFamilyIncome: z.number().nullable().optional(),
-  medianMonthlyMortgageRepayment: z.number().nullable().optional(),
-  medianWeeklyRent: z.number().nullable().optional(),
+  medianWeeklyPersonalIncome: z.number().optional(),
+  medianWeeklyHouseholdIncome: z.number().optional(),
+  medianWeeklyFamilyIncome: z.number().optional(),
+  medianMonthlyMortgageRepayment: z.number().optional(),
+  medianWeeklyRent: z.number().optional(),
 });
 export type MarketData = z.infer<typeof MarketDataSchema>;
 
@@ -301,8 +330,6 @@ export const AbsPopulationProjectionSchema = z.object({
 export type AbsPopulationProjection = z.infer<
   typeof AbsPopulationProjectionSchema
 >;
-
-
 
 // Infrastructure project schema
 export const InfrastructureProjectSchema = z.object({

@@ -183,14 +183,14 @@ export class ScrapeDoWebScraper {
     const params = this.buildSearchParams(options);
     const requestUrl = `${this.baseUrl}?${params.toString()}`;
 
-    console.debug(
-      {
-        url: options.url,
-        render: options.render,
-        geoCode: options.geoCode,
-      },
-      "Scrape.do request",
-    );
+    // console.debug(
+    //   {
+    //     url: options.url,
+    //     render: options.render,
+    //     geoCode: options.geoCode,
+    //   },
+    //   "Scrape.do request",
+    // );
 
     const response = await fetch(requestUrl, {
       method: "GET",
@@ -219,8 +219,8 @@ export class ScrapeDoWebScraper {
     rateLimitKey: string,
     rateLimitConfig: RateLimiterConfig,
   ): Promise<string> {
-    await waitForRateLimit(rateLimitKey, rateLimitConfig);
-    console.trace({ rateLimitKey }, "Scrape.do rate limit gate passed");
+    // await waitForRateLimit(rateLimitKey, rateLimitConfig);
+    // console.trace({ rateLimitKey }, "Scrape.do rate limit gate passed");
     return this.scrape(options);
   }
 }

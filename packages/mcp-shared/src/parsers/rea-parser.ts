@@ -352,12 +352,12 @@ function normalizeReaListingStatus(
   const lower = status.toLowerCase();
 
   if (lower.includes("sold") || lower.includes("leased")) return "SOLD";
-  if (lower.includes("under offer") || lower.includes("under contract"))
-    return "UNDER_CONTRACT";
-  if (lower.includes("withdrawn")) return "WITHDRAWN";
+  // if (lower.includes("under offer") || lower.includes("under contract"))
+  //   return "UNDER_CONTRACT";
+  // if (lower.includes("withdrawn")) return "WITHDRAWN";
   if (lower.includes("off market")) return "OFF_MARKET";
 
-  return "ACTIVE";
+  return "OFF_MARKET";
 }
 
 /**

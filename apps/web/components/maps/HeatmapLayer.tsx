@@ -6,6 +6,7 @@ import { api } from "@propure/convex/genereated";
 import { HEATMAP_GRADIENTS, HEATMAP_CONFIG } from "@/lib/map/heatmap-config";
 import { useMap } from "@/context/MapContext";
 
+
 export function HeatmapLayer() {
   const { map, currentHeatmapLayer, viewport } = useMap();
   const [L, setLeaflet] = useState<typeof import("leaflet") | null>(null);
@@ -34,7 +35,6 @@ export function HeatmapLayer() {
       mounted = false;
     };
   }, []);
-
   const queryParams = useMemo(
     () => ({
       metricType: currentHeatmapLayer,
@@ -57,7 +57,7 @@ export function HeatmapLayer() {
       }
       return;
     }
-
+    console.log("Metrics Data", metricsData);
     const heatPoints = metricsData.map(
       (m) =>
         [m.latitude, m.longitude, m.value / 100] as [number, number, number],

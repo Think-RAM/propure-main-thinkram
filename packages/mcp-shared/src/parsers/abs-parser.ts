@@ -10,7 +10,7 @@ interface TableHeader {
 interface TableRow {
   label: string;
   count: number;
-  percentage: number | null;
+  percentage?: number;
 }
 
 interface ExtractRowOptions {
@@ -184,8 +184,17 @@ export function parseAbsMarketData(html: string): MarketData | null {
     }
     return null;
   }
+  const rented =
+    tenureTypeRows?.find((r) => r.label.includes("Rented (b)"))?.count ?? 0;
+
+  const ownerOccupied =
+    (dwellingStructureRows?.reduce((sum, r) => sum + (r.count ?? 0), 0) ?? 0) -
+    rented;
 
   return {
+    census_year: 0,
+    rented,
+    ownerOccupied: ownerOccupied > 0 ? ownerOccupied : 0,
     people: peopleRows,
     maritalStatus: maritalRows ?? [],
     education: educationRows ?? [],
@@ -203,34 +212,35 @@ export function parseAbsMarketData(html: string): MarketData | null {
     mortgageMonthlyRepayments: mortgageMonthlyRepaymentRows ?? [],
     // summary numeric fields
     totalPopulation:
-      parseCellNumber(findRowValue(peopleTable, /People$/) ?? "") ?? null,
+      parseCellNumber(findRowValue(peopleTable, /People$/) ?? "") ?? undefined,
     medianAge:
-      parseCellNumber(findRowValue(peopleTable, /Median age/i) ?? "") ?? null,
-    populationGrowth: null, // not available in summary
+      parseCellNumber(findRowValue(peopleTable, /Median age/i) ?? "") ??
+      undefined,
+    populationGrowth: undefined, // not available in summary
     malePercentage:
       parseCellNumber(
         findRowValue(peopleTable, /Male/i)?.replace("%", "") ?? "",
-      ) ?? null,
+      ) ?? undefined,
     femalePercentage:
       parseCellNumber(
         findRowValue(peopleTable, /Female/i)?.replace("%", "") ?? "",
-      ) ?? null,
+      ) ?? undefined,
 
-    medianWeeklyPersonalIncome: null, // not present in sample
+    medianWeeklyPersonalIncome: undefined, // not present in sample
     medianWeeklyHouseholdIncome:
       parseCellNumber(
         findRowValue(dwellingTable, /Median weekly household income/i) ?? "",
-      ) ?? null,
-    medianWeeklyFamilyIncome: null, // not present in sample
+      ) ?? undefined,
+    medianWeeklyFamilyIncome: undefined, // not present in sample
     medianMonthlyMortgageRepayment:
       parseCellNumber(
         findRowValue(dwellingTable, /Median monthly mortgage repayments/i) ??
           "",
-      ) ?? null,
+      ) ?? undefined,
     medianWeeklyRent:
       parseCellNumber(
         findRowValue(dwellingTable, /Median weekly rent/i) ?? "",
-      ) ?? null,
+      ) ?? undefined,
   };
 }
 
@@ -362,8 +372,10 @@ function extractRow(
     return null;
   }
 
-  const percentage = percentageText ? Number.parseFloat(percentageText) : null;
-  if (percentage !== null && Number.isNaN(percentage)) {
+  const percentage = percentageText
+    ? Number.parseFloat(percentageText)
+    : undefined;
+  if (percentage !== undefined && Number.isNaN(percentage)) {
     return null;
   }
 

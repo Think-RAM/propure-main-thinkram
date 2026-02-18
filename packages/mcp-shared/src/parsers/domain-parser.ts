@@ -1,5 +1,5 @@
 import { load, type CheerioAPI, type Cheerio } from "cheerio";
-import type {
+import {
   PropertyListing,
   PropertyAddress,
   PropertyFeatures,
@@ -8,7 +8,7 @@ import type {
   DataSource,
   AustralianState,
   PropertyType,
-  
+  SoldAt,
 } from "../schemas";
 import chalk from "chalk";
 // import { logger } from "../logger";
@@ -115,12 +115,12 @@ function parseNumber(value: string): number | undefined {
 }
 
 export function parseAustralianAddress(
-  rawAddress: string
+  rawAddress: string,
 ): PropertyAddress | null {
   try {
     const displayAddress = rawAddress.trim();
 
-    const parts = rawAddress.split(",").map(p => p.trim());
+    const parts = rawAddress.split(",").map((p) => p.trim());
     if (parts.length < 2) return null;
 
     const streetPart = parts[0];
@@ -129,7 +129,7 @@ export function parseAustralianAddress(
     // Remove unit/level prefixes (Level 29/, Unit 3/, Apt 4/)
     const cleanedStreet = streetPart.replace(
       /^(Level|Lvl|Unit|Apartment|Apt|Suite)\s+\d+\/?/i,
-      ""
+      "",
     );
 
     // Street number
@@ -140,14 +140,16 @@ export function parseAustralianAddress(
     const streetMatch = cleanedStreet
       .replace(streetNumber ?? "", "")
       .trim()
-      .match(/^(.+?)\s+(Street|St|Road|Rd|Avenue|Ave|Boulevard|Blvd|Drive|Dr|Lane|Ln|Way|Court|Ct|Place|Pl|Terrace|Tce)$/i);
+      .match(
+        /^(.+?)\s+(Street|St|Road|Rd|Avenue|Ave|Boulevard|Blvd|Drive|Dr|Lane|Ln|Way|Court|Ct|Place|Pl|Terrace|Tce)$/i,
+      );
 
     const streetName = streetMatch?.[1];
     const streetType = streetMatch?.[2];
 
     // Suburb / state / postcode
     const suburbMatch = suburbStatePostcode.match(
-      /^(.+)\s+(NSW|VIC|QLD|WA|SA|TAS|NT|ACT)\s+(\d{4})$/i
+      /^(.+)\s+(NSW|VIC|QLD|WA|SA|TAS|NT|ACT)\s+(\d{4})$/i,
     );
 
     if (!suburbMatch) return null;
@@ -163,7 +165,7 @@ export function parseAustralianAddress(
       suburb,
       state,
       postcode,
-      displayAddress
+      displayAddress,
     };
   } catch {
     return null;
@@ -190,7 +192,7 @@ export function parsePropertyFeatures(input: {
     parkingSpaces: extractNumber(input.carSpaces),
     buildingSize: extractNumber(input.size),
     features: input.features,
-    propertyType: mapPropertyType(input.propertyType)
+    propertyType: mapPropertyType(input.propertyType),
   };
 }
 export function parsePrice(price?: string): {
@@ -207,7 +209,7 @@ export function parsePrice(price?: string): {
   if (rangeMatch) {
     return {
       priceFrom: Number(rangeMatch[1]),
-      priceTo: Number(rangeMatch[2])
+      priceTo: Number(rangeMatch[2]),
     };
   }
 
@@ -215,7 +217,7 @@ export function parsePrice(price?: string): {
   const valueMatch = cleaned.match(/\$(\d+)/);
   if (valueMatch) {
     return {
-      priceValue: Number(valueMatch[1])
+      priceValue: Number(valueMatch[1]),
     };
   }
 
@@ -227,8 +229,7 @@ export function mapPropertyType(raw?: string): PropertyType | undefined {
   const value = raw.toLowerCase();
 
   if (value.includes("house")) return "house";
-  if (value.includes("apartment") || value.includes("flat"))
-    return "apartment";
+  if (value.includes("apartment") || value.includes("flat")) return "apartment";
   if (value.includes("unit")) return "unit";
   if (value.includes("townhouse")) return "townhouse";
   if (value.includes("villa")) return "villa";
@@ -238,27 +239,27 @@ export function mapPropertyType(raw?: string): PropertyType | undefined {
 
   return "other";
 }
-export function deriveListingStatus(
-  listingType: ListingType
-): ListingStatus {
-  if (listingType === "sold") return "SOLD";
-  return "ACTIVE";
+
+function parseCurrency(value: string | undefined): number {
+  if (!value) return 0;
+  return Number(value.replace(/[^0-9.-]+/g, ""));
 }
 
 export function parseDomainPropertyListing(
   html: string,
   listingType: ListingType,
-  sourceUrl?: string
+  sourceUrl?: string,
 ): PropertyListing | null {
   try {
     const $ = cheerio.load(html);
 
     // HEADLINE (USED AS ADDRESS SOURCE)
-    const headline =
-      $("div[data-testid=listing-details__button-copy-wrapper] h1")
-        .first()
-        .text()
-        .trim();
+    const headline = $(
+      "div[data-testid=listing-details__button-copy-wrapper] h1",
+    )
+      .first()
+      .text()
+      .trim();
 
     if (!headline) return null;
 
@@ -268,23 +269,24 @@ export function parseDomainPropertyListing(
 
     // PRICE
     const price =
-      $("div[data-testid='listing-details__summary-title'] span")
-        .first()
-        .text()
-        .trim() || undefined;
+      $("p[data-testid='listing-card-price']").first().text().trim() ||
+      undefined;
+    const soldPrice =
+      $("p[data-testid='listing-card-price']").first().text().trim() ||
+      undefined;
 
     const { priceValue, priceFrom, priceTo } = parsePrice(price);
 
     // FEATURES (CORE)
     const featureEls = $(
-      "div[data-testid='property-features'] span[data-testid='property-features-text-container']"
+      "div[data-testid='property-features'] span[data-testid='property-features-text-container']",
     );
 
     const features = parsePropertyFeatures({
       bedrooms: featureEls.eq(0).text(),
       bathrooms: featureEls.eq(1).text(),
       carSpaces: featureEls.eq(2).text(),
-      size: featureEls.eq(3).text()
+      size: featureEls.eq(3).text(),
     });
 
     // FEATURE LIST
@@ -305,7 +307,7 @@ export function parseDomainPropertyListing(
       descContainer.find("button").remove();
       description = descContainer
         .find("p")
-        
+
         .map((_index: number, el) => $(el).text().trim())
         .get()
         .join(" ");
@@ -319,7 +321,7 @@ export function parseDomainPropertyListing(
         .trim() || undefined;
 
     const phoneHref = $(
-      "a[data-testid='listing-details__phone-cta-button']"
+      "a[data-testid='listing-details__phone-cta-button']",
     ).attr("href");
 
     const agentPhone = phoneHref?.replace("tel:", "");
@@ -347,13 +349,14 @@ export function parseDomainPropertyListing(
       priceFrom,
       priceTo,
       listingType,
-      listingStatus: listingType === "sold" ? "SOLD" : "ACTIVE",
+      listingStatus: listingType === "sold" ? "SOLD" : "ON_MARKET",
       headline,
       description,
       agentName,
       agentPhone,
       agencyName,
-      scrapedAt: new Date().toISOString()
+      soldPrice: parseCurrency(soldPrice),
+      scrapedAt: new Date().toISOString(),
     };
 
     return listing;
@@ -386,25 +389,54 @@ function normalizePropertyType(
   return "other";
 }
 
-function normalizeListingStatus(
-  status?: string,
-): PropertyListing["listingStatus"] {
-  if (!status) return undefined;
-  const lower = status.toLowerCase();
+// function normalizeListingStatus(
+//   status?: string,
+// ): PropertyListing["listingStatus"] {
+//   if (!status) return undefined;
+//   const lower = status.toLowerCase();
 
-  if (lower.includes("sold")) return "SOLD";
-  if (lower.includes("under offer") || lower.includes("under contract"))
-    return "UNDER_CONTRACT";
-  if (lower.includes("withdrawn")) return "WITHDRAWN";
-  if (lower.includes("off market")) return "OFF_MARKET";
+//   if (lower.includes("sold")) return "SOLD";
+//   if (lower.includes("under offer") || lower.includes("under contract"))
+//     return "UNDER_CONTRACT";
+//   if (lower.includes("withdrawn")) return "WITHDRAWN";
+//   if (lower.includes("off market")) return "OFF_MARKET";
 
-  return "ACTIVE";
+//   return "ACTIVE";
+// }
+
+function extractSaleDetails($: CheerioAPI, el: unknown) {
+  const text = $(el as any)
+    .text()
+    .trim();
+
+  // Normalize text
+  const lowerText = text.toLowerCase();
+
+  let soldAt: SoldAt | null = null;
+
+  if (lowerText.includes("at auction")) {
+    soldAt = "AUCTION";
+  } else if (lowerText.includes("by private treaty")) {
+    soldAt = "PRIVATE_TREATY";
+  } else if (lowerText.includes("prior to auction")) {
+    soldAt = "PRIOR_TO_AUCTION";
+  }
+
+  // Extract date (DD MMM YYYY)
+  const dateMatch = text.match(/\d{2}\s[A-Za-z]{3}\s\d{4}/);
+
+  const soldDate = dateMatch ? new Date(dateMatch[0]).toISOString() : null;
+
+  return {
+    soldAt,
+    soldDate,
+  };
 }
 
 /**
  * Parse Domain.com.au search results page
  */
-export function parseDomainSearchResults(html: string): PropertyListing[] {
+export function parseDomainSearchResults({html, listingType}: {html: string, listingType:Pick<PropertyListing,"listingType">["listingType"]}): PropertyListing[] {
   const $ = load(html);
   const listings: PropertyListing[] = [];
 
@@ -418,7 +450,7 @@ export function parseDomainSearchResults(html: string): PropertyListing[] {
 
   $('[data-testid^="listing-card-wrapper"]').each((_, el) => {
     // console.log(chalk.yellowBright("Parsed listing card: "));
-    const parsed = parseListingCard($, el);
+    const parsed = parseListingCard({$, el, listingType});
 
     // console.dir(parsed, { depth: Infinity });
 
@@ -436,12 +468,14 @@ export function parseDomainSearchResults(html: string): PropertyListing[] {
   return listings;
 }
 
-function parseListingCard($: CheerioAPI, el: unknown): PropertyListing | null {
+function parseListingCard({$, el, listingType}:{$: CheerioAPI, el: unknown, listingType:Pick<PropertyListing,"listingType">["listingType"]}): PropertyListing | null {
   const card = $(el as any);
 
   const href =
     card.find('a[href*="domain.com.au"], a[href^="/"]').first().attr("href") ||
     undefined;
+
+  // console.log(chalk.yellowBright(`Parsing listing card with URL: ${href}`));
   const { url, id, suburb, state, postcode, displayAddressFromSlug } =
     parseDomainUrlParts(href);
 
@@ -468,10 +502,12 @@ function parseListingCard($: CheerioAPI, el: unknown): PropertyListing | null {
   const featureValues = extractFeatureValues($, card);
   const propertyTypeText = extractPropertyTypeText($, card);
 
-  const listingType = inferListingType(priceText);
-  const listingStatus = priceText.toLowerCase().includes("sold")
-    ? "SOLD"
-    : undefined;
+  // const listingType = listingType;
+  // const listingStatus = priceText.toLowerCase().includes("sold")
+  //   ? "SOLD"
+  //   : undefined;
+  const saleDetails = extractSaleDetails($, el);
+  const listingStatus = saleDetails.soldAt ? "SOLD" : "ON_MARKET";
 
   return {
     externalId: `domain-${id}`,
@@ -492,11 +528,14 @@ function parseListingCard($: CheerioAPI, el: unknown): PropertyListing | null {
         ? normalizePropertyType(propertyTypeText)
         : featureValues.propertyType,
     },
-    price: priceText || undefined,
+    price: priceText.includes("$") ? priceText : undefined,
+    soldPrice: parseCurrency(priceText.includes("$") ? priceText : undefined),
     listingType,
     listingStatus,
     headline: addressLineText || undefined,
     scrapedAt: new Date().toISOString(),
+    soldAt: saleDetails.soldAt || undefined,
+    soldDate: saleDetails.soldDate || undefined,
   };
 }
 
@@ -644,4 +683,74 @@ function inferListingType(priceText: string): PropertyListing["listingType"] {
   }
   if (lower.includes("sold")) return "sold";
   return "sale";
+}
+
+function parseCurrencyToNumber(value: string | null): number | undefined {
+  if (!value) return undefined;
+
+  // Remove $ and commas
+  const cleaned = value.replace(/\$/g, "").replace(/,/g, "").trim();
+
+  const lastChar = cleaned.slice(-1).toLowerCase();
+
+  let multiplier = 1;
+  let numericPart = cleaned;
+
+  if (lastChar === "m") {
+    multiplier = 1_000_000;
+    numericPart = cleaned.slice(0, -1);
+  } else if (lastChar === "k") {
+    multiplier = 1_000;
+    numericPart = cleaned.slice(0, -1);
+  }
+
+  const number = parseFloat(numericPart);
+
+  if (isNaN(number)) return undefined;
+
+  return Math.round(number * multiplier);
+}
+
+export function propertyProfileValueParser(html: string) {
+  const $ = cheerio.load(html);
+
+  const result = {
+    propertyValueEstimate: {
+      low: undefined as number | undefined,
+      mid: undefined as number | undefined,
+      high: undefined as number | undefined,
+    },
+    rentalEstimatePerWeek: undefined as number | undefined,
+  };
+
+  /* PROPERTY VALUE */
+  $('[data-testid="estimate-card"]')
+    .find('[aria-label="Estimate Range"] > div')
+    .each((_, el) => {
+      const label = $(el).find("h4").text().trim().toLowerCase();
+      const rawValue = $(el)
+        .find('[data-testid="currency"]')
+        .text()
+        .replace(/\s+/g, "");
+
+      const numericValue = parseCurrencyToNumber(rawValue);
+
+      if (label === "low") result.propertyValueEstimate.low = numericValue;
+      if (label === "mid") result.propertyValueEstimate.mid = numericValue;
+      if (label === "high") result.propertyValueEstimate.high = numericValue;
+    });
+
+  /* RENTAL */
+  $("h4")
+    .filter((_, el) => $(el).text().trim() === "Rental estimate")
+    .closest("section")
+    .find("span")
+    .each((_, el) => {
+      const text = $(el).text().trim();
+      if (text.startsWith("$")) {
+        result.rentalEstimatePerWeek = parseCurrencyToNumber(text);
+      }
+    });
+
+  return result;
 }

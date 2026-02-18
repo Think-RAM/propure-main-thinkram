@@ -2,6 +2,7 @@ import { client } from "@propure/convex/client";
 import { api } from "@propure/convex/genereated";
 import type { Doc } from "@propure/convex/genereated";
 import { searchDomainPropertiesWithScrapeDo } from "@propure/mcp-domain";
+import { start } from "workflow/api";
 
 // Step wrapper: scrape a single location. Marked with "use step" so the
 // workflow compiler treats it as an atomic, retryable operation.
@@ -14,7 +15,7 @@ async function scrapeLocation(loc: ScrappingLocationWithStatus) {
     postcode: loc.postcode,
     page: 1,
     listingType: "sale",
-    pageSize: 20,
+    // pageSize: 20,/
   });
 }
 
@@ -44,7 +45,7 @@ async function scrapeTypeStep(
     postcode: loc.postcode,
     page: 1,
     listingType,
-    pageSize: 20,
+    // pageSize: 20,
   });
 }
 
@@ -104,6 +105,7 @@ export async function datasyncWorkflow(): Promise<DataSyncWorkflowResult> {
 
   // Process only pending locations
   await processPendingLocations(locations);
+  // start(processPendingLocations, [locations]);
 
   return {
     locations,
@@ -121,6 +123,7 @@ async function fetchScrappingLocations(): Promise<
     api.functions.scrapingLocations.listAll,
     {},
   )) as ScrappingLocationRecord[];
+  // const records: any = [];
 
   // If there are no configured scrapping locations in Convex, fall back to
   // a single default location used by the MCP-domain test script so the
@@ -139,6 +142,7 @@ async function fetchScrappingLocations(): Promise<
     return [{ ...defaultRecord, status: "pending" }];
   }
 
+  // return records.map((location: any) => ({ ...location, status: "pending" }));
   return records.map((location) => ({ ...location, status: "pending" }));
 }
 
@@ -156,8 +160,10 @@ async function processPendingLocations(
       // remain atomic. We use strict completion: only mark completed when
       // all three listing-type workflows succeed.
       const types: ListingType[] = ["rent", "sold", "sale"];
-      const promises = types.map((t) =>
-        processLocationListingTypeWorkflow(loc, t),
+      // const types: ListingType[] = ["sold"];
+      const promises = types.map(
+        (t) => processLocationListingTypeWorkflow(loc, t),
+        // start(processLocationListingTypeWorkflow, [loc, t]),
       );
 
       const settled = await Promise.allSettled(promises);
