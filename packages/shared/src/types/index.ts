@@ -61,7 +61,8 @@ export type StrategyType =
   | "renovation-flip"
   | "development"
   | "smsf"
-  | "commercial";
+  | "commercial"
+  | "diversification";
 
 /**
  * Investment Strategy Types (Prisma format - SCREAMING_SNAKE_CASE)
@@ -73,7 +74,8 @@ export type PrismaStrategyType =
   | "RENOVATION_FLIP"
   | "DEVELOPMENT"
   | "SMSF"
-  | "COMMERCIAL";
+  | "COMMERCIAL"
+  | "DIVERSIFICATION";
 
 /**
  * Map API strategy type to Prisma enum value
@@ -85,6 +87,7 @@ export const strategyTypeToPrisma: Record<StrategyType, PrismaStrategyType> = {
   development: "DEVELOPMENT",
   smsf: "SMSF",
   commercial: "COMMERCIAL",
+  diversification: "DIVERSIFICATION",
 };
 
 /**
@@ -97,6 +100,7 @@ export const prismaToStrategyType: Record<PrismaStrategyType, StrategyType> = {
   DEVELOPMENT: "development",
   SMSF: "smsf",
   COMMERCIAL: "commercial",
+  DIVERSIFICATION: "diversification",
 };
 
 /**

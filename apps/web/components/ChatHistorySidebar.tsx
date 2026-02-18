@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { MessageSquare, Plus, PanelLeft } from "lucide-react";
 import type { Doc } from "@propure/convex/genereated";
+import { UserButton } from "@clerk/nextjs";
 
 interface ChatSidebarProps {
   open: boolean;
@@ -20,6 +21,7 @@ interface ChatSidebarProps {
   onNewChat: () => void;
   toggle: () => void;
   loading: boolean;
+  onBackToHistory?: () => void; // <-- Add this line
 }
 
 export function ChatSidebar({
@@ -35,25 +37,25 @@ export function ChatSidebar({
     return (
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-20 w-72",
-          // Propure dark panel
-          "bg-[#1a1f26]",
-          "border-r border-white/10",
-          "shadow-2xl",
+          "fixed inset-y-0 left-0 z-20 w-[40vw] min-w-[320px] max-w-[420px]",
+          "bg-[#1a1f26]/95 backdrop-blur-xl border-r border-white/10",
           "transition-transform duration-300 ease-in-out",
-          open ? "translate-x-0" : "-translate-x-full",
+          open ? "translate-x-0" : "-translate-x-[-100%]"
         )}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#242b33]">
-          <div className="h-4 w-16 bg-white/10 rounded animate-pulse" />
-          <div className="h-8 w-8 bg-white/10 rounded animate-pulse" />
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/10 bg-[#242b33]">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0d7377] to-[#095456] flex items-center justify-center font-serif font-bold text-lg text-white">P</div>
+            <span className="font-serif text-xl font-semibold text-[#f7f9fc]">Propure</span>
+          </div>
+          <div className="h-8 w-8 bg-gray-700 rounded animate-pulse" />
         </div>
-        <ScrollArea className="h-full px-2 py-3">
-          <div className="space-y-1">
+        <ScrollArea className="h-full px-4 py-6">
+          <div className="space-y-2">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex gap-3 rounded-lg px-3 py-2">
-                <div className="h-4 w-4 bg-white/10 rounded animate-pulse shrink-0" />
-                <div className="h-4 flex-1 bg-white/10 rounded animate-pulse" />
+              <div key={i} className="flex gap-3 rounded-lg px-3 py-3 bg-[#242b33] animate-pulse">
+                <div className="h-4 w-4 bg-gray-700 rounded" />
+                <div className="h-4 flex-1 bg-gray-700 rounded" />
               </div>
             ))}
           </div>
@@ -64,7 +66,7 @@ export function ChatSidebar({
   return (
     <>
       {/* Floating toggle */}
-      {!open && (
+      {/* {!open && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -73,90 +75,88 @@ export function ChatSidebar({
               onClick={toggle}
               className="
                 fixed left-4 top-4 z-30
-               bg-[#1a1f26]/90 backdrop-blur-md
-               border border-white/10
+                bg-[#1a1f26]/90 backdrop-blur-md
+                border border-white/10
                 shadow-lg
                 hover:bg-[#242b33]
               "
             >
-              <PanelLeft className="h-4 w-4 text-[#1a9599]" />
+              <PanelLeft className="h-5 w-5 text-[#0d7377]" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right">Open chats</TooltipContent>
         </Tooltip>
-      )}
+      )} */}
 
       {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-20 w-72",
-          // Surface (Propure)
-          "bg-[#1a1f26]",
-          // Border & separation
-          "border-r border-white/10",
-          // Motion
-          "transition-transform duration-300 ease-in-out",
-          open ? "translate-x-0" : "-translate-x-full",
-        )}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#242b33]">
-          <span className="text-sm font-semibold text-[#f7f9fc]">Chats</span>
-
-          <div className="flex gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={onNewChat}
-                  className="hover:bg-white/5"
-                >
-                  <Plus className="h-4 w-4 text-[#1a9599]" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>New chat</TooltipContent>
-            </Tooltip>
-
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={toggle}
-              className="hover:bg-white/5"
-            >
-              <PanelLeft className="h-4 w-4 rotate-180 text-[#1a9599]" />
-            </Button>
+      {open && (
+        <aside
+          className={cn(
+            "fixed inset-y-0 left-0 z-20 w-[40vw] min-w-[320px] max-w-[420px]",
+            "bg-[#1a1f26]/95 backdrop-blur-xl border-r border-white/10",
+            "transition-transform duration-300 ease-in-out",
+            open ? "translate-x-0" : "-translate-x-[-100%]"
+          )}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-5 border-b border-white/10 bg-[#242b33]">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0d7377] to-[#095456] flex items-center justify-center font-serif font-bold text-lg text-white">P</div>
+              <span className="font-serif text-xl font-semibold text-[#f7f9fc]">Propure</span>
+            </div>
+            <div className="flex gap-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={onNewChat}
+                    className="hover:bg-[#0d7377]/20"
+                  >
+                    <Plus className="h-5 w-5 text-[#0d7377]" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>New chat</TooltipContent>
+              </Tooltip>
+              {/* <Button
+                size="icon"
+                variant="ghost"
+                onClick={toggle}
+                className="hover:bg-[#0d7377]/20"
+              >
+                <PanelLeft className="h-5 w-5 rotate-180 text-[#0d7377]" />
+              </Button> */}
+              <UserButton />
+            </div>
           </div>
-        </div>
 
-        {/* Chat list */}
-        <ScrollArea className="h-full px-2 py-3">
-          <div className="space-y-1">
-            {sessions.map((session) => {
-              const active = session.sessionId === activeSessionId;
-
-              return (
-                <button
-                  key={session.sessionId}
-                  onClick={() => onSelect(session.sessionId)}
-                  className={cn(
-                    "group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left",
-                    "transition-colors",
-                    active
-                      ? "bg-[#0d7377]/20 border border-[#0d7377]/40"
-                      : "hover:bg-white/5",
-                  )}
-                >
-                  <MessageSquare className="h-4 w-4 text-[#1a9599] shrink-0" />
-                  <span className="truncate text-sm text-[#f7f9fc]">
-                    {session.title || "Untitled chat"}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </ScrollArea>
-      </aside>
+          {/* Chat list */}
+          <ScrollArea className="h-full px-4 py-6">
+            <div className="space-y-2">
+              {sessions.map((session) => {
+                const active = session.sessionId === activeSessionId;
+                return (
+                  <button
+                    key={session.sessionId}
+                    onClick={() => onSelect(session.sessionId)}
+                    className={cn(
+                      "group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors",
+                      active
+                        ? "bg-[#0d7377]/20 border border-[#0d7377] text-[#1a9599]"
+                        : "bg-[#242b33] border border-white/10 hover:border-[#0d7377] hover:bg-[#0d7377]/10 text-[#f7f9fc]"
+                    )}
+                  >
+                    <MessageSquare className="h-5 w-5 text-[#0d7377] shrink-0" />
+                    <span className="truncate text-base font-medium">
+                      {session.title || "Untitled chat"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </ScrollArea>
+        </aside>
+      )}
     </>
   );
 }

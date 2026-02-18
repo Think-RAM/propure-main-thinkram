@@ -42,6 +42,20 @@ export const getUserChatSessions = query({
   },
 });
 
+export const getUserChatSessionsByUserId = query({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, { userId }) => {
+    const chatSessions = await ctx.db
+      .query("chatSessions")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+    chatSessions.sort((a, b) => b.updatedAt - a.updatedAt);
+    return chatSessions;
+  },
+});
+
 export const saveChatSession = mutation({
   args: {
     id: v.string(),

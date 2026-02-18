@@ -16,6 +16,7 @@ import {
 import { SearchResult } from "@/context/MapContext";
 import type { Doc } from "@propure/convex/genereated";
 
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

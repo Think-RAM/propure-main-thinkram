@@ -25,6 +25,8 @@ export interface UserPreferences {
   previousExperience: string;
   involvement: string;
   coInvestment: string;
+  areaType: string;
+  experienceLevel: string;
 }
 
 interface PublicMetadata {
@@ -41,11 +43,20 @@ const STRATEGY_TYPES: Record<string, StrategyType> = {
   "Flip & sell in short term": "RENOVATION_FLIP",
   "Diversify portfolio": "DEVELOPMENT",
   "Buy-to-live, but want it to be a good investment": "SMSF",
+  "cash-flow": "CASH_FLOW",
+  "growth": "CAPITAL_GROWTH",
+  "renovation": "RENOVATION_FLIP",
+  "diversify": "DEVELOPMENT",
+  "development": "DEVELOPMENT",
+  "smsf": "SMSF",
 };
 
 const updateUserMetadata = async (userId: string, metadata?: PublicMetadata, privateMetadata?: any) => {
   try {
     const user = await clerkClient.users.getUser(userId);
+    console.log("Updating user metadata for userId:", userId);
+    console.log("Metadata to update:", metadata);
+    console.log("Private Metadata to update:", privateMetadata);
     await clerkClient.users.updateUserMetadata(userId, {
       publicMetadata: {
         application_id: user.publicMetadata?.application_id ?? privateMetadata?.application_id,
@@ -60,7 +71,7 @@ const updateUserMetadata = async (userId: string, metadata?: PublicMetadata, pri
         api.functions.user.GetUserByClerkId,
         { clerkUserId: userId },
       );
-      if(!applicationUser) {
+      if (!applicationUser) {
         throw new Error("Application user not found");
       }
       await client.mutation(api.functions.strategy.CreateUpdateStrategy, {
@@ -74,16 +85,21 @@ const updateUserMetadata = async (userId: string, metadata?: PublicMetadata, pri
         timeline: metadata.userPreferences.holdingPeriod,
         managementStyle: metadata.userPreferences.involvement,
         params: {
+          // regions: metadata.userPreferences.regions,
+          // remoteInvesting: metadata.userPreferences.remoteInvesting,
+          // areaPreference: metadata.userPreferences.areaPreference,
+          // propertyType: metadata.userPreferences.propertyType,
+          // bedrooms: metadata.userPreferences.bedrooms,
+          // propertyAge: metadata.userPreferences.propertyAge,
+          // previousExperience: metadata.userPreferences.previousExperience,
+          // coInvestment: metadata.userPreferences.coInvestment,
+          // cashflowExpectations: metadata.userPreferences.cashflowExpectations,
+          // cashflowAmount: metadata.userPreferences.cashflowAmount,
           regions: metadata.userPreferences.regions,
-          remoteInvesting: metadata.userPreferences.remoteInvesting,
-          areaPreference: metadata.userPreferences.areaPreference,
+          areaType: metadata.userPreferences.areaType,
           propertyType: metadata.userPreferences.propertyType,
-          bedrooms: metadata.userPreferences.bedrooms,
-          propertyAge: metadata.userPreferences.propertyAge,
-          previousExperience: metadata.userPreferences.previousExperience,
-          coInvestment: metadata.userPreferences.coInvestment,
-          cashflowExpectations: metadata.userPreferences.cashflowExpectations,
-          cashflowAmount: metadata.userPreferences.cashflowAmount,
+          minBedrooms: metadata.userPreferences.bedrooms,
+          experienceLevel: metadata.userPreferences.experienceLevel,
         },
       });
     }

@@ -176,10 +176,15 @@ export default function InvestmentWizard({ userId }: { userId: string }) {
     if (!validateStep()) return;
     try {
       await updateUserMetadata(userId, {
-        userPreferences: formData,
+        userPreferences: { 
+          ...formData,
+          experienceLevel: "",
+          areaType: "",
+        },
         onboardingComplete: true,
         subscriptionPlan: "free-trial", // Default to free trial for new users
-        subscriptionEndDate: Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60, // 14 days from now
+        subscriptionEndDate: Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60, // 14 days from now,
+        application_id: "" as any,
       });
       toast.success("Your preferences have been saved successfully!");
       router.push("/dashboard");
