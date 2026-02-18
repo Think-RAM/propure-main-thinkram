@@ -18,6 +18,7 @@
     "@propure/convex": "workspace:*",
     "@propure/mcp-shared": "workspace:*",
     "@xmldom/xmldom": "^0.8.11",
+    "dotenv": "^17.2.3",
     "zod": "^3.24.1"
   },
   "devDependencies": {
