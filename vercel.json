@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/cron/domain-scrape",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/property-sync",
+      "schedule": "0 0 * * 0"
+    },
+    {
+      "path": "/api/cron/market-data-sync",
+      "schedule": "0 0 1 * *"
+    },
+    {
+      "path": "/api/cron/suburb-calculation",
+      "schedule": "0 12 1 * *"
+    }
+  ]
+}
