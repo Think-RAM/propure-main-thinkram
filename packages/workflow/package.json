@@ -1,0 +1,26 @@
+{
+  "name": "@propure/workflow",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist .turbo",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@propure/convex": "workspace:*",
+    "@propure/mcp-shared": "workspace:*",
+    "@propure/mcp-domain": "workspace:*",
+    "@propure/mcp-market-data": "workspace:*",
+    "workflow": "^4.0.1-beta.50"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5"
+  }
+}

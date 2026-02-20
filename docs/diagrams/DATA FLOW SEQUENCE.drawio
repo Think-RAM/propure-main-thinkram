@@ -1,0 +1,256 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36" version="29.3.2">
+  <diagram name="Page-1" id="YXLKRGLHBY_Op_-xDprC">
+    <mxGraphModel dx="1823" dy="294" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="user" parent="1" style="shape=rectangle;rounded=1;fillColor=#e1f5fe;strokeColor=#01579b;fontColor=#01579b;fontSize=10;" value="USER INTERACTION&#xa;• Chat messages&#xa;• Map interactions&#xa;• Filter changes&#xa;• Property selections" vertex="1">
+          <mxGeometry height="80" width="200" x="-400" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="frontend" parent="1" style="shape=rectangle;rounded=1;fillColor=#f3e5f5;strokeColor=#4a148c;fontColor=#4a148c;fontSize=10;" value="NEXT.JS FRONTEND&#xa;• React Components&#xa;• Chat Interface&#xa;• Map Component (Leaflet)&#xa;• Filter Panels&#xa;• Property Lists&#xa;• Zustand State" vertex="1">
+          <mxGeometry height="120" width="200" x="-40" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="api-routes" parent="1" style="shape=rectangle;rounded=1;fillColor=#fff3e0;strokeColor=#e65100;fontColor=#e65100;fontSize=10;" value="API ROUTES (/api)&#xa;• /api/chat (AI SDK)&#xa;• /api/trpc (tRPC)&#xa;• /api/mcp/* (MCP Servers)&#xa;• /api/webhooks (External)&#xa;• Server Actions" vertex="1">
+          <mxGeometry height="100" width="200" x="340" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="orchestrator" parent="1" style="shape=rectangle;rounded=1;fillColor=#e8f5e8;strokeColor=#1b5e20;fontColor=#1b5e20;fontSize=10;" value="ORCHESTRATOR AGENT&#xa;• Claude Sonnet 4&#xa;• Intent parsing&#xa;• Agent coordination&#xa;• Response synthesis&#xa;• UI update triggers" vertex="1">
+          <mxGeometry height="80" width="180" x="760" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="strategist" parent="1" style="shape=rectangle;rounded=1;fillColor=#f1f8e9;strokeColor=#33691e;fontColor=#33691e;fontSize=9;" value="STRATEGIST AGENT&#xa;• Strategy discovery&#xa;• Goal setting&#xa;• Filter recommendations&#xa;• User profiling" vertex="1">
+          <mxGeometry height="60" width="160" x="740" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="analyst" parent="1" style="shape=rectangle;rounded=1;fillColor=#f1f8e9;strokeColor=#33691e;fontColor=#33691e;fontSize=9;" value="ANALYST AGENT&#xa;• Financial calculations&#xa;• Risk assessment&#xa;• ROI projections&#xa;• Property scoring" vertex="1">
+          <mxGeometry height="60" width="160" x="940" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="researcher" parent="1" style="shape=rectangle;rounded=1;fillColor=#f1f8e9;strokeColor=#33691e;fontColor=#33691e;fontSize=9;" value="RESEARCHER AGENT&#xa;• Market data fetching&#xa;• Suburb statistics&#xa;• Property searches&#xa;• External API calls" vertex="1">
+          <mxGeometry height="60" width="160" x="1120" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="mcp-domain" parent="1" style="shape=rectangle;rounded=1;fillColor=#fce4ec;strokeColor=#880e4f;fontColor=#880e4f;fontSize=9;" value="MCP-DOMAIN SERVER&#xa;• Domain.com.au scraping&#xa;• Property listings&#xa;• Sales history&#xa;• Agent profiles&#xa;• Auction results" vertex="1">
+          <mxGeometry height="80" width="140" x="960" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="mcp-rea" parent="1" style="shape=rectangle;rounded=1;fillColor=#fce4ec;strokeColor=#880e4f;fontColor=#880e4f;fontSize=9;" value="MCP-REALESTATE SERVER&#xa;• RealEstate.com.au scraping&#xa;• Property details&#xa;• Suburb profiles&#xa;• Sold properties&#xa;• Agency listings" vertex="1">
+          <mxGeometry height="80" width="140" x="1160" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="mcp-market" parent="1" style="shape=rectangle;rounded=1;fillColor=#fce4ec;strokeColor=#880e4f;fontColor=#880e4f;fontSize=9;" value="MCP-MARKET-DATA SERVER&#xa;• RBA rates &amp; lending&#xa;• ABS demographics&#xa;• Economic indicators&#xa;• Building approvals&#xa;• Population projections" vertex="1">
+          <mxGeometry height="80" width="140" x="1320" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="cache" parent="1" style="shape=rectangle;rounded=1;fillColor=#f3e5f5;strokeColor=#6a1b9a;fontColor=#6a1b9a;fontSize=9;" value="REDIS CACHE&#xa;• Upstash Redis&#xa;• Session storage&#xa;• Rate limiting&#xa;• Temporary data" vertex="1">
+          <mxGeometry height="60" width="120" x="1240" y="414" as="geometry" />
+        </mxCell>
+        <mxCell id="realtime" parent="1" style="shape=rectangle;rounded=1;fillColor=#e0f2f1;strokeColor=#004d40;fontColor=#004d40;fontSize=9;" value="REAL-TIME (PUSHER)&#xa;• WebSocket updates&#xa;• UI synchronization&#xa;• Live chat&#xa;• Map updates" vertex="1">
+          <mxGeometry height="60" width="120" x="1410" y="414" as="geometry" />
+        </mxCell>
+        <mxCell id="inngest" parent="1" style="shape=rectangle;rounded=1;fillColor=#ede7f6;strokeColor=#311b92;fontColor=#311b92;fontSize=9;" value="BACKGROUND JOBS (INGEST)&#xa;• Data ingestion&#xa;• Suburb scoring&#xa;• Scheduled refreshes&#xa;• Email notifications&#xa;• Report generation" vertex="1">
+          <mxGeometry height="70" width="180" x="1000" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="external-apis" parent="1" style="shape=rectangle;rounded=1;fillColor=#ffebee;strokeColor=#b71c1c;fontColor=#b71c1c;fontSize=9;" value="EXTERNAL DATA SOURCES&#xa;• Domain.com.au API&#xa;• RealEstate.com.au API&#xa;• RBA Economic Data&#xa;• ABS Demographics&#xa;• CoreLogic Property Data&#xa;• Government APIs" vertex="1">
+          <mxGeometry height="80" width="180" x="1260" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="flow1" edge="1" parent="1" source="user" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;" target="frontend" value="User Input&#xa;(clicks, typing, gestures)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow2" edge="1" parent="1" source="frontend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;" target="api-routes" value="HTTP Requests&#xa;(fetch, tRPC, Server Actions)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="270" y="100" />
+              <mxPoint x="270" y="110" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow3" edge="1" parent="1" source="api-routes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;" target="orchestrator" value="Stream Chat&#xa;(Vercel AI SDK)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="650" y="90" />
+              <mxPoint x="650" y="80" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow4" edge="1" parent="1" source="orchestrator" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;" target="strategist" value="Agent Coordination&#xa;(invokeStrategist, invokeAnalyst, invokeResearcher)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="850" y="100" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow5" edge="1" parent="1" source="orchestrator" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="analyst" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow6" edge="1" parent="1" source="orchestrator" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="researcher" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow7" edge="1" parent="1" source="researcher" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;" target="mcp-domain" value="Tool Calls&#xa;(HTTP POST to MCP servers)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1190" y="190" />
+              <mxPoint x="1030" y="190" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow8" edge="1" parent="1" source="researcher" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="mcp-rea" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1230" y="180" />
+              <mxPoint x="1230" y="180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow9" edge="1" parent="1" source="researcher" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="mcp-market" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow10" edge="1" parent="1" source="mcp-domain" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;" target="database" value="Database Queries&#xa;(Prisma + PostGIS)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1020" y="300" />
+              <mxPoint x="1020" y="300" />
+            </Array>
+            <mxPoint x="1070" y="280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow11" edge="1" parent="1" source="mcp-rea" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="database" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1230" y="380" />
+              <mxPoint x="1090" y="380" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow12" edge="1" parent="1" source="mcp-market" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="database" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1390" y="310" />
+              <mxPoint x="1080" y="310" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow13" edge="1" parent="1" source="database" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;" target="cache" value="Cache Operations&#xa;(Redis read/write)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow14" edge="1" parent="1" source="orchestrator" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;" target="realtime" value="UI Update Triggers&#xa;(Pusher events)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1420" y="50" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow15" edge="1" parent="1" source="database" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;" target="frontend" value="WebSocket Updates&#xa;(Real-time UI sync)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="480" y="100" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow16" edge="1" parent="1" source="inngest" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;" target="database" value="Scheduled Tasks&#xa;(Inngest functions)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1090" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow17" edge="1" parent="1" source="mcp-domain" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.778;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="external-apis" value="Web Scraping &amp; APIs&#xa;(Puppeteer, fetch)">
+          <mxGeometry relative="1" x="-0.0588" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1065" y="330" />
+              <mxPoint x="1400" y="330" />
+            </Array>
+            <mxPoint x="1084.49" y="280" as="sourcePoint" />
+            <mxPoint x="1400" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow18" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1205" y="390" />
+              <mxPoint x="1220" y="390" />
+              <mxPoint x="1220" y="590" />
+            </Array>
+            <mxPoint x="1205" y="280" as="sourcePoint" />
+            <mxPoint x="1255" y="590" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow19" edge="1" parent="1" source="mcp-market" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="external-apis" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1390" y="415" />
+              <mxPoint x="1370" y="415" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow20" edge="1" parent="1" source="strategist" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;exitX=0;exitY=0.5;entryX=0;entryY=0.5;exitDx=0;exitDy=0;" target="orchestrator" value="Agent Responses&#xa;(Tool results)">
+          <mxGeometry relative="1" x="-0.2942" y="-20" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="690" y="280" />
+              <mxPoint x="690" y="175" />
+              <mxPoint x="720" y="175" />
+              <mxPoint x="720" y="60" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow21" edge="1" parent="1" source="analyst" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1120" y="150" />
+              <mxPoint x="1120" y="100" />
+              <mxPoint x="920" y="100" />
+              <mxPoint x="920" y="120" />
+              <mxPoint x="740" y="120" />
+              <mxPoint x="740" y="70" />
+              <mxPoint x="760" y="70" />
+            </Array>
+            <mxPoint x="760" y="70" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow22" edge="1" parent="1" source="researcher" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" target="orchestrator" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1280" y="140" />
+              <mxPoint x="1300" y="140" />
+              <mxPoint x="1300" y="10" />
+              <mxPoint x="740" y="10" />
+              <mxPoint x="740" y="40" />
+            </Array>
+            <mxPoint x="750" y="40" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow23" edge="1" parent="1" source="orchestrator" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="api-routes" value="Synthesized Response&#xa;(Stream to frontend)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="940" y="70" />
+              <mxPoint x="950" y="70" />
+              <mxPoint x="950" y="120" />
+              <mxPoint x="650" y="120" />
+              <mxPoint x="650" y="150" />
+              <mxPoint x="320" y="150" />
+              <mxPoint x="320" y="90" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow24" edge="1" parent="1" source="api-routes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="frontend" value="HTTP Response&#xa;(JSON/stream)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="560" y="90" />
+              <mxPoint x="560" y="180" />
+              <mxPoint x="-60" y="180" />
+              <mxPoint x="-60" y="100" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend" parent="1" style="shape=rectangle;rounded=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=9;" value="LEGEND&#xa;&#xa;→ Data Flow Direction&#xa;□ Component/Service&#xa;• Bullet points show&#xa;  key responsibilities" vertex="1">
+          <mxGeometry height="100" width="200" x="40" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-desc" parent="1" style="shape=rectangle;rounded=1;fillColor=#e3f2fd;strokeColor=#1976d2;fontColor=#0d47a1;fontSize=9;" value="DATA FLOW SEQUENCE:&#xa;1. User interacts with frontend (chat/map/filters)&#xa;2. Frontend makes API calls to /api/chat or tRPC&#xa;3. Orchestrator agent parses intent and routes to specialists&#xa;4. Specialist agents call MCP servers for data&#xa;5. MCP servers query database/cache or external APIs&#xa;6. Results flow back through agents to orchestrator&#xa;7. Orchestrator synthesizes response and triggers UI updates&#xa;8. Real-time updates sync frontend state via Pusher&#xa;9. Background jobs handle data ingestion and processing" vertex="1">
+          <mxGeometry height="120" width="400" x="280" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="-D072ejhNdJNhrs0e86H-1" edge="1" parent="1" source="realtime" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=9;entryX=0.998;entryY=0.323;entryDx=0;entryDy=0;entryPerimeter=0;" target="database" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1470" y="400" />
+              <mxPoint x="1130" y="400" />
+              <mxPoint x="1130" y="430" />
+              <mxPoint x="1120" y="430" />
+            </Array>
+            <mxPoint x="1420" y="380" as="sourcePoint" />
+            <mxPoint x="380" y="160" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="database" parent="1" style="shape=rectangle;rounded=1;fillColor=#fff8e1;strokeColor=#f57f17;fontColor=#f57f17;fontSize=10;" value="DATABASE LAYER&#xa;• PostgreSQL (Neon)&#xa;• PostGIS (Geospatial)&#xa;• TimescaleDB (Time-series)&#xa;• pgvector (Embeddings)&#xa;• Prisma ORM" vertex="1">
+          <mxGeometry height="80" width="200" x="920" y="404" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

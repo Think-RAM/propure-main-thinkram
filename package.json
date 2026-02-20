@@ -1,0 +1,36 @@
+{
+  "name": "propure",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "preinstall": "node scripts/preinstall.js",
+    "postinstall": "node scripts/setup-env.js",
+    "dev": "turbo convex:setup && turbo dev:web",
+    "build": "turbo convex:setup && turbo build",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check",
+    "clean": "turbo clean && rm -rf node_modules",
+    "dev:web": "turbo dev:web",
+    "db:generate": "turbo db:generate",
+    "db:push": "turbo db:push",
+    "db:migrate": "turbo db:migrate",
+    "convex:dev": "turbo convex:dev",
+    "convex:setup": "turbo convex:setup",
+    "convex:typecheck": "turbo convex:typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "dotenv-cli": "^11.0.0",
+    "prettier": "^3.2.5",
+    "turbo": "^2.0.0",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^3.0.2",
+    "@ai-sdk/react": "^3.0.7",
+    "ai": "^6.0.7",
+    "domhandler": "^5.0.3"
+  }
+}

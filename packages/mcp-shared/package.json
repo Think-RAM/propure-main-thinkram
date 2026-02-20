@@ -1,0 +1,34 @@
+{
+  "name": "@propure/mcp-shared",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./oxylabs": "./src/oxylabs/index.ts",
+    "./scrapedo": "./src/scrapedo/index.ts",
+    "./schemas": "./src/schemas/index.ts",
+    "./parsers": "./src/parsers/index.ts",
+    "./rate-limiter": "./src/rate-limiter.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist .turbo",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "cheerio": "^1.1.2",
+    "domhandler": "^5.0.3",
+    "limiter": "^2.1.0",
+    "pino": "^9.5.0",
+    "pino-pretty": "^11.3.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/pino": "^7.0.5",
+    "typescript": "^5"
+  }
+}

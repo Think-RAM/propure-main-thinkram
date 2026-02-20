@@ -1,0 +1,32 @@
+{
+  "name": "@propure/convex",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./genereated": "./src/generated.ts",
+    "./server": {
+      "import": "./convex/_generated/server.js",
+      "types": "./convex/_generated/server.d.ts"
+    }
+  },
+  "files": [
+    "convex/_generated"
+  ],
+  "scripts": {
+    "convex:dev": "convex dev",
+    "convex:setup": "convex dev --until-success",
+    "convex:typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "convex": "^1.31.6",
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "typescript": "^5"
+  }
+}

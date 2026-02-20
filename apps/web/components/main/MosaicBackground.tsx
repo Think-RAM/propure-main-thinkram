@@ -1,0 +1,60 @@
+export default function MosaicBackground() {
+  return (
+    <svg className="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none">
+      <defs>
+        <pattern
+          id="mosaic"
+          x="0"
+          y="0"
+          width="100"
+          height="100"
+          patternUnits="userSpaceOnUse"
+        >
+          <rect
+            width="40"
+            height="40"
+            fill="none"
+            stroke="#3A3A38"
+            strokeOpacity="0.05"
+          />
+          <rect
+            x="45"
+            width="30"
+            height="30"
+            fill="none"
+            stroke="#3A3A38"
+            strokeOpacity="0.05"
+          />
+          <rect
+            x="80"
+            y="45"
+            width="15"
+            height="55"
+            fill="none"
+            stroke="#3A3A38"
+            strokeOpacity="0.05"
+          />
+          <line
+            x1="100"
+            y1="0"
+            x2="100"
+            y2="100"
+            stroke="#3A3A38"
+            strokeWidth="0.5"
+            strokeOpacity="0.05"
+          />
+          <line
+            x1="0"
+            y1="100"
+            x2="100"
+            y2="100"
+            stroke="#3A3A38"
+            strokeWidth="0.5"
+            strokeOpacity="0.05"
+          />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#mosaic)" />
+    </svg>
+  )
+}
