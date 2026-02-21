@@ -17,9 +17,15 @@ const ROOT_DIR = path.resolve(__dirname, "..");
 // Packages that need .env symlinks
 const PACKAGES_NEEDING_ENV = [
   "apps/web",
-  "packages/db",
+  // "packages/db",
   "packages/ai",
   "packages/geo",
+  "packages/mcp-domain",
+  "packages/mcp-market-data",
+  "packages/mcp-realestate",
+  "packages/mcp-shared",
+  "packages/workflow",
+  "packages/shared",
   "packages/convex",
 ];
 
