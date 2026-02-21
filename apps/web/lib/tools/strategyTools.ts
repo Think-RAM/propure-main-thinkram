@@ -24,7 +24,7 @@ type FieldEnum = z.infer<typeof FieldEnum>;
  * Tool: captureDiscoveryInput
  * Records individual discovery field/value pairs to the user's profile on Convex.
  */
-export const captureDiscoveryInput = tool({
+export const captureDiscoveryInput = (userId: Id<"users">) => tool({
   description:
     "Record user's financial situation, investment goals, or preferences during strategy discovery",
   inputSchema: z.object({
@@ -34,8 +34,9 @@ export const captureDiscoveryInput = tool({
     value: z.union([z.string(), z.number(), z.array(z.string())]).describe("The value to store"),
     context: z.string().optional().describe("Optional notes or free text context"),
   }),
-  execute: async ({ userId, field, paramKey, value, context }) => {
+  execute: async ({ field, paramKey, value, context }) => {
     try {
+      console.log(`captureDiscoveryInput called with field: ${field}, value: ${value}, user ID: ${userId}`);
       await client.mutation(api.functions.strategy.updateUserProfile, {
         userId: userId as Id<"users">,
         field: field as FieldEnum,
@@ -113,14 +114,14 @@ export const clarifyGoal = tool({
  * Tool: summarizeProfile
  * Fetches the user's profile from Convex and returns a concise summary with completeness score.
  */
-export const summarizeProfile = tool({
+export const summarizeProfile = (userId: Id<"users">) => tool({
   description: "Generate a concise summary of the user's captured profile for review and confirmation",
   inputSchema: z.object({
-    userId: z.string().describe("User ID"),
+    // userId: z.string().describe("User ID"),
   }),
-  execute: async ({ userId }) => {
+  execute: async ({}) => {
     try {
-      const profile = await client.query(api.functions.strategy.GetStrategyByUserId, { userId: userId as Id<"users"> });
+      const profile = await client.query(api.functions.strategy.GetStrategyByUserId, { userId: userId });
 
       if (!profile) {
         return { success: false, error: "User profile not found" };
@@ -166,15 +167,15 @@ export const summarizeProfile = tool({
  * Tool: recommendStrategy
  * Reads profile and writes the recommendation back to Convex, returning primary + alternatives + rationale.
  */
-export const recommendStrategy = tool({
+export const recommendStrategy = (userId: Id<"users">) => tool({
   description: "Recommend investment strategy based on the user's captured profile",
   inputSchema: z.object({
-    userId: z.string().describe("User ID"),
+    // userId: z.string().describe("User ID"),
     forceRecalculate: z.boolean().default(false).describe("Force recalculation even if one exists"),
   }),
-  execute: async ({ userId, forceRecalculate }) => {
+  execute: async ({ forceRecalculate }) => {
     try {
-      const profile = await client.query(api.functions.strategy.GetStrategyByUserId, { userId: userId as Id<"users"> });
+      const profile = await client.query(api.functions.strategy.GetStrategyByUserId, { userId: userId });
 
       if (!profile) {
         return { success: false, error: "User profile not found" };

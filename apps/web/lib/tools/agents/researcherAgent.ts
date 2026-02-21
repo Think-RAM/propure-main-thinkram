@@ -316,8 +316,8 @@ export const ResearcherAgentTool = ({
           data: { agent: "researcher", status: "complete" },
         });
 
-        console.log("Ouput From Researcher Agent");
-        console.dir(result.output, { depth: Infinity });
+        // console.log("Ouput From Researcher Agent");
+        // console.dir(result.output, { depth: Infinity });
 
         return result.output;
       } catch (error) {

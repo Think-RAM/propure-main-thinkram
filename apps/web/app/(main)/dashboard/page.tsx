@@ -44,7 +44,10 @@ export default function Page() {
             sessions={userChatSessions}
             activeSessionId={activeSessionId ?? undefined}
             onSelect={(id) => {
-              if (id === activeSessionId) return;
+              if (id === activeSessionId){
+                toggleHistorySidebar();
+                return;
+              } 
               setActiveSession(id);
               toggleHistorySidebar(true);
             }}

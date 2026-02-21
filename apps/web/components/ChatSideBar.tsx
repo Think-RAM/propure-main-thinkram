@@ -275,7 +275,7 @@ export function ChatSidebar({
           </span>
         </div>
         {/* Optional: Add a toggle button or avatar here */}
-        <div className="h-8 w-8 rounded">
+        <div className="h-8 w-8 rounded pointer-events-auto">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

@@ -34,6 +34,7 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
     activeSessionId,
     activeChatMessages,
     chatsLoading,
+    historySidebarOpen,
     createNewChatSession,
     toggleHistorySidebar,
   } = useUserChats();
@@ -70,20 +71,20 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
         {isChatActive && (
           <div className="relative h-full basis-[30%] min-w-0 border-l border-white/10">
             <ChatSidebar
-              open={isChatActive}
+              open={isChatActive && !historySidebarOpen}
               send={searchValue ?? undefined}
               initialMessages={activeChatMessages}
               activeSessionId={activeSessionId ?? undefined}
               isLoading={chatsLoading}
               className="h-full"
-              onBackToHistory={() => toggleHistorySidebar()}
+              onBackToHistory={() => toggleHistorySidebar(false)}
             />
           </div>
         )}
         {/* MAP REGION */}
         <div
           className={cn(
-            isChatActive
+            isChatActive && !historySidebarOpen
               ? "relative h-full basis-[70%] min-w-0"
               : "absolute inset-0",
           )}
@@ -99,7 +100,7 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
 
       {/* Search Header - appears when search is active */}
       <div
-        className={`absolute top-0 left-0 right-0 z-20 border-white/10 transition-all duration-500 ${
+        className={`absolute top-0 left-0 right-0 z-20 border-white/10 transition-all duration-500 pointer-events-none ${
           isChatActive ? "translate-y-0" : "-translate-y-full opacity-0"
         }`}
       >
@@ -124,7 +125,7 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
             {/* City Filter Pills */}
             <div
               className={cn(
-                "relative w-full",
+                "relative w-full pointer-events-auto",
                 // reserve space for the two absolute right-side controls
                 "pr-20",
               )}
@@ -134,13 +135,13 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
                 selected={selectedCity}
                 onSelect={(key) => setSelectedCity(key)}
               />
-              <div className="absolute right-10 top-1/2 transform -translate-y-1/2 cursor-pointer">
+              <div className="absolute right-10 top-1/2 transform -translate-y-1/2 cursor-pointer pointer-events-auto">
                 <SlidersHorizontal
                   className="h-4 w-4 text-[#1a9599]"
                   onClick={() => setShowFilters((prev) => !prev)}
                 />
               </div>
-              <div className="absolute -right-2 top-1/2 transform -translate-y-1/2">
+              <div className="absolute -right-2 top-1/2 transform -translate-y-1/2 pointer-events-auto">
                 {loaded && user ? (
                   <UserProfileDialog
                     user={{

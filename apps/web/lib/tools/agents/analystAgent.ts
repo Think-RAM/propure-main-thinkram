@@ -99,8 +99,8 @@ export const AnalystAgentTool = ({ dataStream }: AnalystAgentProps) => {
           data: { agent: "analyst", status: "complete" },
         });
 
-        console.log("Ouput From Analyst Agent");
-        console.dir(result.output, { depth: Infinity });
+        // console.log("Ouput From Analyst Agent");
+        // console.dir(result.output, { depth: Infinity });
         return result.output;
       } catch (error) {
         console.error("Analyst agent error:", error);
