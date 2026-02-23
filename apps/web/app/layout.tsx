@@ -87,17 +87,22 @@
 //   );
 // }
 
-import type { Metadata } from 'next'
-import { Space_Grotesk, JetBrains_Mono , Libre_Baskerville } from 'next/font/google'
-import './globals.css'
+import type { Metadata } from "next";
+import {
+  Space_Grotesk,
+  JetBrains_Mono,
+  Libre_Baskerville,
+} from "next/font/google";
+import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import ConvexClientProvider from "@/context/ConvexClientProvider";
 import type React from "react";
+import { ReduxProvider } from "./Providers";
 
- const libreBaskerville = Libre_Baskerville({
+const libreBaskerville = Libre_Baskerville({
   subsets: ["latin"],
   variable: "--font-libre-baskerville",
   display: "swap",
@@ -105,28 +110,28 @@ import type React from "react";
 });
 
 const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  variable: '--font-space-grotesk',
-  display: 'swap',
-})
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+  display: "swap",
+});
 
 const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains-mono',
-  display: 'swap',
-})
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: 'Propure — AI-driven property investment insights',
-  description: 'Propure uses multi-agent AI to offer conversational discovery and analysis of property investment strategies.',
-}
+  title: "Propure — AI-driven property investment insights",
+  description:
+    "Propure uses multi-agent AI to offer conversational discovery and analysis of property investment strategies.",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-
   const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
   const appShell = (content: React.ReactNode) => (
@@ -144,7 +149,7 @@ export default function RootLayout({
           disableTransitionOnChange
           storageKey="propure-theme"
         >
-          {content}
+          <ReduxProvider>{content}</ReduxProvider>
           <Toaster richColors />
         </ThemeProvider>
       </body>
@@ -177,6 +182,5 @@ export default function RootLayout({
     <ClerkProvider publishableKey={clerkPublishableKey}>
       <ConvexClientProvider>{appShell(children)}</ConvexClientProvider>
     </ClerkProvider>
-  )
+  );
 }
-

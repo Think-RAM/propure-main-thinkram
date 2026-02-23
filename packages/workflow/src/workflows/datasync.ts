@@ -85,7 +85,7 @@ export async function processLocationListingTypeWorkflow(
 
 type ScrappingLocationRecord = Doc<"scrapping_locations">;
 
-export type ScrappingStatus = "pending" | "completed";
+export type ScrappingStatus = "pending" | "done" | "failed";
 
 export interface ScrappingLocationWithStatus extends ScrappingLocationRecord {
   status: ScrappingStatus;
@@ -143,7 +143,10 @@ async function fetchScrappingLocations(): Promise<
   }
 
   // return records.map((location: any) => ({ ...location, status: "pending" }));
-  return records.map((location) => ({ ...location, status: "pending" }));
+  return records.map((location) => ({
+    ...location,
+    status: location.status ?? "pending",
+  }));
 }
 
 async function processPendingLocations(
@@ -188,12 +191,13 @@ async function processPendingLocations(
       });
 
       if (allSucceeded) {
-        loc.status = "completed";
+        loc.status = "done";
       } else {
         // leave status pending for strict retry semantics
         console.info(
           `Location ${loc.suburb} left pending due to failures in one or more listing-type workflows`,
         );
+        loc.status = "failed";
       }
     } catch (error) {
       console.error(`Failed to process location ${loc.suburb}:`, error);
