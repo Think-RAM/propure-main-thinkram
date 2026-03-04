@@ -201,6 +201,9 @@ export default defineSchema({
     postcode: v.string(),
     createdAt: v.float64(),
     updatedAt: v.float64(),
+    status: v.optional(
+      v.union(v.literal("pending"), v.literal("done"), v.literal("failed")),
+    ),
   })
     .index("by_state", ["state"])
     .index("by_state_suburb", ["state", "suburb"])

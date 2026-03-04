@@ -436,7 +436,13 @@ function extractSaleDetails($: CheerioAPI, el: unknown) {
 /**
  * Parse Domain.com.au search results page
  */
-export function parseDomainSearchResults({html, listingType}: {html: string, listingType:Pick<PropertyListing,"listingType">["listingType"]}): PropertyListing[] {
+export function parseDomainSearchResults({
+  html,
+  listingType,
+}: {
+  html: string;
+  listingType: Pick<PropertyListing, "listingType">["listingType"];
+}): PropertyListing[] {
   const $ = load(html);
   const listings: PropertyListing[] = [];
 
@@ -450,7 +456,7 @@ export function parseDomainSearchResults({html, listingType}: {html: string, lis
 
   $('[data-testid^="listing-card-wrapper"]').each((_, el) => {
     // console.log(chalk.yellowBright("Parsed listing card: "));
-    const parsed = parseListingCard({$, el, listingType});
+    const parsed = parseListingCard({ $, el, listingType });
 
     // console.dir(parsed, { depth: Infinity });
 
@@ -468,7 +474,15 @@ export function parseDomainSearchResults({html, listingType}: {html: string, lis
   return listings;
 }
 
-function parseListingCard({$, el, listingType}:{$: CheerioAPI, el: unknown, listingType:Pick<PropertyListing,"listingType">["listingType"]}): PropertyListing | null {
+function parseListingCard({
+  $,
+  el,
+  listingType,
+}: {
+  $: CheerioAPI;
+  el: unknown;
+  listingType: Pick<PropertyListing, "listingType">["listingType"];
+}): PropertyListing | null {
   const card = $(el as any);
 
   const href =
@@ -528,8 +542,13 @@ function parseListingCard({$, el, listingType}:{$: CheerioAPI, el: unknown, list
         ? normalizePropertyType(propertyTypeText)
         : featureValues.propertyType,
     },
-    price: priceText.includes("$") ? priceText : undefined,
-    soldPrice: parseCurrency(priceText.includes("$") ? priceText : undefined),
+    price: parseCurrency(
+      priceText.includes("$") ? priceText : undefined,
+    ).toFixed(2),
+    soldPrice:
+      listingType === "sold"
+        ? parseCurrency(priceText.includes("$") ? priceText : undefined)
+        : undefined,
     listingType,
     listingStatus,
     headline: addressLineText || undefined,

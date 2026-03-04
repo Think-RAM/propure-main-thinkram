@@ -7,12 +7,18 @@ const baseShape = v.object({
   state: australianState,
   suburb: v.string(),
   postcode: v.string(),
+  status: v.optional(
+    v.union(v.literal("pending"), v.literal("done"), v.literal("failed")),
+  ),
 });
 
 const patchShape = v.object({
   state: v.optional(australianState),
   suburb: v.optional(v.string()),
   postcode: v.optional(v.string()),
+  status: v.optional(
+    v.union(v.literal("pending"), v.literal("done"), v.literal("failed")),
+  ),
 });
 
 type LocationInput = typeof baseShape.type;
@@ -98,6 +104,7 @@ export const bulkUpsert = mutation({
       if (existing) {
         await ctx.db.patch(existing._id, {
           postcode: location.postcode,
+          status: location.status,
           updatedAt: Date.now(),
         });
       } else {

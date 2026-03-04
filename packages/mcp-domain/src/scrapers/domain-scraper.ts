@@ -106,47 +106,50 @@ async function enrichListingsWithDetails(
     listingType: ListingType,
   ) => Promise<PropertyListing | null>,
 ): Promise<PropertyListing[]> {
-  return Promise.all(
-    listings.map(async (listing) => {
-      if (hasListingPrice(listing)) {
-        return listing;
+  const enrichedListings: PropertyListing[] = [];
+  for (const listing of listings) {
+    if (hasListingPrice(listing)) {
+      enrichedListings.push(listing);
+      continue;
+    }
+
+    try {
+      const details = await fetchDetails(
+        listing.externalId,
+        listing.listingType,
+      );
+
+      if (!details) {
+        enrichedListings.push(listing);
+        continue;
       }
 
-      try {
-        const details = await fetchDetails(
-          listing.externalId,
-          listing.listingType,
-        );
+      enrichedListings.push({
+        ...listing,
+        price: details.price ?? listing.price,
+        priceValue: details.priceValue ?? listing.priceValue,
+        priceFrom: details.priceFrom ?? listing.priceFrom,
+        priceTo: details.priceTo ?? listing.priceTo,
+        description: listing.description ?? details.description,
+        images: listing.images?.length ? listing.images : details.images,
+        agentName: listing.agentName ?? details.agentName,
+        agentPhone: listing.agentPhone ?? details.agentPhone,
+        agencyName: listing.agencyName ?? details.agencyName,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(
+        {
+          listingId: listing.externalId,
+          err: message,
+        },
+        "Failed to enrich listing",
+      );
+      enrichedListings.push(listing);
+    }
+  }
 
-        if (!details) {
-          return listing;
-        }
-
-        return {
-          ...listing,
-          price: details.price ?? listing.price,
-          priceValue: details.priceValue ?? listing.priceValue,
-          priceFrom: details.priceFrom ?? listing.priceFrom,
-          priceTo: details.priceTo ?? listing.priceTo,
-          description: listing.description ?? details.description,
-          images: listing.images?.length ? listing.images : details.images,
-          agentName: listing.agentName ?? details.agentName,
-          agentPhone: listing.agentPhone ?? details.agentPhone,
-          agencyName: listing.agencyName ?? details.agencyName,
-        } satisfies PropertyListing;
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.error(
-          {
-            listingId: listing.externalId,
-            err: message,
-          },
-          "Failed to enrich listing",
-        );
-        return listing;
-      }
-    }),
-  );
+  return enrichedListings;
 }
 
 /**
@@ -225,7 +228,10 @@ async function performDomainSearch(
       throw error;
     }
 
-    const pageListings = parseDomainSearchResults({html,listingType: params.listingType});
+    const pageListings = parseDomainSearchResults({
+      html,
+      listingType: params.listingType,
+    });
     if (!pageListings.length) {
       endedByEmpty = true;
       state.shouldStop = true;
