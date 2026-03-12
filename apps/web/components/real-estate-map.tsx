@@ -15,6 +15,7 @@ import { ChatSidebar } from "./ChatSideBar";
 import { useUserChats } from "@/context/ChatContext";
 import { LeafletMap } from "./maps/LeafletMap";
 import { FloatingNotificationInbox } from "./notification/NotificationBell";
+import { PropertyList } from "./chat/PropertyList";
 
 const MAX_HEIGHT = 180; // px ~ ChatGPT clamp
 
@@ -33,6 +34,7 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
   const {
     activeSessionId,
     activeChatMessages,
+    activeProperties,
     chatsLoading,
     historySidebarOpen,
     createNewChatSession,
@@ -93,6 +95,12 @@ export default function DashboardPage({ closeSidebar }: DashboardPageProps) {
             className="absolute inset-0 w-full h-full"
             isBlurred={!isChatActive}
           />
+          {/* Add a Horizontal Scroll Property List here */}
+          {(activeProperties.length && isChatActive && !historySidebarOpen) && (
+            <div className="absolute bottom-0 left-0 w-full z-20 ms-6">
+              <PropertyList properties={activeProperties} />
+            </div>
+          )}
         </div>
       </div>
 

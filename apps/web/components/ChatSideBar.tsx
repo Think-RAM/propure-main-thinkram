@@ -58,7 +58,7 @@ export function ChatSidebar({
   const lastSentRef = useRef<string | null>(null);
   const scrollElRef = useRef<HTMLDivElement | null>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
-  const { updateChatSessionTitle } = useUserChats();
+  const { updateChatSessionTitle, setActiveProperties } = useUserChats();
   const { setCenter, setResults } = useMap();
 
   const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
@@ -122,6 +122,7 @@ export function ChatSidebar({
             const propData = dataPart.data as PropertiesFoundPayload;
             setCenter(propData.suburb.latLng || AUS_CENTER);
             setResults(propData.listings.map(toSearchResult));
+            setActiveProperties(propData.listings);
             break;
         }
       },
@@ -292,7 +293,9 @@ export function ChatSidebar({
                 <PanelLeft className="h-5 w-5 text-[#0d7377]" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right">Open chats</TooltipContent>
+            <TooltipContent side="left" className="bg-[#242b33] text-[#f7f9fc] border border-white/10">
+              <p>Open chats</p>
+            </TooltipContent>
           </Tooltip>
         </div>
       </div>

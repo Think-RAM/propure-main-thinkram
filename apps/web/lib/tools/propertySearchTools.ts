@@ -83,7 +83,7 @@ export const searchProperties = (dataStream: UIMessageStreamWriter<ChatMessageAI
           count: properties.total,
           suburb: {
             name: "Center Point",
-            latLng: await calculateMapCenter(geocodes),
+            latLng: calculateMapCenter(geocodes),
           },
           listings: properties.data.map((p) => ({
             title: p.headline ?? p.address.displayAddress,
@@ -103,6 +103,7 @@ export const searchProperties = (dataStream: UIMessageStreamWriter<ChatMessageAI
             website: p.source!,
             listedAt: p.listedDate ? new Date(p.listedDate).toISOString() : undefined,
             externalId: p.externalId,
+            images: p.images
           } satisfies ListingData)),
         },
       });

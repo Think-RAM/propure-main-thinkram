@@ -204,6 +204,7 @@ export type ListingData = {
   estimatedGrossYieldPct?: number;
   listedAt?: string;
   externalId?: string;
+  images?: string[];
 }
 
 export type PropertiesFoundPayload = {

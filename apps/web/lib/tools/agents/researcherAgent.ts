@@ -87,7 +87,7 @@ const ResearcherAgentOutputSchema = z.object({
       )
       .default([]),
     notes: z.array(z.string()).default([]),
-  }),
+  }).optional().describe("Key market indicators and statistics for the target suburb/area."),
 
   suburbStatistics: z.object({
     suburb: z.string(),
@@ -116,7 +116,7 @@ const ResearcherAgentOutputSchema = z.object({
         }),
       )
       .default([]),
-  }),
+  }).optional().describe("Suburb-specific statistics and data."),
 
   propertySearches: z.object({
     query: z.object({
@@ -156,7 +156,7 @@ const ResearcherAgentOutputSchema = z.object({
       .default([]),
 
     notes: z.array(z.string()).default([]),
-  }),
+  }).optional().describe("Results from property searches based on the provided criteria."),
 
   externalApiCalls: z.object({
     calls: z
@@ -170,7 +170,7 @@ const ResearcherAgentOutputSchema = z.object({
         }),
       )
       .default([]),
-  }),
+  }).optional().describe("Log of external API calls made during research, for observability."),
 
   // convenience fields derived from strategy
   derivedExpectations: z.object({
@@ -179,7 +179,7 @@ const ResearcherAgentOutputSchema = z.object({
     maxPurchasePrice: MoneyAUD.optional(),
     cashInHand: MoneyAUD.optional(),
     assumptions: z.array(z.string()).default([]),
-  }),
+  }).optional().describe("Derived expectations and benchmarks based on the user's strategy and goals."),
 });
 
 const RESEARCHER_INSTRUCTIONS = `
@@ -221,7 +221,9 @@ const ResearcherAgent = ({
     },
     // Note: Gemini doesn't support Output.object() with tools (function calling)
     // Using text output instead - the orchestrator will synthesize the response
-    output: Output.text(),
+    output: Output.object({
+      schema: ResearcherAgentOutputSchema,
+    }),
     stopWhen: stepCountIs(4),
   });
 
@@ -316,8 +318,8 @@ export const ResearcherAgentTool = ({
           data: { agent: "researcher", status: "complete" },
         });
 
-        // console.log("Ouput From Researcher Agent");
-        // console.dir(result.output, { depth: Infinity });
+        console.log("Ouput From Researcher Agent");
+        console.dir(result.output, { depth: Infinity });
 
         return result.output;
       } catch (error) {

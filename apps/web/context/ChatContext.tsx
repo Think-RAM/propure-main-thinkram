@@ -1,5 +1,5 @@
 "use client";
-import { convertToUIMessages } from "@/lib/utils";
+import { convertToUIMessages, ListingData } from "@/lib/utils";
 import { ChatMessageAI } from "@/types/ai";
 import {
   createContext,
@@ -26,7 +26,9 @@ interface ChatContextType {
   ) => void;
   createNewChatSession: (send: string) => void;
   toggleHistorySidebar: (close?: boolean) => void;
+  setActiveProperties: (properties: ListingData[]) => void;
   activeChatMessages: ChatMessageAI[];
+  activeProperties: ListingData[];
   historyLoading: boolean;
   chatsLoading: boolean;
 }
@@ -45,6 +47,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [isChatsLoading, setIsChatsLoading] = useState(false);
+  const [activeProperties, setActiveProperties] = useState<ListingData[]>([]);
 
   const setActiveSession = useCallback(async (id: string | null) => {
     try {
@@ -150,6 +153,8 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         activeChatMessages,
         historyLoading: isLoading,
         chatsLoading: isChatsLoading,
+        activeProperties,
+        setActiveProperties,
       }}
     >
       {children}
