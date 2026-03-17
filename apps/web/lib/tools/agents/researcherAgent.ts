@@ -27,6 +27,7 @@ interface SearchContext {
 
 interface ResearcherAgentProps {
   searchContext: SearchContext;
+  propertyShortlist: string[]; // list of shortlisted property IDs to cross-reference
   dataStream: UIMessageStreamWriter<ChatMessageAI>;
 }
 
@@ -207,13 +208,14 @@ Always cite data sources and indicate data freshness.
 
 const ResearcherAgent = ({
   searchContext,
+  propertyShortlist,
   dataStream,
 }: ResearcherAgentProps) => {
   const agent = new ToolLoopAgent({
     model: google("gemini-2.5-flash"),
     instructions: RESEARCHER_INSTRUCTIONS,
     tools: {
-      searchProperties: searchProperties(dataStream),
+      searchProperties: searchProperties(dataStream, propertyShortlist),
       getPropertyDetails: getPropertyDetails,
       getComparables: getComparables,
       getSuburbStats: getSuburbStats,
@@ -231,6 +233,7 @@ const ResearcherAgent = ({
 };
 
 export const ResearcherAgentTool = ({
+  propertyShortlist,
   dataStream,
 }: Omit<ResearcherAgentProps, "searchContext">) => {
   return tool({
@@ -296,7 +299,7 @@ export const ResearcherAgentTool = ({
       });
 
       try {
-        const agent = ResearcherAgent({ searchContext, dataStream });
+        const agent = ResearcherAgent({ searchContext, dataStream, propertyShortlist });
         const result = await agent.generate({ prompt: query });
 
         // Write step summaries for observability

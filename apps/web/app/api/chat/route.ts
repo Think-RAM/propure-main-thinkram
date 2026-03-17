@@ -20,8 +20,16 @@ import { convertToUIMessages } from "@/lib/utils";
 import { client } from "@propure/convex/client";
 import {
   api,
-  Doc
+  Doc,
+  Id
 } from "@propure/convex/genereated";
+
+interface ChatRequestBody {
+  id: string;
+  message?: UIMessage;
+  messages?: ChatMessageAI[];
+  strategyId: Id<"strategies"> | null;
+}
 
 /* ======================================================================
    SYSTEM PROMPT
@@ -85,7 +93,7 @@ async function generateTitleFromUserMessage({
    ====================================================================== */
 
 export async function POST(req: Request) {
-  const { id, message, messages, strategyId } = await req.json();
+  const { id, message, messages, strategyId }: ChatRequestBody = await req.json();
 
   console.log(`Processing Chat Id ${id}`)
 
@@ -229,7 +237,7 @@ export async function POST(req: Request) {
             // Strategy Agent
             strategist: StrategyAgentTool({ user, strategyId, dataStream }),
             // Researcher Agent
-            researcher: ResearcherAgentTool({ dataStream }),
+            researcher: ResearcherAgentTool({ dataStream, propertyShortlist: chat?.shortlistedPropertyIds ?? [] }),
             // Analyst Agent
             analyst: AnalystAgentTool({ dataStream }),
           },

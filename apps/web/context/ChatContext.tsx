@@ -20,10 +20,7 @@ interface ChatContextType {
   userChatSessions: Omit<Doc<"chatSessions">, "_id">[];
   activeSessionId: string | null;
   setActiveSession: (id: string | null) => void;
-  updateChatSessionTitle: (
-    id: string,
-    title: string,
-  ) => void;
+  updateChatSessionTitle: (id: string, title: string) => void;
   createNewChatSession: (send: string) => void;
   toggleHistorySidebar: (close?: boolean) => void;
   setActiveProperties: (properties: ListingData[]) => void;
@@ -84,9 +81,9 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
           : session,
       ),
     );
-    // if (id !== generatedId) {
-    //   setActiveSessionId(generatedId);
-    // }
+    if (activeSessionId !== id) {
+      setActiveSessionId(id);
+    }
   }, []);
 
   const createNewChatSession = useCallback((send: string) => {

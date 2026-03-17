@@ -25,7 +25,7 @@ function calculateMedianPrice(
     : prices[mid];
 }
 
-export const searchProperties = (dataStream: UIMessageStreamWriter<ChatMessageAI>) => tool({
+export const searchProperties = (dataStream: UIMessageStreamWriter<ChatMessageAI>, propertyShortlist: string[]) => tool({
   description:
     "Search for properties on Domain.com.au with filters for location, price, type, etc.",
   inputSchema: z.object({
@@ -103,7 +103,8 @@ export const searchProperties = (dataStream: UIMessageStreamWriter<ChatMessageAI
             website: p.source!,
             listedAt: p.listedDate ? new Date(p.listedDate).toISOString() : undefined,
             externalId: p.externalId,
-            images: p.images
+            images: p.images,
+            shortlisted: propertyShortlist.includes(p.externalId),
           } satisfies ListingData)),
         },
       });

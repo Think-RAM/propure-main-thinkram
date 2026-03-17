@@ -127,7 +127,7 @@ export const updateMessage = mutation({
       });
 
       const chatSession = await ctx.db.query("chatSessions").withIndex("by_session_id", (q) => q.eq("sessionId", chatSessionId)).first();
-      if(!chatSession){
+      if (!chatSession) {
         throw new Error("Chat session not found");
       }
       await ctx.db.patch("chatSessions", chatSession._id, {
@@ -165,5 +165,23 @@ export const saveMessages = mutation({
         createdAt,
       });
     }
+  },
+});
+
+export const saveShortlistedProperties = mutation({
+  args: {
+    chatSessionId: v.string(),
+    shortlistedPropertyIds: v.array(v.string()),
+  },
+  handler: async (ctx, { chatSessionId, shortlistedPropertyIds }) => {
+    const chatSession = await ctx.db.query("chatSessions").withIndex("by_session_id", (q) => q.eq("sessionId", chatSessionId)).first();
+    if (!chatSession) {
+      throw new Error("Chat session not found");
+    }
+    const newShortList = Array.from(new Set([...(chatSession.shortlistedPropertyIds ?? []), ...shortlistedPropertyIds]));
+    await ctx.db.patch("chatSessions", chatSession._id, {
+      shortlistedPropertyIds,
+      updatedAt: Date.now(),
+    });
   },
 });

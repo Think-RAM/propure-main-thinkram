@@ -205,6 +205,7 @@ export type ListingData = {
   listedAt?: string;
   externalId?: string;
   images?: string[];
+  shortlisted: boolean;
 }
 
 export type PropertiesFoundPayload = {

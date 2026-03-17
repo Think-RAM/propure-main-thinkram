@@ -22,6 +22,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
 import { ListingData, cn } from "@/lib/utils";
+import { tr } from "zod/v4/locales";
+import { toast } from "sonner";
+import { client } from "@propure/convex/client";
+import { api } from "@propure/convex/genereated";
+import { useUserChats } from "@/context/ChatContext";
 
 function formatWebsiteLabel(website: string) {
   try {
@@ -74,12 +79,15 @@ function Stat({
 function ListingCard({
   listing,
   index,
+  shortlisted,
+  setShortlisted,
 }: {
+  chatSessionId: string;
   listing: ListingData;
   index: number;
+  shortlisted: boolean;
+  setShortlisted: (value: boolean) => void;
 }) {
-  const [shortlisted, setShortlisted] = useState(false);
-
   const hero = listing.images?.[0];
   const source = formatWebsiteLabel(listing.website);
 
@@ -206,7 +214,8 @@ function ListingCard({
         {/* FOOTER */}
         <div className="flex gap-2 pt-3 border-t border-white/10 mt-auto">
           <Button
-            onClick={() => setShortlisted(!shortlisted)}
+            onClick={() => setShortlisted(true)}
+            disabled={shortlisted}
             className={cn(
               "flex-1",
               shortlisted
@@ -236,6 +245,47 @@ function ListingCard({
 
 export function PropertyList({ properties }: { properties: ListingData[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [shortlisted, setShortlisted] = useState<string[]>([]);
+  const { activeSessionId } = useUserChats();
+  // Track newly added IDs since last successful sync
+  const pendingIdsRef = useRef<Set<string>>(new Set());
+
+  // Debounce timer
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  const debouncedSync = () => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      const idsToSync = Array.from(pendingIdsRef.current);
+
+      if (idsToSync.length === 0) return;
+
+      try {
+        await client.mutation(api.functions.chat.saveShortlistedProperties, {
+          chatSessionId: activeSessionId ?? "temp-session-id",
+          shortlistedPropertyIds: shortlisted, // send full latest state
+        });
+
+        // ✅ success → clear pending
+        pendingIdsRef.current.clear();
+        toast.success("Shortlisted properties updated");
+      } catch (error) {
+        console.error("Error shortlisting property:", error);
+
+        // ❌ rollback ONLY newly added IDs
+        setShortlisted((prev) =>
+          prev.filter((id) => !pendingIdsRef.current.has(id)),
+        );
+
+        pendingIdsRef.current.clear();
+
+        toast.error("Failed to shortlist property. Changes reverted.");
+      }
+    }, 3000);
+  };
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;
@@ -341,7 +391,37 @@ export function PropertyList({ properties }: { properties: ListingData[] }) {
         >
           {properties.map((listing, i) => (
             <div key={i} className="snap-start">
-              <ListingCard listing={listing} index={i} />
+              <ListingCard
+                listing={listing}
+                index={i}
+                shortlisted={
+                  listing.shortlisted ||
+                  shortlisted.includes(listing.externalId!)
+                }
+                chatSessionId={activeSessionId ?? ""}
+                setShortlisted={(value) => {
+                  setShortlisted((prev) => {
+                    let updated;
+
+                    if (value) {
+                      updated = [...prev, listing.externalId!];
+
+                      // track newly added
+                      pendingIdsRef.current.add(listing.externalId!);
+                    } else {
+                      updated = prev.filter((id) => id !== listing.externalId);
+
+                      // if user removed before sync → don't send it
+                      pendingIdsRef.current.delete(listing.externalId!);
+                    }
+
+                    return updated;
+                  });
+
+                  // trigger debounce
+                  debouncedSync();
+                }}
+              />
             </div>
           ))}
         </div>
