@@ -23,11 +23,16 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ["rimh2.domainstatic.com.au"],
+    domains: ["rimh2.domainstatic.com.au", "images.unsplash.com"],
     remotePatterns: [
       {
         protocol: "https",
         hostname: "rimh2.domainstatic.com.au",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
         pathname: "/**",
       },
     ],
