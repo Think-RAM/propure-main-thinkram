@@ -486,7 +486,7 @@ export async function scoreProperty(input: {
     model,
     output: Output.object({
       schema: z.object({
-        score: z.number(),
+        score: z.number().describe("Final investment score from 0 to 100 based on weighted evaluation."),
       }),
     }),
     prompt: PROMPTS.SCORE_PROPERTY(
@@ -496,4 +496,6 @@ export async function scoreProperty(input: {
       cleanedDemographics
     ),
   });
+
+  return output;
 }

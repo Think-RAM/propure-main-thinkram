@@ -87,7 +87,7 @@ async function fetchMarketDataAndCalculateMetrics(
             score: 0,
         };
 
-        const score = await scoreProperty({
+        const { score } = await scoreProperty({
             strategy,
             data: {
                 property: enrichedProperty,
