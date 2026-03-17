@@ -15,6 +15,7 @@ import type * as functions_chat from "../functions/chat.js";
 import type * as functions_properties from "../functions/properties.js";
 import type * as functions_sa2geocode from "../functions/sa2geocode.js";
 import type * as functions_scrapingLocations from "../functions/scrapingLocations.js";
+import type * as functions_shortListReports from "../functions/shortListReports.js";
 import type * as functions_strategy from "../functions/strategy.js";
 import type * as functions_suburb from "../functions/suburb.js";
 import type * as functions_suburbMetrics from "../functions/suburbMetrics.js";
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   "functions/properties": typeof functions_properties;
   "functions/sa2geocode": typeof functions_sa2geocode;
   "functions/scrapingLocations": typeof functions_scrapingLocations;
+  "functions/shortListReports": typeof functions_shortListReports;
   "functions/strategy": typeof functions_strategy;
   "functions/suburb": typeof functions_suburb;
   "functions/suburbMetrics": typeof functions_suburbMetrics;

@@ -14,6 +14,7 @@ import { captureDiscoveryInput, clarifyGoal, recommendStrategy, summarizeProfile
 interface ResearcherAgentProps {
   user: Doc<"users"> & { strategies?: Doc<"strategies">[] };
   strategyId: Id<"strategies"> | null;
+  chatId: string;
   dataStream: UIMessageStreamWriter<ChatMessageAI>;
 }
 
@@ -187,12 +188,13 @@ Ask one discovery question at a time. Be conversational, not interrogative. Use 
 const StrategyAgent = ({
   user,
   strategyId,
+  chatId,
 }: Omit<ResearcherAgentProps, "dataStream">) => {
   const agent = new ToolLoopAgent({
     model: google("gemini-2.5-flash"),
     instructions: STRATEGIST_INSTRUCTIONS,
     tools: {
-      captureDiscoveryInput: captureDiscoveryInput(user._id),
+      captureDiscoveryInput: captureDiscoveryInput(user._id, chatId),
       recommendStrategy: recommendStrategy(user._id),
       clarifyGoal: clarifyGoal,
       summarizeProfile: summarizeProfile(user._id),
@@ -209,6 +211,7 @@ const StrategyAgent = ({
 export const StrategyAgentTool = ({
   user,
   strategyId,
+  chatId,
   dataStream,
 }: ResearcherAgentProps) => {
   return tool({
@@ -229,7 +232,7 @@ export const StrategyAgentTool = ({
       });
 
       try {
-        const agentInstance = StrategyAgent({ user, strategyId });
+        const agentInstance = StrategyAgent({ user, strategyId, chatId });
         const result = await agentInstance.generate({
           prompt: query,
         });

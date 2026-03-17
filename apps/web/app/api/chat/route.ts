@@ -235,7 +235,7 @@ export async function POST(req: Request) {
           // toolChoice: "auto",
           tools: {
             // Strategy Agent
-            strategist: StrategyAgentTool({ user, strategyId, dataStream }),
+            strategist: StrategyAgentTool({ user, strategyId, dataStream, chatId: id }),
             // Researcher Agent
             researcher: ResearcherAgentTool({ dataStream, propertyShortlist: chat?.shortlistedPropertyIds ?? [] }),
             // Analyst Agent

@@ -1,6 +1,8 @@
 // packages/convex/convex/schema.ts
 import { defineSchema, defineTable } from "convex/server";
 import { v, Infer } from "convex/values";
+import { update } from "./functions/scrapingLocations";
+import { title } from "node:process";
 
 // Enum validators
 export const strategyType = v.union(
@@ -134,6 +136,7 @@ export default defineSchema({
   // ── Strategies ──
   strategies: defineTable({
     userId: v.id("users"),
+    chatId: v.optional(v.string()),
     type: strategyType,
     status: strategyStatus,
     params: v.optional(v.any()),
@@ -148,9 +151,59 @@ export default defineSchema({
     updatedAt: v.float64(),
   })
     .index("by_user", ["userId"])
+    .index("by_chat", ["chatId"])
     .index("by_type", ["type"])
     .index("by_status", ["status"])
     .index("by_user_status", ["userId", "status"]),
+  
+  shortListReports: defineTable({
+    userId: v.id("users"),
+    strategyId: v.id("strategies"),
+    chatId: v.string(),
+    property: v.array(v.object({
+      id: v.string(),
+      title: v.string(),
+      location: v.string(),
+      images: v.array(v.string()),
+      price: v.float64(),
+      yield: v.float64(),
+      rent: v.float64(),
+      cashFlow: v.float64(),
+      growth: v.float64(),
+      risk: v.string(),
+      daysOnMarket: v.float64(),
+      score: v.float64(),
+      tag: v.optional(v.union(v.literal("recommended"), v.literal("runner-up"))),
+    })),
+    recommendedProperty: v.object({
+      title: v.string(),
+      description: v.string(),
+      confidence: v.float64(),
+    }),
+    aiInsights: v.object({
+      strategy: v.string(),
+      recommendationSummaryMD: v.string(),
+    }),
+    summary: v.object({
+      purchasePrice: v.object({
+        value: v.float64(),
+        description: v.string(),
+      }),
+      cashFlow: v.object({
+        value: v.float64(),
+        description: v.string(),
+      }),
+      growth: v.object({
+        value: v.float64(),
+        description: v.string(),
+      })
+    }),
+
+    createdAt: v.float64(),
+  })
+  .index("by_user", ["userId"])
+  .index("by_strategy", ["strategyId"])
+  .index("by_chat", ["chatId"]),
 
   // ── Saved Searches ──
   savedSearches: defineTable({

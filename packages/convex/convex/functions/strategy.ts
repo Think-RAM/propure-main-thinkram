@@ -119,7 +119,8 @@ export const CreateUpdateStrategy = mutation({
 export const updateUserProfile = mutation({
   args: {
     userId: v.id("users"),
-
+    chatId: v.string(),
+    type: strategyType,
     // Either a top-level field OR a params key
     field: v.optional(
       v.union(
@@ -138,7 +139,7 @@ export const updateUserProfile = mutation({
     context: v.optional(v.string()),
   },
 
-  handler: async (ctx, { userId, field, paramKey, value }) => {
+  handler: async (ctx, { userId, chatId, field, type, paramKey, value }) => {
     if (!field && !paramKey) {
       throw new Error("Either field or paramKey must be provided");
     }
@@ -155,7 +156,8 @@ export const updateUserProfile = mutation({
     if (!strategy) {
       const strategyId = await ctx.db.insert("strategies", {
         userId,
-        type: "CASH_FLOW", // placeholder until recommendation
+        chatId,
+        type,
         status: "DISCOVERY",
         params: {},
         createdAt: Date.now(),
@@ -171,6 +173,7 @@ export const updateUserProfile = mutation({
 
     // 3️⃣ Build patch safely
     const patch: Record<string, any> = {
+      chatId,
       updatedAt: Date.now(),
     };
 

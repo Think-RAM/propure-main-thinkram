@@ -24,7 +24,7 @@ type FieldEnum = z.infer<typeof FieldEnum>;
  * Tool: captureDiscoveryInput
  * Records individual discovery field/value pairs to the user's profile on Convex.
  */
-export const captureDiscoveryInput = (userId: Id<"users">) => tool({
+export const captureDiscoveryInput = (userId: Id<"users">, chatId: string) => tool({
   description:
     "Record user's financial situation, investment goals, or preferences during strategy discovery",
   inputSchema: z.object({
@@ -33,16 +33,26 @@ export const captureDiscoveryInput = (userId: Id<"users">) => tool({
     paramKey: z.string().optional().describe("Optional key for parametric fields"),
     value: z.union([z.string(), z.number(), z.array(z.string())]).describe("The value to store"),
     context: z.string().optional().describe("Optional notes or free text context"),
+    type: z.union([
+      z.literal("CASH_FLOW"),
+      z.literal("CAPITAL_GROWTH"),
+      z.literal("RENOVATION_FLIP"),
+      z.literal("DEVELOPMENT"),
+      z.literal("SMSF"),
+      z.literal("COMMERCIAL"),
+    ]).describe("Primary investment goal/type"),
   }),
-  execute: async ({ field, paramKey, value, context }) => {
+  execute: async ({ field, paramKey, value, context, type }) => {
     try {
       console.log(`captureDiscoveryInput called with field: ${field}, value: ${value}, user ID: ${userId}`);
       await client.mutation(api.functions.strategy.updateUserProfile, {
         userId: userId as Id<"users">,
+        chatId,
         field: field as FieldEnum,
         paramKey,
         value,
         context: context ?? undefined,
+        type,
       });
 
       // Suggest next follow-up hint
@@ -119,7 +129,7 @@ export const summarizeProfile = (userId: Id<"users">) => tool({
   inputSchema: z.object({
     // userId: z.string().describe("User ID"),
   }),
-  execute: async ({}) => {
+  execute: async ({ }) => {
     try {
       const profile = await client.query(api.functions.strategy.GetStrategyByUserId, { userId: userId });
 
@@ -335,10 +345,10 @@ function extractSignals(profile: Doc<"strategies">): ProfileSignals {
     horizon: timeline.includes("short")
       ? "short"
       : timeline.includes("long")
-      ? "long"
-      : timeline
-      ? "medium"
-      : "unknown",
+        ? "long"
+        : timeline
+          ? "medium"
+          : "unknown",
 
     risk:
       risk === "high" || risk === "medium" || risk === "low"
@@ -356,8 +366,8 @@ function extractSignals(profile: Doc<"strategies">): ProfileSignals {
       Array.isArray(experience) && experience.length > 2
         ? "experienced"
         : Array.isArray(experience) && experience.length > 0
-        ? "some"
-        : "none",
+          ? "some"
+          : "none",
 
     incomeFocus:
       profile.params?.cashflowExpectations === "high" ||
