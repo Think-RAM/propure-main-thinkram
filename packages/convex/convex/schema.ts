@@ -110,6 +110,7 @@ export default defineSchema({
     createdAt: v.float64(),
     updatedAt: v.float64(),
     title: v.optional(v.string()),
+    reportGenerated: v.optional(v.boolean()),
     shortlistedPropertyIds: v.optional(v.array(v.string())),
     strategyId: v.optional(v.id("strategies")),
     chatMessages: v.array(v.id("chatMessages")),

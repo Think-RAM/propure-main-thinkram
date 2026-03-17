@@ -11,12 +11,23 @@ interface Props {
 }
 
 export default function PropertyColumn({ property }: Props) {
+  const heroImage =
+    property.images && property.images.length > 0
+      ? property.images[0]
+      : "https://images.unsplash.com/photo-1560185127-6ed189bf02f4";
   return (
     <div className="flex flex-col border-r last:border-r-0 border-neutral-950">
       {/* HEADER */}
       <div className="p-4 border-b border-neutral-950 bg-[#1b212e] relative">
         {property.tag && (
-          <Badge className={cn("absolute top-3 left-3 z-50 py-1 text-sx", property.tag === "recommended" ? "bg-yellow-800 text-yellow-500 hover:bg-yellow-800" : "bg-gray-800 text-white hover:bg-gray-800")}>
+          <Badge
+            className={cn(
+              "absolute top-3 left-3 z-50 py-1 text-sx",
+              property.tag === "recommended"
+                ? "bg-yellow-800 text-yellow-500 hover:bg-yellow-800"
+                : "bg-gray-800 text-white hover:bg-gray-800",
+            )}
+          >
             {property.tag.charAt(0).toUpperCase() +
               property.tag.slice(1).toLowerCase()}
           </Badge>
@@ -29,7 +40,7 @@ export default function PropertyColumn({ property }: Props) {
         {/* Property Image */}
         <div className="relative h-28 rounded-md overflow-hidden mb-3">
           <Image
-            src="https://images.unsplash.com/photo-1560185127-6ed189bf02f4"
+            src={heroImage}
             alt={property.title}
             fill
             sizes="300px"
@@ -52,10 +63,26 @@ export default function PropertyColumn({ property }: Props) {
       </div>
 
       {/* VALUE ROWS */}
-      <ValueRow value={property.yield} suffix="%" highlight={property.yield > 5.6} textHighlight={property.yield > 5} prefix="+"/>
+      <ValueRow
+        value={property.yield}
+        suffix="%"
+        highlight={property.yield > 5.6}
+        textHighlight={property.yield > 5}
+        prefix="+"
+      />
       <ValueRow value={property.rent} prefix="$" suffix="/wk" />
-      <ValueRow value={property.cashFlow} prefix="$" highlight={property.cashFlow > 4000} textHighlight={property.cashFlow > 2500} />
-      <ValueRow value={property.growth} suffix="%" prefix="+" textHighlight={property.growth > 25} />
+      <ValueRow
+        value={property.cashFlow}
+        prefix="$"
+        highlight={property.cashFlow > 4000}
+        textHighlight={property.cashFlow > 2500}
+      />
+      <ValueRow
+        value={property.growth}
+        suffix="%"
+        prefix="+"
+        textHighlight={property.growth > 25}
+      />
       <ValueRow value={property.risk} />
       <ValueRow value={property.daysOnMarket} suffix=" days" />
 
@@ -135,8 +162,8 @@ function ValueRow({
           highlight && isPositive
             ? "bg-green-500/10"
             : isNegative
-            ? "bg-yellow-500/10"
-            : ""
+              ? "bg-yellow-500/10"
+              : ""
         }
       `}
     >
@@ -147,8 +174,8 @@ function ValueRow({
             isPositive && textHighlight
               ? "text-green-400"
               : isNegative && textHighlight
-              ? "text-yellow-400"
-              : "text-neutral-200"
+                ? "text-yellow-400"
+                : "text-neutral-200"
           }
         `}
       >

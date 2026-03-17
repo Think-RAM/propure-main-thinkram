@@ -11,6 +11,7 @@ export interface Property {
   id: string;
   title: string;
   location: string;
+  images: string[];
   price: number;
   yield: number;
   rent: number;

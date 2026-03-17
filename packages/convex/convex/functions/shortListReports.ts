@@ -61,6 +61,7 @@ export const saveShortListReport = mutation({
     },
     handler: async (ctx, { userId, strategyId, chatId, property, recommendedProperty, aiInsights, summary }) => {
         const existingReport = await ctx.db.query("shortListReports").withIndex("by_chat", (q) => q.eq("chatId", chatId)).first();
+        const chat = await ctx.db.query("chatSessions").withIndex("by_session_id", (q) => q.eq("sessionId", chatId)).first();
         if (existingReport) {
             await ctx.db.patch("shortListReports", existingReport._id, {
                 userId,
@@ -71,6 +72,9 @@ export const saveShortListReport = mutation({
                 aiInsights,
                 summary,
                 createdAt: Date.now(),
+            });
+            await ctx.db.patch("chatSessions", chat!._id, {
+                reportGenerated: true,
             });
             return { success: true, message: "Shortlist report updated" };
         }
@@ -83,6 +87,9 @@ export const saveShortListReport = mutation({
             aiInsights,
             summary,
             createdAt: Date.now(),
+        });
+        await ctx.db.patch("chatSessions", chat!._id, {
+            reportGenerated: true,
         });
         return { success: true, message: "Shortlist report created" };
     }

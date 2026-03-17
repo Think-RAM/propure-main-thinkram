@@ -45,6 +45,19 @@ export const GetStrategyByClerkId = query({
   },
 });
 
+export const GetStrategyByChatId = query({
+  args: {
+    chatId: v.string(),
+  },
+  handler: async (ctx, { chatId }) => {
+    const strategy = await ctx.db.query("strategies").withIndex("by_chat", (q) => q.eq("chatId", chatId)).first();
+    if (!strategy) {
+      throw new Error("Not found strategy for chatId: " + chatId);
+    }
+    return strategy;
+  },
+});
+
 export const CreateUpdateStrategy = mutation({
   args: {
     strategyId: v.optional(v.id("strategies")),
