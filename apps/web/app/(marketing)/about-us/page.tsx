@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import Header from "@/components/main/Header";
 import Footer from "@/components/main/Footer";
+import { Metadata } from "next";
 
 // Custom hook for scroll reveal animation
 function useScrollReveal() {
@@ -251,6 +252,12 @@ function TeamCard({
     </div>
   );
 }
+
+export const metadata: Metadata = {
+  title: "About Us - Propure",
+  description:
+    "Discover the story, mission, and team behind Propure. Learn how we're revolutionizing real estate investing with AI-driven insights and a commitment to transparency.",
+};
 
 export default function AboutUsPage() {
   // Initialize scroll reveal animation

@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { UpdateProfileForm } from "@/components/profile/update-profile-form";
 import { DeleteAccountButton } from "@/components/profile/delete-account-button";
 import { NotificationControls } from "@/components/profile/notification-controls";
+import { Metadata } from "next";
 
 function fmtDate(d?: number | null) {
   if (!d) return "—";
@@ -26,6 +27,11 @@ function fmtDate(d?: number | null) {
     day: "numeric",
   });
 }
+
+export const metadata: Metadata = {
+  title: "Profile settings",
+  description: "Manage your account details, sessions, and notifications.",
+};
 
 export default async function SettingsPage() {
   const { userId, sessionId } = await auth();

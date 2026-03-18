@@ -1,4 +1,4 @@
-'use cache';
+"use cache";
 import { Header } from "@/components/property/header";
 import { HeroGallery } from "@/components/property/hero-gallery";
 import { PropertyInfo } from "@/components/property/property-info";
@@ -13,6 +13,7 @@ import { auth } from "@clerk/nextjs/server";
 import { toast } from "sonner";
 import { client } from "@propure/convex/client";
 import { api } from "@propure/convex/genereated";
+import { Metadata } from "next";
 
 interface PropertyPageProps {
   params: Promise<{
@@ -20,11 +21,51 @@ interface PropertyPageProps {
   }>;
 }
 
+export async function generateMetadata({
+  params,
+}: PropertyPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const propertyId = id.split("-")[0];
+  const data = await getPropertyDetails(propertyId, undefined); // Fetch property details without caching for metadata
+
+  return {
+    title: `${data.title} - ${data.location} | Propure`,
+    description: `Explore detailed information, financial metrics, and AI insights for ${data.title} located in ${data.location}.`,
+    applicationName: "Propure",
+    keywords: [
+      "real estate",
+      "property investment",
+      "financial analysis",
+      "cash flow",
+      "rental yield",
+      "property growth",
+      data.location,
+      data.title,
+    ],
+    openGraph: {
+      title: `${data.title} - ${data.location} | Propure`,
+      description: `Explore detailed information, financial metrics, and AI insights for ${data.title} located in ${data.location}.`,
+      images:
+        data.images.length > 0
+          ? {
+              url: data.images[0].url,
+              alt: data.images[0].alt || data.title,
+              width: 1200,
+              height: 630,
+            }
+          : undefined,
+    },
+  };
+}
+
 export default async function PropertyPage({ params }: PropertyPageProps) {
   const { id } = await params;
   const { isAuthenticated } = await auth();
   const [propertyId, chatId] = id.split("-");
-  const data = await getPropertyDetails(propertyId, chatId === "undefined" ? undefined : chatId); // Fetch property details with caching
+  const data = await getPropertyDetails(
+    propertyId,
+    chatId === "undefined" ? undefined : chatId,
+  ); // Fetch property details with caching
 
   const handleShortlist = async () => {
     if (!isAuthenticated && chatId !== "undefined") {

@@ -1,6 +1,13 @@
 'use client'
 import LoadingLoginCard from "@/components/loaders/loading-login-card";
 import { SignIn } from "@clerk/nextjs";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign In",
+  description: "Access your Propure account to manage your property investments and view personalized insights.",
+  applicationName: "Propure",
+}
 
 export default function Page() {
   const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;

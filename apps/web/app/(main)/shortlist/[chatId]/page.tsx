@@ -6,6 +6,7 @@ import SummarySection from "@/components/shortlist/SummarySection";
 import NextSteps from "@/components/shortlist/NextSteps";
 import { client } from "@propure/convex/client";
 import { api } from "@propure/convex/genereated";
+import { Metadata } from "next";
 
 export interface Property {
   id: string;
@@ -28,6 +29,12 @@ interface ShortlistPageProps {
     chatId: string;
   }>;
 }
+
+export const metadata: Metadata = {
+  title: "Shortlist Report",
+  description: "Detailed analysis and AI insights for your shortlisted properties.",
+  applicationName: "Propure",
+} 
 
 export default async function Page({ params }: ShortlistPageProps) {
   const { chatId } = await params;
