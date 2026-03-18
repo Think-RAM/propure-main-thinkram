@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Footer from "@/components/main/Footer";
 import Header from "@/components/main/Header";
-import { Metadata } from "next";
 
 // Custom hook for scroll reveal animation
 function useScrollReveal() {
@@ -612,12 +611,6 @@ function BackgroundOrbs() {
 //             />
 //       );
 // }
-
-export const metadata: Metadata = {
-  title: "Pricing - Propure",
-  description:
-    "Explore Propure's flexible pricing plans designed to fit every investor's needs. From our free Starter plan to our comprehensive Enterprise solution, discover the perfect tier for your property investment journey.",
-};
 
 export default function PricingPage() {
   const [activeAccordion, setActiveAccordion] = useState<number | null>(null);

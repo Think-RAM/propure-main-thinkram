@@ -1,4 +1,12 @@
 import Image from "next/image";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign In",
+  description: "Access your Propure account to manage your property investments and view personalized insights.",
+  applicationName: "Propure",
+}
+
 
 
 export default async function AuthLayout({

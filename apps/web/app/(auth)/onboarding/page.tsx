@@ -1,13 +1,6 @@
 import OnboardingWizard from "@/components/onboarding-wizard";
 import { currentUser } from "@/lib/clerk/currentUser";
-import { Metadata } from "next";
 import { use } from "react";
-
-export const metadata: Metadata = {
-  title: "Onboarding - Propure",
-  description: "Get started with Propure by completing the onboarding process.",
-  applicationName: "Propure",
-}
 
 export default function OnboardingPage() {
   const user = use(currentUser());

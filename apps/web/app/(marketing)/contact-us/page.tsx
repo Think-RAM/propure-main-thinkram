@@ -19,7 +19,6 @@ import {
   Github,
   SatelliteDish
 } from 'lucide-react'
-import { Metadata } from 'next'
 
 // Hook for scroll reveal animation
 function useScrollReveal() {
@@ -233,12 +232,6 @@ function ContactForm() {
     </div>
   )
 }
-
-export const metadata: Metadata = {
-  title: "Contact Us - Propure",
-  description:
-    "Get in touch with the Propure team. Whether you have questions, need support, or want to explore partnership opportunities, we're here to help. Contact us through our various channels and we'll respond promptly.",
-};
 
 export default function ContactUsPage() {
   useScrollReveal()
