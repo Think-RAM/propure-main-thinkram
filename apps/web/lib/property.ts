@@ -226,6 +226,5 @@ const _getPropertyDetails = async (propertyId: string, chatId?: string) => {
 };
 
 export const getPropertyDetails = async (propertyId: string, chatId?: string) => {
-  "use cache";
   return _getPropertyDetails(propertyId, chatId);
 }

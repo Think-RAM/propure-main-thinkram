@@ -1,3 +1,4 @@
+'use cache';
 import { Header } from "@/components/property/header";
 import { HeroGallery } from "@/components/property/hero-gallery";
 import { PropertyInfo } from "@/components/property/property-info";
@@ -21,9 +22,9 @@ interface PropertyPageProps {
 
 export default async function PropertyPage({ params }: PropertyPageProps) {
   const { id } = await params;
-  const [propertyId, chatId] = id.split("-");
   const { isAuthenticated } = await auth();
-  const data = await getPropertyDetails(propertyId, chatId); // Fetch property details with caching
+  const [propertyId, chatId] = id.split("-");
+  const data = await getPropertyDetails(propertyId, chatId === "undefined" ? undefined : chatId); // Fetch property details with caching
 
   const handleShortlist = async () => {
     if (!isAuthenticated && chatId !== "undefined") {

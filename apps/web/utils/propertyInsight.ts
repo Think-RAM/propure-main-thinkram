@@ -219,6 +219,7 @@ export const getPropertyProjections = async (property: Doc<"properties">, suburb
                 id: "optimistic-projections",
                 type: "optimistic",
                 ...OptimiticProjections,
+                isRecommended: true,
 
             },
             {
@@ -230,7 +231,6 @@ export const getPropertyProjections = async (property: Doc<"properties">, suburb
                 id: "base-projections",
                 type: "base",
                 ...NeutralProjections,
-                isRecommended: true,
             }
         ] satisfies Scenario[];
 
