@@ -7,8 +7,11 @@ import { RiskAnalysis } from "@/components/property/risk-analysis";
 import { ScenariosSection } from "@/components/property/scenarios-section";
 import { ComparablesTable } from "@/components/property/comparables-table";
 import { AIInsights } from "@/components/property/ai-insights";
-import { mockData } from "@/lib/property";
+import { getPropertyDetails } from "@/lib/property";
 import { auth } from "@clerk/nextjs/server";
+import { toast } from "sonner";
+import { client } from "@propure/convex/client";
+import { api } from "@propure/convex/genereated";
 
 interface PropertyPageProps {
   params: Promise<{
@@ -20,31 +23,42 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
   const { id } = await params;
   const [propertyId, chatId] = id.split("-");
   const { isAuthenticated } = await auth();
+  const data = await getPropertyDetails(propertyId, chatId); // Fetch property details with caching
 
+  const handleShortlist = async () => {
+    if (!isAuthenticated && chatId !== "undefined") {
+      toast.error("Please log in to add properties to your shortlist.");
+      return;
+    }
+    await client.mutation(api.functions.chat.saveShortlistedProperties, {
+      chatSessionId: chatId,
+      shortlistedPropertyIds: [propertyId], // send full latest state
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#0f1419] text-zinc-100">
-      <Header />
+      <Header isAuthenticated={isAuthenticated} onShortlist={handleShortlist} />
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        <HeroGallery images={mockData.images} />
+        <HeroGallery images={data.images} />
 
-        <PropertyInfo data={mockData} isAuth={isAuthenticated} />
+        <PropertyInfo data={data} isAuth={isAuthenticated} />
 
-        <FinancialGrid metrics={mockData.financials} />
+        <FinancialGrid metrics={data.financials} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <CashflowChart data={mockData.cashflow} />
+            <CashflowChart data={data.cashflow} />
           </div>
-          <RiskAnalysis risk={mockData.risk} />
+          <RiskAnalysis risk={data.risk} />
         </div>
 
-        <ScenariosSection scenarios={mockData.scenarios} />
+        <ScenariosSection scenarios={data.scenarios} />
 
-        <ComparablesTable data={mockData.comparables} />
+        <ComparablesTable data={data.comparables} />
 
-        {isAuthenticated && <AIInsights data={mockData.aiInsights} />}
+        {isAuthenticated && <AIInsights data={data.aiInsights!} />}
       </main>
     </div>
   );

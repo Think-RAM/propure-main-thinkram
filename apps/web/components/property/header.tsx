@@ -1,25 +1,23 @@
 "use client";
-import { ArrowLeft, Share2, Bookmark, LayoutGrid } from "lucide-react";
+import { ArrowLeft, Share2, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface HeaderProps {
-  onBack?: () => void;
   onShare?: () => void;
-  onSave?: () => void;
   onShortlist?: () => void;
+  isAuthenticated: boolean;
 }
 
-export function Header({ onBack, onShare, onSave, onShortlist }: HeaderProps) {
+export function Header({ onShare, onShortlist, isAuthenticated }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-zinc-800 bg-[#0f1419]/80 backdrop-blur supports-[backdrop-filter]:bg-[#0f1419]/60">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Left: Back Button */}
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Search
+        <button className="flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors">
+          <Link href={`${isAuthenticated ? "/dashboard" : "/"}`}>
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
         </button>
 
         {/* Right: Actions */}
@@ -34,24 +32,16 @@ export function Header({ onBack, onShare, onSave, onShortlist }: HeaderProps) {
             Share
           </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onSave}
-            className="border-zinc-700 text-black hover:text-black hover:border-zinc-500 hover:bg-white"
-          >
-            <Bookmark className="mr-2 h-4 w-4" />
-            Save
-          </Button>
-
-          <Button
-            size="sm"
-            onClick={onShortlist}
-            className="bg-emerald-500 text-black hover:bg-emerald-400"
-          >
-            <LayoutGrid className="mr-2 h-4 w-4" />
-            Add to Shortlist
-          </Button>
+          {isAuthenticated && (
+            <Button
+              size="sm"
+              onClick={onShortlist}
+              className="bg-emerald-500 text-black hover:bg-emerald-400"
+            >
+              <LayoutGrid className="mr-2 h-4 w-4" />
+              Add to Shortlist
+            </Button>
+          )}
         </div>
       </div>
     </header>

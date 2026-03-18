@@ -45,7 +45,7 @@ export const getSuburbStats = tool({
             if (includeMarketTrends && postcode) {
                 const suburbId = await client.query(api.functions.suburb.getSuburbIdByName, { postcode });
                 promises.push(
-                    client.query(api.functions.suburbMetrics.getSuburbMetrics, { suburbId })
+                    client.query(api.functions.suburbMetrics.getSuburbMetrics, { postcode })
                 );
             }
 
