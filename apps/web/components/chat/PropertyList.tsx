@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { client } from "@propure/convex/client";
 import { api } from "@propure/convex/genereated";
 import { useUserChats } from "@/context/ChatContext";
+import Link from "next/link";
 
 function formatWebsiteLabel(website: string) {
   try {
@@ -77,6 +78,7 @@ function Stat({
 }
 
 function ListingCard({
+  chatSessionId,
   listing,
   index,
   shortlisted,
@@ -233,9 +235,9 @@ function ListingCard({
             variant="ghost"
             className="hover:text-emerald-400"
           >
-            <a href={listing.url} target="_blank">
+            <Link href={`/property/${listing.externalId}-${chatSessionId}`} target="_blank">
               <ExternalLink size={16} />
-            </a>
+            </Link>
           </Button>
         </div>
       </div>

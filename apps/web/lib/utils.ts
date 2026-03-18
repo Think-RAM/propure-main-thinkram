@@ -286,5 +286,6 @@ export function toSearchResult(listing: PropertiesFoundPayload["listings"][numbe
     beds: listing.beds ?? 0,
     baths: listing.baths ?? 0,
     cars: listing.cars ?? 0,
+    externalId: listing.externalId!,
   };
 }

@@ -46,6 +46,7 @@ export type SearchResult = {
   beds?: number;
   baths?: number;
   cars?: number;
+  externalId: string;
 };
 
 type MapContextType = {

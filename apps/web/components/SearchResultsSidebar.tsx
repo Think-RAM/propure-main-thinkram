@@ -1,20 +1,9 @@
 "use client";
 
-import { useMap } from "@/context/MapContext";
+import { SearchResult, useMap } from "@/context/MapContext";
 import { X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
-
-type SearchResult = {
-  title: string;
-  description: string;
-  yield: string;
-  gradientFrom: string;
-  gradientTo: string;
-  yieldColor: string;
-  lat: number;
-  lng: number;
-};
 
 type Props = {
   isSearchActive: boolean;
@@ -32,6 +21,7 @@ const baseSearchResults: SearchResult[] = [
     yieldColor: "text-cyan-600",
     lat: 40.7589,
     lng: -73.9851,
+    externalId: "listing-001",
   },
   {
     title: "Riverside Heights",
@@ -42,6 +32,7 @@ const baseSearchResults: SearchResult[] = [
     yieldColor: "text-teal-600",
     lat: 40.6892,
     lng: -74.0445,
+    externalId: "listing-002",
   },
   {
     title: "Tech Quarter",
@@ -52,6 +43,7 @@ const baseSearchResults: SearchResult[] = [
     yieldColor: "text-cyan-700",
     lat: 40.7505,
     lng: -73.9934,
+    externalId: "listing-003",
   },
   {
     title: "Marina Bay",
@@ -62,6 +54,7 @@ const baseSearchResults: SearchResult[] = [
     yieldColor: "text-teal-700",
     lat: 40.7282,
     lng: -73.7949,
+    externalId: "listing-004",
   },
 ];
 

@@ -12,7 +12,7 @@ import { auth } from "@clerk/nextjs/server";
 
 interface PropertyPageProps {
   params: Promise<{
-    id: string;
+    id: `${string}-${string | undefined}`;
   }>;
 }
 

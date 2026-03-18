@@ -14,6 +14,7 @@ import { LayerInfoLabelNames, Layers } from "@/lib/map/layers";
 import { fetchDetailsAtPoint } from "@/lib/utils";
 import { SearchResult } from "@/context/MapContext";
 import { useEffect, useState } from "react";
+import { useUserChats } from "@/context/ChatContext";
 
 type PropertyCardProps = {
   property: SearchResult;
@@ -112,6 +113,7 @@ const DEFAULT_LAYERS: Layers[] = [
 
 export function PropertyPreviewCard({ property }: PropertyCardProps) {
   const router = useRouter();
+  const { activeSessionId } = useUserChats();
 
   const [layers] = useState<Layers[]>(DEFAULT_LAYERS);
 
@@ -249,9 +251,7 @@ export function PropertyPreviewCard({ property }: PropertyCardProps) {
             variant="secondary"
             onClick={() =>
               router.push(
-                `/details?id=${encodeURIComponent(
-                  property.title.toLowerCase().split(" ").join("-")
-                )}`
+                `/property/${property.externalId}-${activeSessionId ?? "undefined"}`
               )
             }
           >
